@@ -1,0 +1,71 @@
+/* ====== Estilos globales ====== */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f7f7f7;
+  margin: 0;
+  padding: 0;
+  color: #333;
+}
+
+h1 {
+  text-align: center;
+  margin: 1rem 0;
+  font-size: 1.8rem;
+  color: #222;
+}
+
+/* ====== Lista de arquitectos ====== */
+.arquitecto-list {
+  display: grid;
+  gap: 1rem;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* ====== Card de arquitecto ====== */
+.arquitecto {
+  background: #fff;
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.arquitecto:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.arquitecto p {
+  margin: 0.25rem 0;
+  font-size: 0.95rem;
+}
+
+/* ====== Menú Superior ====== */
+.menu-superior {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;  /* distribuye los items */
+  background: #fff;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid #e5e5e5;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.menu-superior p {
+  margin: 0;
+  padding: 0 1rem;
+  font-size: 0.95rem;
+  color: #333;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.menu-superior p:hover {
+  color: #0077ff;
+}
+
