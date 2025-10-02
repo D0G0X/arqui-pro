@@ -1,4 +1,4 @@
-import type { IUsuario } from './IUsuario.js';
+import type { IUsuario } from './IUsuario';
 
 export default interface IModerador {
     id_moderador: number;
