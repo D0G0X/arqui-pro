@@ -1,3 +1,6 @@
+import type { IAvance } from "./IAvance";
+import type { IImagen } from "./IImagen"
+
 export interface IProyecto{
     id_proyecto: string;
     id_arquitecto: string;
@@ -9,4 +12,6 @@ export interface IProyecto{
     descripcion: string;
     tipo_proyecto: "portafolio" | "contratado";
     fecha_publicacion: Date;
+    avances?: IAvance[];
+    imagenes?: IImagen[]; 
 }
