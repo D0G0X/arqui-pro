@@ -3,7 +3,7 @@ import type { IUsuario } from './IUsuario';
 export default interface IArquitecto {
     id_arquitecto: number;
     usuario: IUsuario; // Relación con Usuario
-    cedula: string;
+    identificacion: string;
     valoracion_prom_proyecto: number;
     descripcion: string;
     especialidades: string[];
