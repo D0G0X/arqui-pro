@@ -41,7 +41,7 @@ module Api
             private
 
             def usuario_params
-                params.require(:usuario).permit(:nombre, :apellido, :email, :estado, :password, :rol, :fecha_registro, :foto_perfil)
+                params.require(:usuario).permit(:nombre, :apellido, :email, :estado_cuenta, :password, :rol, :fecha_registro, :foto_perfil)
             end
 
             def set_usuario

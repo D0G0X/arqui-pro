@@ -12,6 +12,10 @@ Rails.application.routes.draw do
       resources :usuarios
       resources :clientes
       resources :arquitectos
+      resources :moderadores
+      resources :conversaciones
+      resources :notificaciones
+      resources :verificaciones
     end
   end
 end

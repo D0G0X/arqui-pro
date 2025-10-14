@@ -14,3 +14,17 @@
 # ActiveSupport::Inflector.inflections(:en) do |inflect|
 #   inflect.acronym "RESTful"
 # end
+ActiveSupport::Inflector.inflections(:en) do |inflect|
+  inflect.irregular 'moderador', 'moderadores'
+  inflect.irregular 'conversacion', 'conversaciones'
+  inflect.irregular 'validacion', 'validaciones'
+  inflect.irregular 'incidencia', 'incidencias'
+  inflect.irregular 'verificacion', 'verificaciones'
+  inflect.irregular 'valoracion', 'valoraciones'
+  inflect.irregular 'proyecto', 'proyectos'
+  inflect.irregular 'solicitudproyecto', 'solicitudesproyecto'
+  inflect.irregular 'avance', 'avances'
+  inflect.irregular 'imagen', 'imagenes'
+  inflect.irregular 'notificacion', 'notificaciones'
+  inflect.irregular 'mensaje', 'mensajes'
+end

@@ -1,7 +1,7 @@
 class CreateClientes < ActiveRecord::Migration[8.0]
   def change
     create_table :clientes, id: :uuid do |t|
-      t.string :cedula
+      t.string :cedula, null: false
       t.references :usuario, null: false, foreign_key: true, type: :uuid
 
       t.timestamps
