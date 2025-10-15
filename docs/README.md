@@ -54,13 +54,111 @@ Cómo funciona el mapeo HTTP
   - Si aparece error sin extension o con code que empieza por "5" → HTTP 500.
   - Si sólo hay errores de negocio (por ejemplo "202" o "300") o no hay errores → HTTP 200 (respuesta con campo "errors" en el body).
 
-Ejemplo: mutación crear usuario (Thunder Client / Raw JSON)
-- Endpoint: POST http://127.0.0.1:8000/graphql
-- Header: Content-Type: application/json
-- Body:
+
+# Uso: llamadas GraphQL (UI) vs Raw JSON (POST)
+
+Resumen rápido
+- Endpoint GraphQL (API): POST http://127.0.0.1:8000/graphql — usar para GraphQL desde clientes (Thunder Client, curl).
+- UI GraphiQL (interactivo): GET http://127.0.0.1:8000/graphql/ui — pegar queries/mutations directamente.
+- Header requerido para POST: `Content-Type: application/json`
+- HTTP mapping implementado:
+  - 200 OK → éxito o errores de negocio (ej. extensions.code "202"/"300")
+  - 400 Bad Request → errores con extensions.code que empiezan por "4"
+  - 500 Internal Server Error → errores sin extensions o con code que empieza por "5"
+
+Cómo usar: ejemplos para cada operación
+- Dos formas de ejecutar:
+  1. UI GraphiQL / pestaña GraphQL en Thunder — pegar la Query/Mutation directamente y, si aplica, las Variables en el panel Variables.
+  2. Raw JSON POST — enviar un objeto JSON con keys `query`, `variables` (opcional) y `operationName` (opcional).
+
+1) Listar usuarios
+- GraphQL (UI / GraphQL tab):
+```graphql
+query ListarUsuarios {
+  listarUsuarios {
+    id
+    nombre
+    apellido
+    email
+    estadoCuenta
+    rol
+    fechaRegistro
+    fotoPerfil
+  }
+}
+```
+- Raw JSON (POST body):
 ```json
 {
-  "query": "mutation CrearUsuario($input: UsuarioInput!) { crearUsuario(input: $input) { id nombre apellido email estadoCuenta rol createdAt updatedAt } }",
+  "query": "query ListarUsuarios { listarUsuarios { id nombre apellido email estadoCuenta rol fechaRegistro fotoPerfil } }",
+  "variables": {}
+}
+```
+
+2) Obtener usuario por id
+- GraphQL:
+```graphql
+query ObtenerUsuario($id: ID!) {
+  obtenerUsuario(id: $id) {
+    id
+    nombre
+    apellido
+    email
+    estadoCuenta
+    rol
+    fechaRegistro
+    fotoPerfil
+  }
+}
+```
+- Variables (GraphQL tab / JSON):
+```json
+{
+  "id": "6954e4dd-f142-402c-9351-44b28a3526e6"
+}
+```
+- Raw JSON:
+```json
+{
+  "query": "query ObtenerUsuario($id: ID!) { obtenerUsuario(id: $id) { id nombre apellido email estadoCuenta rol fechaRegistro fotoPerfil } }",
+  "variables": { "id": "6954e4dd-f142-402c-9351-44b28a3526e6" }
+}
+```
+
+3) Crear usuario
+- GraphQL:
+```graphql
+mutation CrearUsuario($input: UsuarioInput!) {
+  crearUsuario(input: $input) {
+    id
+    nombre
+    apellido
+    email
+    estadoCuenta
+    rol
+    fechaRegistro
+    fotoPerfil
+  }
+}
+```
+- Variables:
+```json
+{
+  "input": {
+    "nombre": "Juan",
+    "apellido": "Pérez",
+    "email": "juan@example.com",
+    "password": "secret123",
+    "estadoCuenta": "activo",
+    "rol": "cliente",
+    "fotoPerfil": null
+  }
+}
+```
+- Raw JSON:
+```json
+{
+  "query": "mutation CrearUsuario($input: UsuarioInput!) { crearUsuario(input: $input) { id nombre apellido email estadoCuenta rol fechaRegistro fotoPerfil } }",
   "variables": {
     "input": {
       "nombre": "Juan",
@@ -68,26 +166,131 @@ Ejemplo: mutación crear usuario (Thunder Client / Raw JSON)
       "email": "juan@example.com",
       "password": "secret123",
       "estadoCuenta": "activo",
-      "rol": "user",
+      "rol": "cliente",
       "fotoPerfil": null
     }
   }
 }
 ```
 
-Respuestas esperadas
-- Validación faltante (400):
-  - HTTP status: 400
-  - Body.errors[0].extensions.code === "400"
-- Email duplicado (business code 202):
-  - HTTP status: 200
-  - Body.errors[0].extensions.code === "202"
-- Error inesperado (sin extensions):
-  - HTTP status: 500
+4) Actualizar usuario
+- GraphQL:
+```graphql
+mutation ActualizarUsuario($id: ID!, $input: UsuarioInput!) {
+  actualizarUsuario(id: $id, input: $input) {
+    id
+    nombre
+    apellido
+    email
+    estadoCuenta
+    rol
+    fechaRegistro
+    fotoPerfil
+  }
+}
+```
+- Variables:
+```json
+{
+  "id": "a38358d2-ad56-41ef-8f30-b8b1320a0c31",
+  "input": {
+    "nombre": "Juan Actualizado",
+    "apellido": "Pérez",
+    "email": "juan.actualizado@example.com",
+    "password": "nuevoSecret123",
+    "estadoCuenta": "activo",
+    "rol": "cliente",
+    "fotoPerfil": null
+  }
+}
+```
+- Raw JSON:
+```json
+{
+  "query": "mutation ActualizarUsuario($id: ID!, $input: UsuarioInput!) { actualizarUsuario(id: $id, input: $input) { id nombre apellido email estadoCuenta rol fechaRegistro fotoPerfil } }",
+  "variables": {
+    "id": "a38358d2-ad56-41ef-8f30-b8b1320a0c31",
+    "input": {
+      "nombre": "Juan Actualizado",
+      "apellido": "Pérez",
+      "email": "juan.actualizado@example.com",
+      "password": "nuevoSecret123",
+      "estadoCuenta": "activo",
+      "rol": "cliente",
+      "fotoPerfil": null
+    }
+  }
+}
+```
 
-Notas y buenas prácticas
-- Mantener las validaciones en UseCases; lanzar GraphQLError con `extensions={"code": "<código>"}`.
-- No devolver `password`/`password_hash` en tipos públicos.
-- Usar Alembic para migraciones en producción.
-- Hashear contraseñas (bcrypt/argon2) en UseCase antes de persistir.
+5) Eliminar usuario
+- GraphQL (mutation enviada por POST):
+```graphql
+mutation EliminarUsuario($id: ID!) {
+  eliminarUsuario(id: $id)
+}
+```
+- Variables:
+```json
+{ "id": "6954e4dd-f142-402c-9351-44b28a3526e6" }
+```
+- Raw JSON:
+```json
+{
+  "query": "mutation EliminarUsuario($id: ID!) { eliminarUsuario(id: $id) }",
+  "variables": { "id": "6954e4dd-f142-402c-9351-44b28a3526e6" }
+}
+```
 
+Ejemplos de respuestas (formato)
+- Éxito (200):
+```json
+{
+  "data": {
+    "crearUsuario": {
+      "id": "uuid",
+      "nombre": "Juan",
+      ...
+    }
+  }
+}
+```
+- Error de validación (mapeado a 400 si extensions.code empieza por "4"):
+HTTP status: 400
+Body:
+```json
+{
+  "data": null,
+  "errors": [
+    { "message": "email inválido", "extensions": { "code": "400" } }
+  ]
+}
+```
+- Error de negocio (p. ej. email duplicado, code "202"):
+HTTP status: 200
+Body:
+```json
+{
+  "data": null,
+  "errors": [
+    { "message": "email ya existente", "extensions": { "code": "202" } }
+  ]
+}
+```
+- Error inesperado (sin extensions → mapeado a 500):
+HTTP status: 500
+Body:
+```json
+{
+  "data": null,
+  "errors": [
+    { "message": "Internal server error" }
+  ]
+}
+```
+
+Consejos prácticos
+- En Thunder Client: en la pestaña GraphQL pega la Query/Mutation y en Variables pega el JSON. Alternativamente usa Raw → JSON con los objetos `{"query": "...", "variables": {...}}`.
+- Para debug rápido: probar en UI GraphiQL en /graphql/ui (autocompletado del schema).
+- Revisa `errors[].extensions.code` para decidir acción en el cliente (409/alerta/mostrar mensaje).
+- No uses métodos HTTP distintos (PUT/DELETE) para operaciones GraphQL: siempre POST (queries simples pueden usar GET).

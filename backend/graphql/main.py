@@ -69,7 +69,12 @@ async def graphql_post(request: Request):
 
     return JSONResponse(content=payload, status_code=status_code)
 
-# mantener UI (GraphiQL) en /graphql/ui para evitar conflicto de rutas POST
+# Añadir GET para redirigir a la UI y evitar 405 al abrir /graphql en el navegador
+@app.get("/graphql")
+async def graphql_get():
+    return RedirectResponse(url="/graphql/ui")
+
+# Mantener UI (GraphiQL) en /graphql/ui para evitar conflicto de rutas POST
 app.include_router(graphql_app, prefix="/graphql/ui")
 
 @app.get("/")

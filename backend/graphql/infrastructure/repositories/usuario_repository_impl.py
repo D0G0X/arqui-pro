@@ -37,26 +37,54 @@ class UsuarioRepositoryImpl(UsuarioRepository):
 
     async def obtener_todos(self) -> List[Usuario]:
         result = await self.db.execute(select(UsuarioModel))
-        modelos = result.scalars().all()
+        rows = result.scalars().all()
         return [
             Usuario(
-                id=str(m.id) if m.id else None,
-                nombre=m.nombre,
-                apellido=m.apellido,
-                email=m.email,
-                estado_cuenta=m.estado_cuenta,
-                password_hash=m.password,
-                rol=m.rol,
-                fecha_registro=m.fecha_registro,
-                foto_perfil=m.foto_perfil
-            )
-            for m in modelos
+                id=str(r.id),
+                nombre=r.nombre,
+                apellido=r.apellido,
+                email=r.email,
+                estado_cuenta=r.estado_cuenta,
+                password_hash=r.password,
+                rol=r.rol,
+                fecha_registro=r.fecha_registro,
+                foto_perfil=r.foto_perfil
+            ) for r in rows
         ]
 
     async def obtener_por_id(self, id_usuario: str) -> Optional[Usuario]:
-        model = await self.db.get(UsuarioModel, id_usuario)
+        result = await self.db.execute(select(UsuarioModel).where(UsuarioModel.id == id_usuario))
+        r = result.scalars().first()
+        if not r:
+            return None
+        return Usuario(
+            id=str(r.id),
+            nombre=r.nombre,
+            apellido=r.apellido,
+            email=r.email,
+            estado_cuenta=r.estado_cuenta,
+            password_hash=r.password,
+            rol=r.rol,
+            fecha_registro=r.fecha_registro,
+            foto_perfil=r.foto_perfil
+        )
+
+    async def actualizar(self, id_usuario: str, datos: dict) -> Optional[Usuario]:
+        # traer modelo
+        result = await self.db.execute(select(UsuarioModel).where(UsuarioModel.id == id_usuario))
+        model = result.scalars().first()
         if not model:
             return None
+        # actualizar campos permitidos
+        for key in ("nombre", "apellido", "email", "estado_cuenta", "rol", "foto_perfil"):
+            if key in datos and datos[key] is not None:
+                setattr(model, key, datos[key])
+        # password si viene (en producción: hash)
+        if "password_hash" in datos and datos["password_hash"]:
+            model.password = datos["password_hash"]
+        self.db.add(model)
+        await self.db.commit()
+        await self.db.refresh(model)
         return Usuario(
             id=str(model.id),
             nombre=model.nombre,
@@ -69,18 +97,15 @@ class UsuarioRepositoryImpl(UsuarioRepository):
             foto_perfil=model.foto_perfil
         )
 
-    async def actualizar(self, id_usuario: str, datos: dict) -> Usuario:
-        await self.db.execute(
-            update(UsuarioModel)
-            .where(UsuarioModel.id == id_usuario)
-            .values(**datos)
-        )
-        await self.db.commit()
-        return await self.obtener_por_id(id_usuario)
-
     async def eliminar(self, id_usuario: str) -> bool:
-        await self.db.execute(
-            delete(UsuarioModel).where(UsuarioModel.id == id_usuario)
-        )
+        result = await self.db.execute(select(UsuarioModel).where(UsuarioModel.id == id_usuario))
+        model = result.scalars().first()
+        if not model:
+            return False
+        await self.db.delete(model)
         await self.db.commit()
         return True
+
+    async def existe_por_email(self, email: str) -> bool:
+        result = await self.db.execute(select(UsuarioModel).where(UsuarioModel.email == email))
+        return result.scalars().first() is not None
