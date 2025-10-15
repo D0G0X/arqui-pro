@@ -5,8 +5,6 @@ class CreateNotificaciones < ActiveRecord::Migration[8.0]
       t.date :fecha, null: false
       t.boolean :leido, null: false, default: false
       t.references :usuario, null: false, foreign_key: true, type: :uuid
-
-      t.timestamps
     end
   end
 end
