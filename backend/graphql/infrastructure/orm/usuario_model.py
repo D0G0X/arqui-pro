@@ -13,14 +13,5 @@ class UsuarioModel(Base):
     estado_cuenta = Column(String, nullable=False, default="activo")
     password = Column(String, nullable=False)  # password hash
     rol = Column(String, nullable=False, default="cliente")
-    fecha_registro = Column(DateTime, server_default=func.now())
+    fecha_registro = Column(DateTime, nullable=False, server_default=func.now())
     foto_perfil = Column(String, nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    # updated_at: asegurar valor por defecto al insertar y actualizar automáticamente
-    updated_at = Column(
-        DateTime(timezone=True),
-        default=func.now(),
-        server_default=func.now(),
-        onupdate=func.now(),
-        nullable=False,
-    )

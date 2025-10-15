@@ -1,6 +1,6 @@
 import strawberry
 from typing import List, Optional
-from adapters.graphql.schemas.usuario_schema import UsuarioType, UsuarioInput
+from adapters.schemas.usuario_schema import UsuarioType, UsuarioInput
 from application.use_cases.usuario_use_case import UsuarioUseCase
 from infrastructure.database import get_db
 from infrastructure.repositories.usuario_repository_impl import UsuarioRepositoryImpl
@@ -22,9 +22,7 @@ class QueryUsuario:
                     estado_cuenta=u.estado_cuenta,
                     rol=u.rol,
                     fecha_registro=u.fecha_registro,
-                    foto_perfil=u.foto_perfil,
-                    created_at=u.created_at,
-                    updated_at=u.updated_at,
+                    foto_perfil=u.foto_perfil
                 )
                 for u in usuarios
             ]
@@ -45,9 +43,7 @@ class QueryUsuario:
                 estado_cuenta=u.estado_cuenta,
                 rol=u.rol,
                 fecha_registro=u.fecha_registro,
-                foto_perfil=u.foto_perfil,
-                created_at=u.created_at,
-                updated_at=u.updated_at,
+                foto_perfil=u.foto_perfil
             )
 
 @strawberry.type
@@ -75,7 +71,5 @@ class MutationUsuario:
                 estado_cuenta=nuevo.estado_cuenta,
                 rol=nuevo.rol,
                 fecha_registro=nuevo.fecha_registro,
-                foto_perfil=nuevo.foto_perfil,
-                created_at=nuevo.created_at,
-                updated_at=nuevo.updated_at,
+                foto_perfil=nuevo.foto_perfil
             )

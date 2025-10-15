@@ -9,10 +9,10 @@ from fastapi.responses import RedirectResponse
 from strawberry.fastapi import GraphQLRouter
 
 # resolvers
-from adapters.graphql.resolvers.usuario_resolver import QueryUsuario, MutationUsuario
+from adapters.resolvers.usuario_resolver import QueryUsuario, MutationUsuario
 
 # importar explicitamente los tipos/inputs para que Strawberry los registre
-from adapters.graphql.schemas.usuario_schema import UsuarioType, UsuarioInput
+from adapters.schemas.usuario_schema import UsuarioType, UsuarioInput
 
 from infrastructure.database import init_db
 

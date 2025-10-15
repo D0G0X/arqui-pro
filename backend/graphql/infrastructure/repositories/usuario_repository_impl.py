@@ -31,9 +31,8 @@ class UsuarioRepositoryImpl(UsuarioRepository):
             password_hash=model.password,
             rol=model.rol,
             fecha_registro=model.fecha_registro,
-            foto_perfil=model.foto_perfil,
-            created_at=model.created_at,
-            updated_at=model.updated_at,
+            foto_perfil=model.foto_perfil
+
         )
 
     async def obtener_todos(self) -> List[Usuario]:
@@ -49,9 +48,7 @@ class UsuarioRepositoryImpl(UsuarioRepository):
                 password_hash=m.password,
                 rol=m.rol,
                 fecha_registro=m.fecha_registro,
-                foto_perfil=m.foto_perfil,
-                created_at=m.created_at,
-                updated_at=m.updated_at,
+                foto_perfil=m.foto_perfil
             )
             for m in modelos
         ]
@@ -69,9 +66,7 @@ class UsuarioRepositoryImpl(UsuarioRepository):
             password_hash=model.password,
             rol=model.rol,
             fecha_registro=model.fecha_registro,
-            foto_perfil=model.foto_perfil,
-            created_at=model.created_at,
-            updated_at=model.updated_at,
+            foto_perfil=model.foto_perfil
         )
 
     async def actualizar(self, id_usuario: str, datos: dict) -> Usuario:

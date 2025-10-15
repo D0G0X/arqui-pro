@@ -12,8 +12,7 @@ class UsuarioType:
     rol: str
     fecha_registro: Optional[datetime]
     foto_perfil: Optional[str]
-    created_at: Optional[datetime]
-    updated_at: Optional[datetime]
+
 
 @strawberry.input
 class UsuarioInput:
