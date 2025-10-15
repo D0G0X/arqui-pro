@@ -9,8 +9,6 @@ class CreateUsuarios < ActiveRecord::Migration[8.0]
       t.string :rol, null: false
       t.date :fecha_registro, null: false
       t.string :foto_perfil, null: true
-
-      t.timestamps
     end
       add_index :usuarios, :email, unique: true
       add_check_constraint :usuarios, "estado_cuenta IN ('suspendido', 'activo')", name: 'estado_check'

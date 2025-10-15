@@ -15,17 +15,17 @@
 default: &default
   adapter: postgresql
   encoding: unicode
-  password: g867MNHn4vQdvi1d
-  host: aws-1-us-east-2.pooler.supabase.com
-  username: postgres.aovwqqmvotdfhxfiofqo
+  password: 1234
+  host: localhost
+  username: postgres
   # For details on connection pooling, see Rails configuration guide
   # https://guides.rubyonrails.org/configuring.html#database-pooling
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  sslmode: disable
+
 
 development:
   <<: *default
-  database: postgres #apirest_development
+  database: apirest_development
 
   # The specified database role being used to connect to PostgreSQL.
   # To create additional roles in PostgreSQL see `$ createuser --help`.

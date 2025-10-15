@@ -9,8 +9,6 @@ class CreateArquitectos < ActiveRecord::Migration[8.0]
       t.boolean :verificado, null: false, default: false
       t.integer :vistas_perfil, null: false, default: 0
       t.references :usuario, null: false, foreign_key: true, type: :uuid
-
-      t.timestamps
     end
       add_index :arquitectos, :cedula, unique: true
   end
