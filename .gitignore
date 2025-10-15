@@ -160,10 +160,10 @@ obj/
 !/tmp/storage/.keep
 
 
-/backend/src/adapters/rest/tmp
-/backend/src/adapters/rest/log
-/backend/src/adapters/rest/storage
-/backend/src/adapters/rest/config/master.key
+/backend/APIREST/tmp
+/backend/APIREST/log
+/backend/APIREST/storage
+/backend/APIREST/config/master.key
 # Ignore master key for decrypting credentials and more.
 /config/master.key
 */config/master.key
