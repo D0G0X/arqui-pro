@@ -1,6 +1,6 @@
 import strawberry
 from typing import List, Optional
-from adapters.graphql.schemas.usuario_schema import UsuarioType, UsuarioInput
+from adapters.schemas.usuario_schema import UsuarioType, UsuarioInput
 from application.use_cases.usuario_use_case import UsuarioUseCase
 from infrastructure.database import get_db
 from infrastructure.repositories.usuario_repository_impl import UsuarioRepositoryImpl
@@ -22,9 +22,7 @@ class QueryUsuario:
                     estado_cuenta=u.estado_cuenta,
                     rol=u.rol,
                     fecha_registro=u.fecha_registro,
-                    foto_perfil=u.foto_perfil,
-                    created_at=u.created_at,
-                    updated_at=u.updated_at,
+                    foto_perfil=u.foto_perfil
                 )
                 for u in usuarios
             ]
@@ -45,9 +43,7 @@ class QueryUsuario:
                 estado_cuenta=u.estado_cuenta,
                 rol=u.rol,
                 fecha_registro=u.fecha_registro,
-                foto_perfil=u.foto_perfil,
-                created_at=u.created_at,
-                updated_at=u.updated_at,
+                foto_perfil=u.foto_perfil
             )
 
 @strawberry.type
@@ -75,7 +71,40 @@ class MutationUsuario:
                 estado_cuenta=nuevo.estado_cuenta,
                 rol=nuevo.rol,
                 fecha_registro=nuevo.fecha_registro,
-                foto_perfil=nuevo.foto_perfil,
-                created_at=nuevo.created_at,
-                updated_at=nuevo.updated_at,
+                foto_perfil=nuevo.foto_perfil
             )
+
+    @strawberry.mutation
+    async def actualizar_usuario(self, info, id: strawberry.ID, input: UsuarioInput) -> Optional[UsuarioType]:
+        async for db in get_db():
+            repo = UsuarioRepositoryImpl(db)
+            use_case = UsuarioUseCase(repo)
+            datos = {
+                "nombre": input.nombre,
+                "apellido": input.apellido,
+                "email": input.email,
+                "password_hash": input.password,  # opcional: en use_case decides if hash/update
+                "estado_cuenta": input.estado_cuenta,
+                "rol": input.rol,
+                "foto_perfil": input.foto_perfil,
+            }
+            actualizado = await use_case.actualizar_usuario(str(id), datos)
+            if not actualizado:
+                return None
+            return UsuarioType(
+                id=actualizado.id,
+                nombre=actualizado.nombre,
+                apellido=actualizado.apellido,
+                email=actualizado.email,
+                estado_cuenta=actualizado.estado_cuenta,
+                rol=actualizado.rol,
+                fecha_registro=actualizado.fecha_registro,
+                foto_perfil=actualizado.foto_perfil
+            )
+
+    @strawberry.mutation
+    async def eliminar_usuario(self, info, id: strawberry.ID) -> bool:
+        async for db in get_db():
+            repo = UsuarioRepositoryImpl(db)
+            use_case = UsuarioUseCase(repo)
+            return await use_case.eliminar_usuario(str(id))
