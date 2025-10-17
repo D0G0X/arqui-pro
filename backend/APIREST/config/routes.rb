@@ -18,6 +18,10 @@ Rails.application.routes.draw do
       resources :verificaciones
       resources :solicitudes_proyecto
       resources :proyectos
+      resources :avances
+      resources :incidencias
+      resources :valoraciones
+      resources :mensajes
     end
   end
 end

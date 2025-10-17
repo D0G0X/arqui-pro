@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_16_001656) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_17_141325) do
   create_schema "auth"
   create_schema "extensions"
   create_schema "graphql"
@@ -41,6 +41,13 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_16_001656) do
     t.index ["usuario_id"], name: "index_arquitectos_on_usuario_id"
   end
 
+  create_table "avances", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.text "descripcion", null: false
+    t.date "fecha", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.uuid "proyecto_id", null: false
+    t.index ["proyecto_id"], name: "index_avances_on_proyecto_id"
+  end
+
   create_table "clientes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "cedula", null: false
     t.uuid "usuario_id", null: false
@@ -54,6 +61,29 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_16_001656) do
     t.uuid "arquitecto_id", null: false
     t.index ["arquitecto_id"], name: "index_conversaciones_on_arquitecto_id"
     t.index ["cliente_id"], name: "index_conversaciones_on_cliente_id"
+  end
+
+  create_table "incidencias", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.text "descripcion", null: false
+    t.string "estado", null: false
+    t.date "fecha", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.uuid "usuario_emisor_id", null: false
+    t.uuid "usuario_infractor_id", null: false
+    t.uuid "moderador_id", null: false
+    t.index ["moderador_id"], name: "index_incidencias_on_moderador_id"
+    t.index ["usuario_emisor_id"], name: "index_incidencias_on_usuario_emisor_id"
+    t.index ["usuario_infractor_id"], name: "index_incidencias_on_usuario_infractor_id"
+    t.check_constraint "estado::text = ANY (ARRAY['pendiente'::character varying, 'resuelto'::character varying, 'en revision'::character varying]::text[])", name: "estado_incidencia_check"
+  end
+
+  create_table "mensajes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.text "contenido", null: false
+    t.date "fecha_envio", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.boolean "leido", default: false, null: false
+    t.uuid "conversacion_id", null: false
+    t.uuid "remitente_id", null: false
+    t.index ["conversacion_id"], name: "index_mensajes_on_conversacion_id"
+    t.index ["remitente_id"], name: "index_mensajes_on_remitente_id"
   end
 
   create_table "moderadores", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -110,6 +140,16 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_16_001656) do
     t.check_constraint "rol::text = ANY (ARRAY['cliente'::character varying::text, 'arquitecto'::character varying::text, 'moderador'::character varying::text])", name: "rol_check"
   end
 
+  create_table "valoraciones", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.float "calificacion", null: false
+    t.text "comentario", null: false
+    t.date "fecha", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.uuid "cliente_id", null: false
+    t.uuid "proyecto_id", null: false
+    t.index ["cliente_id"], name: "index_valoraciones_on_cliente_id"
+    t.index ["proyecto_id"], name: "index_valoraciones_on_proyecto_id"
+  end
+
   create_table "verificaciones", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "estado", null: false
     t.date "fecha_verificacion", null: false
@@ -121,9 +161,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_16_001656) do
   end
 
   add_foreign_key "arquitectos", "usuarios"
+  add_foreign_key "avances", "proyectos"
   add_foreign_key "clientes", "usuarios"
   add_foreign_key "conversaciones", "arquitectos"
   add_foreign_key "conversaciones", "clientes"
+  add_foreign_key "incidencias", "moderadores"
+  add_foreign_key "incidencias", "usuarios", column: "usuario_emisor_id"
+  add_foreign_key "incidencias", "usuarios", column: "usuario_infractor_id"
+  add_foreign_key "mensajes", "conversaciones"
+  add_foreign_key "mensajes", "usuarios", column: "remitente_id"
   add_foreign_key "moderadores", "usuarios"
   add_foreign_key "notificaciones", "usuarios"
   add_foreign_key "proyectos", "arquitectos"
@@ -132,6 +178,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_16_001656) do
   add_foreign_key "proyectos", "solicitudes_proyecto"
   add_foreign_key "solicitudes_proyecto", "arquitectos"
   add_foreign_key "solicitudes_proyecto", "clientes"
+  add_foreign_key "valoraciones", "clientes"
+  add_foreign_key "valoraciones", "proyectos"
   add_foreign_key "verificaciones", "arquitectos"
   add_foreign_key "verificaciones", "moderadores"
 end

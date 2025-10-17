@@ -12,6 +12,9 @@ class Cliente < ApplicationRecord
   # Un cliente puede tener muchos proyectos
   has_many :proyectos
 
+  # Un cliente tiene muchas valoraciones
+  has_many :valoraciones
+
   # Validaciones
   validates :cedula, presence: true, uniqueness: true
 end

@@ -11,6 +11,14 @@ class Proyecto < ApplicationRecord
   # Un proyecto puede pertenecer a una conversacion (opcional)
   belongs_to :conversacion, optional: true
 
+  # Un proyecto tiene muchos avances
+  # Si se elimina un proyecto, se eliminan tambien todos sus avances
+  has_many :avances, dependent: :destroy
+
+  # Un proyecto puede tener muchas valoraciones
+  # Si se elimina un proyecto, se eliminan tambien todas sus valoraciones
+  has_many :valoraciones
+
   # Validaciones
   validates :titulo_proyecto, :valoracion_promedio, :descripcion, :fecha_publicacion, presence: true
   validates :tipo_proyecto, presence: true, inclusion: { in: [ "portafolio", "contratado" ] }

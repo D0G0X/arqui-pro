@@ -15,6 +15,13 @@ class Usuario < ApplicationRecord
     # Cuando se elimina un usuario, se eliminan también sus notificaciones
     has_many :notificaciones, dependent: :destroy
 
+    # Un usuario puede tener muchas Incidencias
+    has_many :incidencias_emitidas, class_name: "Incidencia", foreign_key: "usuario_emisor_id"
+    has_many :incidencias_recibidas, class_name: "Incidencia", foreign_key: "usuario_infractor_id"   
+
+    # Un usuario puede tener muchos mensajes
+    has_many :mensajes, class_name: "Mensaje", foreign_key: "remitente_id"
+
     # Validaciones
     validates :nombre, :apellido, :email, :estado_cuenta, :password, :rol, :fecha_registro, :foto_perfil, presence: true
     validates :estado_cuenta, inclusion: { in: ['suspendido', 'activo'] }

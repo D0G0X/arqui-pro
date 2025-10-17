@@ -6,5 +6,8 @@ class Moderador < ApplicationRecord
   # Un moderador puede tener muchas verificaciones
   has_many :verificaciones
 
+  # Un moderador tiene muchas incidencia
+  has_many :incidencias
+
   validates :usuario, presence: true
 end
