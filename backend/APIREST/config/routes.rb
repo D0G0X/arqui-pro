@@ -16,6 +16,8 @@ Rails.application.routes.draw do
       resources :conversaciones
       resources :notificaciones
       resources :verificaciones
+      resources :solicitudes_proyecto
+      resources :proyectos
     end
   end
 end

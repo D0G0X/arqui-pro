@@ -2,7 +2,9 @@ class Arquitecto < ApplicationRecord
   # Un arquitecto pertenece a un usuario
   # Cuando se elimina un arquitecto, se elimina también su usuario asociado
   belongs_to :usuario, dependent: :destroy
+
   accepts_nested_attributes_for :usuario
+
   # Un arquitecto puede tener muchas conversaciones
   # Cuando se elimina un arquitecto, se eliminan también sus conversaciones
   has_many :conversaciones, dependent: :destroy
@@ -10,6 +12,13 @@ class Arquitecto < ApplicationRecord
   # Un arquitecto puede tener una verificacion
   # Cuando se elimina un arquitecto, se elimina también su verificacion
   has_one :verificaciones, dependent: :destroy
+
+  # Un arquitecto puede tener muchas solicitudes_proyecto
+  has_many :solicitudes_proyecto
+
+  # Un arquitecto puede tener muchos proyectos
+  # Cuando se elimina un arquitecto, se elimina también su verificacion
+  has_many :proyectos, dependent: :destroy
 
   # validaciones
   validates :cedula, :valoracion_prom_proyecto, :descripcion, :especialidades, :ubicacion, :vistas_perfil, presence: true

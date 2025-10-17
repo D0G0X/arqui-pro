@@ -13,5 +13,5 @@ class CreateUsuarios < ActiveRecord::Migration[8.0]
       add_index :usuarios, :email, unique: true
       add_check_constraint :usuarios, "estado_cuenta IN ('suspendido', 'activo')", name: 'estado_check'
       add_check_constraint :usuarios, "rol IN ('cliente', 'arquitecto', 'moderador')", name: 'rol_check'
-    end
+  end
 end

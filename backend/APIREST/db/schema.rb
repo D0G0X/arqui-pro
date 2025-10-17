@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_12_170735) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_16_001656) do
   create_schema "auth"
   create_schema "extensions"
   create_schema "graphql"
@@ -69,6 +69,33 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_12_170735) do
     t.index ["usuario_id"], name: "index_notificaciones_on_usuario_id"
   end
 
+  create_table "proyectos", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.text "titulo_proyecto", null: false
+    t.float "valoracion_promedio", default: 0.0, null: false
+    t.text "descripcion", null: false
+    t.string "tipo_proyecto", null: false
+    t.date "fecha_publicacion", null: false
+    t.uuid "arquitecto_id", null: false
+    t.uuid "conversacion_id"
+    t.uuid "cliente_id"
+    t.uuid "solicitud_proyecto_id"
+    t.index ["arquitecto_id"], name: "index_proyectos_on_arquitecto_id"
+    t.index ["cliente_id"], name: "index_proyectos_on_cliente_id"
+    t.index ["conversacion_id"], name: "index_proyectos_on_conversacion_id"
+    t.index ["solicitud_proyecto_id"], name: "index_proyectos_on_solicitud_proyecto_id"
+    t.check_constraint "tipo_proyecto::text = ANY (ARRAY['portafolio'::character varying, 'contratado'::character varying]::text[])", name: "tipo_proyecto_check"
+  end
+
+  create_table "solicitudes_proyecto", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "estado", default: "pendiente", null: false
+    t.date "fecha", null: false
+    t.uuid "arquitecto_id", null: false
+    t.uuid "cliente_id", null: false
+    t.index ["arquitecto_id"], name: "index_solicitudes_proyecto_on_arquitecto_id"
+    t.index ["cliente_id"], name: "index_solicitudes_proyecto_on_cliente_id"
+    t.check_constraint "estado::text = ANY (ARRAY['pendiente'::character varying, 'aceptado'::character varying, 'rechazado'::character varying]::text[])", name: "estado_solicitud_proyecto_check"
+  end
+
   create_table "usuarios", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "nombre", null: false
     t.string "apellido", null: false
@@ -76,7 +103,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_12_170735) do
     t.string "estado_cuenta", null: false
     t.string "password", null: false
     t.string "rol", null: false
-    t.date "fecha_registro", null: false
+    t.date "fecha_registro", default: -> { "now()" }, null: false
     t.string "foto_perfil"
     t.index ["email"], name: "index_usuarios_on_email", unique: true
     t.check_constraint "estado_cuenta::text = ANY (ARRAY['suspendido'::character varying::text, 'activo'::character varying::text])", name: "estado_check"
@@ -99,6 +126,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_12_170735) do
   add_foreign_key "conversaciones", "clientes"
   add_foreign_key "moderadores", "usuarios"
   add_foreign_key "notificaciones", "usuarios"
+  add_foreign_key "proyectos", "arquitectos"
+  add_foreign_key "proyectos", "clientes"
+  add_foreign_key "proyectos", "conversaciones"
+  add_foreign_key "proyectos", "solicitudes_proyecto"
+  add_foreign_key "solicitudes_proyecto", "arquitectos"
+  add_foreign_key "solicitudes_proyecto", "clientes"
   add_foreign_key "verificaciones", "arquitectos"
   add_foreign_key "verificaciones", "moderadores"
 end

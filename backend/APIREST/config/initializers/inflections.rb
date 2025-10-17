@@ -22,6 +22,8 @@ ActiveSupport::Inflector.inflections(:en) do |inflect|
   inflect.irregular 'verificacion', 'verificaciones'
   inflect.irregular 'valoracion', 'valoraciones'
   inflect.irregular 'proyecto', 'proyectos'
+  inflect.irregular 'solicitud_proyecto', 'solicitudes_proyecto'
+  inflect.irregular 'SolicitudProyecto', 'SolicitudesProyecto'
   inflect.irregular 'solicitudproyecto', 'solicitudesproyecto'
   inflect.irregular 'avance', 'avances'
   inflect.irregular 'imagen', 'imagenes'
