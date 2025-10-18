@@ -10,7 +10,15 @@ class UsuarioUseCase:
     async def crear_usuario(self, datos: dict) -> Usuario:
         # validaciones mínimas
         if not datos.get("nombre") or not datos.get("apellido") or not datos.get("email") or not datos.get("password_hash"):
-            raise ValueError("nombre, apellido, email y password son requeridos")
+            raise GraphQLError("nombre, apellido, email y password son requeridos", extensions={"code": "400"})
+        if "@" not in datos["email"]:
+            raise GraphQLError("email inválido", extensions={"code": "400"})
+        if await getattr(self.repo, "existe_por_email")(datos["email"]):
+            raise GraphQLError("email ya existente", extensions={"code": "202"})
+        rol = datos.get("rol", "cliente")
+        allowed_roles = {"cliente", "arquitecto", "moderador"}
+        if rol not in allowed_roles:
+            raise GraphQLError(f"rol no permitido: {rol}", extensions={"code": "300"})
         # en producción: hashear password aquí (bcrypt/argon2)
         usuario = Usuario(
             id=None,
@@ -19,7 +27,7 @@ class UsuarioUseCase:
             email=datos["email"],
             estado_cuenta=datos.get("estado_cuenta", "activo"),
             password_hash=datos["password_hash"],
-            rol=datos.get("rol", "user"),
+            rol=rol,
             foto_perfil=datos.get("foto_perfil"),
         )
         return await self.repo.crear(usuario)
@@ -43,9 +51,9 @@ class UsuarioUseCase:
         # validar formato simple email
         if new_email and "@" not in new_email:
             raise GraphQLError("email inválido", extensions={"code": "400"})
-        # reglas de negocio simples para rol
+        # reglas de negocio simples para rol (debe coincidir con constraint de BD)
         rol = datos.get("rol", existente.rol)
-        allowed_roles = {"user", "admin", "cliente"}
+        allowed_roles = {"cliente", "arquitecto", "moderador"}
         if rol not in allowed_roles:
             raise GraphQLError(f"rol no permitido: {rol}", extensions={"code": "300"})
         # en producción: si password_hash viene, hashear antes de guardar

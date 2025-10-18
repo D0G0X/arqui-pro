@@ -10,11 +10,64 @@ from strawberry.fastapi import GraphQLRouter
 
 # resolvers
 from adapters.resolvers.usuario_resolver import QueryUsuario, MutationUsuario
+from adapters.resolvers.arquitecto_resolver import QueryArquitecto, MutationArquitecto
+from adapters.resolvers.cliente_resolver import QueryCliente, MutationCliente
+from adapters.resolvers.proyecto_resolver import QueryProyecto, MutationProyecto
+from adapters.resolvers.solicitud_proyecto_resolver import QuerySolicitudProyecto, MutationSolicitudProyecto
+from adapters.resolvers.moderador_resolver import QueryModerador, MutationModerador
+from adapters.resolvers.conversacion_resolver import QueryConversacion, MutationConversacion
+from adapters.resolvers.mensaje_resolver import QueryMensaje, MutationMensaje
+from adapters.resolvers.notificacion_resolver import QueryNotificacion, MutationNotificacion
+from adapters.resolvers.valoracion_resolver import QueryValoracion, MutationValoracion
+from adapters.resolvers.avance_resolver import QueryAvance, MutationAvance
+from adapters.resolvers.incidencia_resolver import QueryIncidencia, MutationIncidencia
+from adapters.resolvers.imagen_resolver import QueryImagen, MutationImagen
+from adapters.resolvers.imagen_asociacion_resolver import QueryImagenAsociacion, MutationImagenAsociacion
+from adapters.resolvers.verificacion_resolver import QueryVerificacion, MutationVerificacion
 
-RootQuery = type("Query", (QueryUsuario,), {})
-RootMutation = type("Mutation", (MutationUsuario,), {})
 
-schema = strawberry.Schema(query=RootQuery, mutation=RootMutation)
+@strawberry.type
+class Query(
+    QueryUsuario,
+    QueryArquitecto,
+    QueryCliente,
+    QueryProyecto,
+    QuerySolicitudProyecto,
+    QueryModerador,
+    QueryConversacion,
+    QueryMensaje,
+    QueryNotificacion,
+    QueryValoracion,
+    QueryAvance,
+    QueryIncidencia,
+    QueryImagen,
+    QueryImagenAsociacion,
+    QueryVerificacion,
+):
+    pass
+
+
+@strawberry.type
+class Mutation(
+    MutationUsuario,
+    MutationArquitecto,
+    MutationCliente,
+    MutationProyecto,
+    MutationSolicitudProyecto,
+    MutationModerador,
+    MutationConversacion,
+    MutationMensaje,
+    MutationNotificacion,
+    MutationValoracion,
+    MutationAvance,
+    MutationIncidencia,
+    MutationImagen,
+    MutationImagenAsociacion,
+    MutationVerificacion,
+):
+    pass
+
+schema = strawberry.Schema(query=Query, mutation=Mutation)
 graphql_app = GraphQLRouter(schema)  # lo usaremos solo para la UI
 
 app = FastAPI(title="Arquitectos / Usuarios GraphQL Service")

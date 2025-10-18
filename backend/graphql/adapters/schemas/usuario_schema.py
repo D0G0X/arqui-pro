@@ -21,5 +21,5 @@ class UsuarioInput:
     email: str
     password: str
     estado_cuenta: Optional[str] = "activo"
-    rol: Optional[str] = "user"
+    rol: Optional[str] = "cliente"
     foto_perfil: Optional[str] = None

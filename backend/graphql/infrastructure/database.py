@@ -41,8 +41,20 @@ async def init_db():
     # importa modelos para que metadata los conozca
     # usar import absoluto para evitar ambigüedades al ejecutar uvicorn
     from infrastructure.orm import usuario_model  # noqa: F401
-    # si tienes más modelos:
-    # from infrastructure.orm import arquitecto_model  # noqa: F401
+    from infrastructure.orm import arquitecto_model  # noqa: F401
+    from infrastructure.orm import cliente_model  # noqa: F401
+    from infrastructure.orm import proyecto_model  # noqa: F401
+    from infrastructure.orm import solicitud_proyecto_model  # noqa: F401
+    from infrastructure.orm import moderador_model  # noqa: F401
+    from infrastructure.orm import conversacion_model  # noqa: F401
+    from infrastructure.orm import mensaje_model  # noqa: F401
+    from infrastructure.orm import notificacion_model  # noqa: F401
+    from infrastructure.orm import valoracion_model  # noqa: F401
+    from infrastructure.orm import avance_model  # noqa: F401
+    from infrastructure.orm import incidencia_model  # noqa: F401
+    from infrastructure.orm import imagen_model  # noqa: F401
+    from infrastructure.orm import imagen_asociacion_model  # noqa: F401
+    from infrastructure.orm import verificacion_model  # noqa: F401
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
