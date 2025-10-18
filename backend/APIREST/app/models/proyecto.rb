@@ -19,6 +19,9 @@ class Proyecto < ApplicationRecord
   # Si se elimina un proyecto, se eliminan tambien todas sus valoraciones
   has_many :valoraciones
 
+  has_many :imagen_asociaciones, as: :asociable, dependent: :destroy
+  has_many :imagenes, through: :imagen_asociaciones
+
   # Validaciones
   validates :titulo_proyecto, :valoracion_promedio, :descripcion, :fecha_publicacion, presence: true
   validates :tipo_proyecto, presence: true, inclusion: { in: [ "portafolio", "contratado" ] }

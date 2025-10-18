@@ -22,6 +22,8 @@ Rails.application.routes.draw do
       resources :incidencias
       resources :valoraciones
       resources :mensajes
+      resources :imagenes
+      resources :imagen_asociaciones
     end
   end
 end

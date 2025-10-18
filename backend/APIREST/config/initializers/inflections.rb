@@ -29,4 +29,6 @@ ActiveSupport::Inflector.inflections(:en) do |inflect|
   inflect.irregular 'imagen', 'imagenes'
   inflect.irregular 'notificacion', 'notificaciones'
   inflect.irregular 'mensaje', 'mensajes'
+  inflect.irregular 'imagen_asociacion', 'imagen_asociaciones'
+  inflect.irregular 'ImagenAsociacion', 'ImagenAsociaciones'
 end

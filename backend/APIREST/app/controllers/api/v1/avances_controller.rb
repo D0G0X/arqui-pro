@@ -39,7 +39,7 @@ class Api::V1::AvancesController < ApplicationController
   private
 
   def avance_params
-    params.require(:avance).permit(:descripcion, :fecha, :proyecto_id)
+    params.require(:avance).permit(:descripcion, :fecha, :proyecto_id, imagenes_attributes: [:url, :fecha])
   end
 
   def set_avance

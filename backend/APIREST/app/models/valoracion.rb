@@ -1,5 +1,5 @@
 class Valoracion < ApplicationRecord
-  defore_create :set_fecha
+  before_create :set_fecha
   # Una valoracion le pertence a un cliente
   belongs_to :cliente
 
@@ -7,7 +7,7 @@ class Valoracion < ApplicationRecord
   belongs_to :proyecto
 
   # Validaciones
-  validates :calificacion, comentario, presence: true
+  validates :calificacion, :comentario, presence: true
 
   private
   def set_fecha()

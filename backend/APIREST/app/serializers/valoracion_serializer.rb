@@ -1,3 +1,3 @@
 class ValoracionSerializer < ActiveModel::Serializer
-  attributes :id
+  attributes :id, :calificacion, :comentario, :fecha, :cliente_id, :proyecto_id
 end

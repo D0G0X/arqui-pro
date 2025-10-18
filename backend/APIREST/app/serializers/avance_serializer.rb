@@ -1,3 +1,3 @@
 class AvanceSerializer < ActiveModel::Serializer
-  attributes :id, :descripcion, :fecha, :proyecto
+  attributes :id, :descripcion, :fecha
 end

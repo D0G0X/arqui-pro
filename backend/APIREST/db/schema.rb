@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_17_141325) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_17_160144) do
   create_schema "auth"
   create_schema "extensions"
   create_schema "graphql"
@@ -61,6 +61,20 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_17_141325) do
     t.uuid "arquitecto_id", null: false
     t.index ["arquitecto_id"], name: "index_conversaciones_on_arquitecto_id"
     t.index ["cliente_id"], name: "index_conversaciones_on_cliente_id"
+  end
+
+  create_table "imagen_asociaciones", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "asociable_type", null: false
+    t.string "asociable_id", null: false
+    t.uuid "imagen_id", null: false
+    t.index ["asociable_type", "asociable_id"], name: "index_imagen_asociaciones_on_asociable_type_and_asociable_id"
+    t.index ["imagen_id"], name: "index_imagen_asociaciones_on_imagen_id"
+    t.check_constraint "asociable_type::text = ANY (ARRAY['Proyecto'::character varying, 'Mensaje'::character varying, 'Incidencia'::character varying, 'Avance'::character varying]::text[])", name: "asociable_type_imagen_asociacion_check"
+  end
+
+  create_table "imagenes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.text "imagen_url", null: false
+    t.date "fecha", default: -> { "CURRENT_TIMESTAMP" }, null: false
   end
 
   create_table "incidencias", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -165,6 +179,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_17_141325) do
   add_foreign_key "clientes", "usuarios"
   add_foreign_key "conversaciones", "arquitectos"
   add_foreign_key "conversaciones", "clientes"
+  add_foreign_key "imagen_asociaciones", "imagenes"
   add_foreign_key "incidencias", "moderadores"
   add_foreign_key "incidencias", "usuarios", column: "usuario_emisor_id"
   add_foreign_key "incidencias", "usuarios", column: "usuario_infractor_id"
