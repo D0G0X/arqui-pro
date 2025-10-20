@@ -11,7 +11,9 @@ class UsuarioModel(Base):
     apellido = Column(String, nullable=False)
     email = Column(String, nullable=False, unique=True)
     estado_cuenta = Column(String, nullable=False, default="activo")
-    password = Column(String, nullable=False)  # password hash
+    encrypted_password = Column(String, nullable=False)  # password hash (Devise/BCrypt)
+    jti = Column(String, nullable=True)  # JWT ID - identificador único de token
+    remember_created_at = Column(DateTime, nullable=True)  # timestamp para "recordarme"
     rol = Column(String, nullable=False, default="cliente")
     fecha_registro = Column(DateTime, nullable=False, server_default=func.now())
     foto_perfil = Column(String, nullable=True)

@@ -53,11 +53,14 @@ class MutationUsuario:
         async for db in get_db():
             repo = UsuarioRepositoryImpl(db)
             use_case = UsuarioUseCase(repo)
+            # TODO: En producción, hashear input.password con BCrypt antes de pasarlo
+            # import bcrypt
+            # hashed = bcrypt.hashpw(input.password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
             datos = {
                 "nombre": input.nombre,
                 "apellido": input.apellido,
                 "email": input.email,
-                "password_hash": input.password,  # en producción: hash aquí
+                "encrypted_password": input.password,  # TODO: pasar hashed en producción
                 "estado_cuenta": input.estado_cuenta,
                 "rol": input.rol,
                 "foto_perfil": input.foto_perfil,
@@ -79,11 +82,12 @@ class MutationUsuario:
         async for db in get_db():
             repo = UsuarioRepositoryImpl(db)
             use_case = UsuarioUseCase(repo)
+            # TODO: En producción, hashear input.password si se proporciona
             datos = {
                 "nombre": input.nombre,
                 "apellido": input.apellido,
                 "email": input.email,
-                "password_hash": input.password,  # opcional: en use_case decides if hash/update
+                "encrypted_password": input.password,  # TODO: hashear en producción
                 "estado_cuenta": input.estado_cuenta,
                 "rol": input.rol,
                 "foto_perfil": input.foto_perfil,

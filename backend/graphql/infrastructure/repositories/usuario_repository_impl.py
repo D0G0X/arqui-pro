@@ -15,7 +15,9 @@ class UsuarioRepositoryImpl(UsuarioRepository):
             apellido=usuario.apellido,
             email=usuario.email,
             estado_cuenta=usuario.estado_cuenta,
-            password=usuario.password_hash,
+            encrypted_password=usuario.encrypted_password,
+            jti=usuario.jti,
+            remember_created_at=usuario.remember_created_at,
             rol=usuario.rol,
             foto_perfil=usuario.foto_perfil,
         )
@@ -28,7 +30,9 @@ class UsuarioRepositoryImpl(UsuarioRepository):
             apellido=model.apellido,
             email=model.email,
             estado_cuenta=model.estado_cuenta,
-            password_hash=model.password,
+            encrypted_password=model.encrypted_password,
+            jti=model.jti,
+            remember_created_at=model.remember_created_at,
             rol=model.rol,
             fecha_registro=model.fecha_registro,
             foto_perfil=model.foto_perfil
@@ -45,7 +49,9 @@ class UsuarioRepositoryImpl(UsuarioRepository):
                 apellido=r.apellido,
                 email=r.email,
                 estado_cuenta=r.estado_cuenta,
-                password_hash=r.password,
+                encrypted_password=r.encrypted_password,
+                jti=r.jti,
+                remember_created_at=r.remember_created_at,
                 rol=r.rol,
                 fecha_registro=r.fecha_registro,
                 foto_perfil=r.foto_perfil
@@ -63,7 +69,9 @@ class UsuarioRepositoryImpl(UsuarioRepository):
             apellido=r.apellido,
             email=r.email,
             estado_cuenta=r.estado_cuenta,
-            password_hash=r.password,
+            encrypted_password=r.encrypted_password,
+            jti=r.jti,
+            remember_created_at=r.remember_created_at,
             rol=r.rol,
             fecha_registro=r.fecha_registro,
             foto_perfil=r.foto_perfil
@@ -76,12 +84,12 @@ class UsuarioRepositoryImpl(UsuarioRepository):
         if not model:
             return None
         # actualizar campos permitidos
-        for key in ("nombre", "apellido", "email", "estado_cuenta", "rol", "foto_perfil"):
+        for key in ("nombre", "apellido", "email", "estado_cuenta", "rol", "foto_perfil", "jti", "remember_created_at"):
             if key in datos and datos[key] is not None:
                 setattr(model, key, datos[key])
-        # password si viene (en producción: hash)
-        if "password_hash" in datos and datos["password_hash"]:
-            model.password = datos["password_hash"]
+        # encrypted_password si viene (en producción: hash con BCrypt)
+        if "encrypted_password" in datos and datos["encrypted_password"]:
+            model.encrypted_password = datos["encrypted_password"]
         self.db.add(model)
         await self.db.commit()
         await self.db.refresh(model)
@@ -91,7 +99,9 @@ class UsuarioRepositoryImpl(UsuarioRepository):
             apellido=model.apellido,
             email=model.email,
             estado_cuenta=model.estado_cuenta,
-            password_hash=model.password,
+            encrypted_password=model.encrypted_password,
+            jti=model.jti,
+            remember_created_at=model.remember_created_at,
             rol=model.rol,
             fecha_registro=model.fecha_registro,
             foto_perfil=model.foto_perfil

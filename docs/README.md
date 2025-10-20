@@ -70,7 +70,10 @@ Cada entidad tiene operaciones completas: listar, obtener por ID, crear, actuali
 1. **Usuarios** (`usuarios`) — Tabla base de usuarios del sistema
    - Queries: `listarUsuarios`, `obtenerUsuario`
    - Mutations: `crearUsuario`, `actualizarUsuario`, `eliminarUsuario`
-   - Validaciones: formato email, roles (cliente/arquitecto/moderador), estados (activo/inactivo/suspendido)
+   - Validaciones: formato email, roles (cliente/arquitecto/moderador), estados (activo/suspendido)
+   - **Campos expuestos**: `id`, `nombre`, `apellido`, `email`, `rol`, `estado_cuenta`, `fecha_registro`, `foto_perfil`
+   - **🔒 NO expuestos por seguridad**: `encrypted_password` (hash BCrypt), `jti` (JWT ID), `remember_created_at`
+   - **Input**: acepta `password` en texto plano, se encripta automáticamente a `encrypted_password`
 
 2. **Arquitectos** (`arquitectos`) — Perfil de arquitecto vinculado a usuario
    - Queries: `listarArquitectos`, `obtenerArquitecto`
@@ -431,6 +434,14 @@ El servicio incluye validaciones de negocio para garantizar integridad de datos:
   - `202`: Duplicado (email/cédula ya existe)
   - `300`: Error de negocio
   - `500`: Error interno del servidor
+
+- **🔒 Seguridad y Privacidad**:
+  - El campo `password` del input se almacena como `encrypted_password` (hash BCrypt)
+  - Campos sensibles **NO expuestos** en GraphQL:
+    - `encrypted_password` - Hash del password
+    - `jti` - JWT ID - Identificador único de token
+    - `remember_created_at` - Timestamp de sesión persistente
+  - **TODO en producción**: Implementar hashing con BCrypt antes de guardar passwords
 
 Arquitectura del servicio
 

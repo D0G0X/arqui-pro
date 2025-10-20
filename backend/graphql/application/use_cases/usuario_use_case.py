@@ -9,7 +9,7 @@ class UsuarioUseCase:
 
     async def crear_usuario(self, datos: dict) -> Usuario:
         # validaciones mínimas
-        if not datos.get("nombre") or not datos.get("apellido") or not datos.get("email") or not datos.get("password_hash"):
+        if not datos.get("nombre") or not datos.get("apellido") or not datos.get("email") or not datos.get("encrypted_password"):
             raise GraphQLError("nombre, apellido, email y password son requeridos", extensions={"code": "400"})
         if "@" not in datos["email"]:
             raise GraphQLError("email inválido", extensions={"code": "400"})
@@ -19,14 +19,16 @@ class UsuarioUseCase:
         allowed_roles = {"cliente", "arquitecto", "moderador"}
         if rol not in allowed_roles:
             raise GraphQLError(f"rol no permitido: {rol}", extensions={"code": "300"})
-        # en producción: hashear password aquí (bcrypt/argon2)
+        # en producción: hashear password aquí (bcrypt/argon2) antes de asignar a encrypted_password
         usuario = Usuario(
             id=None,
             nombre=datos["nombre"],
             apellido=datos["apellido"],
             email=datos["email"],
             estado_cuenta=datos.get("estado_cuenta", "activo"),
-            password_hash=datos["password_hash"],
+            encrypted_password=datos["encrypted_password"],  # aquí debería venir hasheado
+            jti=datos.get("jti"),  # JWT ID opcional
+            remember_created_at=datos.get("remember_created_at"),  # timestamp opcional
             rol=rol,
             foto_perfil=datos.get("foto_perfil"),
         )
