@@ -127,6 +127,47 @@ query BuscarArquitectosAvanzado {
 
 ---
 
+### 🔽 Ordenamiento de Arquitectos
+
+Puedes ordenar los resultados de arquitectos usando el campo `orden` dentro del input.
+
+Opciones disponibles:
+- `VALORACION_ASC` | `VALORACION_DESC`
+- `NOMBRE_ASC` | `NOMBRE_DESC`
+- `VERIFICADO_FIRST` | `VERIFICADO_LAST`
+- `VISTAS_ASC` | `VISTAS_DESC`
+
+Ejemplos:
+
+```graphql
+query ArquitectosPorValoracionDesc {
+  buscarArquitectos(filtro: { orden: VALORACION_DESC }) {
+    id
+    cedula
+    valoracionPromProyecto
+  }
+}
+```
+
+```graphql
+query ArquitectosPorNombreAsc {
+  buscarArquitectos(filtro: { orden: NOMBRE_ASC }) {
+    id
+    cedula
+    usuario { nombre }
+  }
+}
+```
+
+```graphql
+query ArquitectosVerificadosPrimero {
+  buscarArquitectos(filtro: { orden: VERIFICADO_FIRST }) {
+    id
+    verificado
+  }
+}
+```
+
 ## 2. Filtrar Proyectos
 
 Filtra proyectos con múltiples criterios (tipo, arquitecto, fechas, valoración).
@@ -269,6 +310,46 @@ query ProyectosFiltradosAvanzado {
 **Uso:** Búsqueda avanzada de proyectos de portafolio del 2024 con excelente valoración.
 
 ---
+
+### 🔽 Ordenamiento de Proyectos
+
+Puedes ordenar los resultados de proyectos usando el campo `orden` dentro del input.
+
+Opciones disponibles:
+- `FECHA_ASC` | `FECHA_DESC`
+- `VALORACION_ASC` | `VALORACION_DESC`
+- `TITULO_ASC` | `TITULO_DESC`
+
+Ejemplos:
+
+```graphql
+query ProyectosMasRecientes {
+  filtrarProyectos(filtro: { orden: FECHA_DESC }) {
+    id
+    tituloProyecto
+    fechaPublicacion
+  }
+}
+```
+
+```graphql
+query ProyectosPorValoracionAsc {
+  filtrarProyectos(filtro: { orden: VALORACION_ASC }) {
+    id
+    tituloProyecto
+    valoracionPromedio
+  }
+}
+```
+
+```graphql
+query ProyectosPorTituloDesc {
+  filtrarProyectos(filtro: { orden: TITULO_DESC }) {
+    id
+    tituloProyecto
+  }
+}
+```
 
 ## 3. Búsqueda Global
 
@@ -439,19 +520,6 @@ query BarraBusqueda {
   }
 }
 ```
-
----
-
-## 🎯 Próximas Mejoras
-
-- [ ] **Full-Text Search**: Usar PostgreSQL `tsvector` para búsqueda de texto completo
-- [ ] **Búsqueda Geoespacial**: Filtrar por distancia desde coordenadas
-- [ ] **Filtros de Rango**: Precio mínimo/máximo, área construida, etc.
-- [ ] **Faceted Search**: Contar resultados por categoría antes de filtrar
-- [ ] **Búsqueda Fuzzy**: Tolerancia a errores ortográficos (Levenshtein distance)
-
----
-
 ## 🔗 Ver También
 
 - `TEST_QUERIES.md` - Queries CRUD básicas

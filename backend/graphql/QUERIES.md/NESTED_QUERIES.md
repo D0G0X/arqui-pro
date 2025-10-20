@@ -475,12 +475,3 @@ mutation {
 ```
 
 El campo `password` en el input se convierte internamente a `encrypted_password` (hasheado con BCrypt en producción).
-
----
-
-## 🚀 Próximos pasos
-
-1. Probar estas queries en GraphiQL: http://127.0.0.1:8000/graphql/ui
-2. Implementar DataLoaders para optimizar N+1 queries
-3. Agregar paginación en listas grandes
-4. Agregar filtros (ej: `proyectos(tipo: "portafolio")`)

@@ -1,9 +1,31 @@
 """
-Esquemas de filtros y búsqueda para GraphQL
+Esquemas de filtros y búsqueda para GraphQL, incluyendo ordenamiento.
 """
 import strawberry
 from typing import Optional
 from datetime import date
+from enum import Enum
+@strawberry.enum
+class OrdenArquitecto(Enum):
+    VALORACION_ASC = "VALORACION_ASC"
+    VALORACION_DESC = "VALORACION_DESC"
+    NOMBRE_ASC = "NOMBRE_ASC"
+    NOMBRE_DESC = "NOMBRE_DESC"
+    VERIFICADO_FIRST = "VERIFICADO_FIRST"
+    VERIFICADO_LAST = "VERIFICADO_LAST"
+    VISTAS_ASC = "VISTAS_ASC"
+    VISTAS_DESC = "VISTAS_DESC"
+
+
+@strawberry.enum
+class OrdenProyecto(Enum):
+    FECHA_ASC = "FECHA_ASC"
+    FECHA_DESC = "FECHA_DESC"
+    VALORACION_ASC = "VALORACION_ASC"
+    VALORACION_DESC = "VALORACION_DESC"
+    TITULO_ASC = "TITULO_ASC"
+    TITULO_DESC = "TITULO_DESC"
+
 
 
 @strawberry.input
@@ -13,6 +35,7 @@ class FiltroArquitectoInput:
     ubicacion: Optional[str] = None
     verificado: Optional[bool] = None
     valoracion_minima: Optional[float] = None
+    orden: Optional[OrdenArquitecto] = None
 
 
 @strawberry.input
@@ -23,6 +46,7 @@ class FiltroProyectoInput:
     fecha_desde: Optional[date] = None
     fecha_hasta: Optional[date] = None
     valoracion_minima: Optional[float] = None
+    orden: Optional[OrdenProyecto] = None
 
 
 @strawberry.input

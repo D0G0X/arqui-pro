@@ -44,13 +44,15 @@ class QueryFiltros:
             ubicacion = filtro.ubicacion if filtro else None
             verificado = filtro.verificado if filtro else None
             valoracion_minima = filtro.valoracion_minima if filtro else None
+            orden = filtro.orden if filtro else None
             
             arquitectos = await use_case.buscar_arquitectos(
                 db=db,
                 especialidad=especialidad,
                 ubicacion=ubicacion,
                 verificado=verificado,
-                valoracion_minima=valoracion_minima
+                valoracion_minima=valoracion_minima,
+                orden=orden,
             )
             
             # Convertir a ArquitectoType
@@ -93,6 +95,7 @@ class QueryFiltros:
             fecha_desde = filtro.fecha_desde if filtro else None
             fecha_hasta = filtro.fecha_hasta if filtro else None
             valoracion_minima = filtro.valoracion_minima if filtro else None
+            orden = filtro.orden if filtro else None
             
             proyectos = await use_case.filtrar_proyectos(
                 db=db,
@@ -100,7 +103,8 @@ class QueryFiltros:
                 arquitecto_id=arquitecto_id,
                 fecha_desde=fecha_desde,
                 fecha_hasta=fecha_hasta,
-                valoracion_minima=valoracion_minima
+                valoracion_minima=valoracion_minima,
+                orden=orden,
             )
             
             # Convertir a ProyectoType

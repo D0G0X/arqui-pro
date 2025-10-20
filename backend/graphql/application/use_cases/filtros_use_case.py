@@ -11,6 +11,7 @@ from infrastructure.orm.proyecto_model import ProyectoModel
 from infrastructure.orm.usuario_model import UsuarioModel
 from domain.entitiesPy.arquitecto_entity import Arquitecto
 from domain.entitiesPy.proyecto_entity import Proyecto
+from adapters.schemas.filtros_schema import OrdenArquitecto, OrdenProyecto
 
 
 class FiltrosUseCase:
@@ -22,7 +23,8 @@ class FiltrosUseCase:
         especialidad: Optional[str] = None,
         ubicacion: Optional[str] = None,
         verificado: Optional[bool] = None,
-        valoracion_minima: Optional[float] = None
+        valoracion_minima: Optional[float] = None,
+        orden: Optional[OrdenArquitecto] = None,
     ) -> List[Arquitecto]:
         """
         Buscar arquitectos con filtros opcionales
@@ -66,8 +68,25 @@ class FiltrosUseCase:
         if conditions:
             query = query.where(and_(*conditions))
         
-        # Ordenar por valoración descendente
-        query = query.order_by(ArquitectoModel.valoracion_prom_proyecto.desc())
+        # Ordenamiento configurable
+        if orden == OrdenArquitecto.VALORACION_ASC:
+            query = query.order_by(ArquitectoModel.valoracion_prom_proyecto.asc())
+        elif orden == OrdenArquitecto.NOMBRE_ASC:
+            # join con usuario para ordenar por nombre
+            query = query.join(UsuarioModel, UsuarioModel.id == ArquitectoModel.usuario_id).order_by(UsuarioModel.nombre.asc())
+        elif orden == OrdenArquitecto.NOMBRE_DESC:
+            query = query.join(UsuarioModel, UsuarioModel.id == ArquitectoModel.usuario_id).order_by(UsuarioModel.nombre.desc())
+        elif orden == OrdenArquitecto.VERIFICADO_FIRST:
+            query = query.order_by(ArquitectoModel.verificado.desc())
+        elif orden == OrdenArquitecto.VERIFICADO_LAST:
+            query = query.order_by(ArquitectoModel.verificado.asc())
+        elif orden == OrdenArquitecto.VISTAS_ASC:
+            query = query.order_by(ArquitectoModel.vistas_perfil.asc())
+        elif orden == OrdenArquitecto.VISTAS_DESC:
+            query = query.order_by(ArquitectoModel.vistas_perfil.desc())
+        else:
+            # Por defecto, mejor valoración primero
+            query = query.order_by(ArquitectoModel.valoracion_prom_proyecto.desc())
         
         # Ejecutar query
         result = await db.execute(query)
@@ -96,7 +115,8 @@ class FiltrosUseCase:
         arquitecto_id: Optional[str] = None,
         fecha_desde: Optional[date] = None,
         fecha_hasta: Optional[date] = None,
-        valoracion_minima: Optional[float] = None
+        valoracion_minima: Optional[float] = None,
+        orden: Optional[OrdenProyecto] = None,
     ) -> List[Proyecto]:
         """
         Filtrar proyectos con múltiples criterios
@@ -141,8 +161,20 @@ class FiltrosUseCase:
         if conditions:
             query = query.where(and_(*conditions))
         
-        # Ordenar por fecha de publicación descendente
-        query = query.order_by(ProyectoModel.fecha_publicacion.desc())
+        # Ordenamiento configurable
+        if orden == OrdenProyecto.FECHA_ASC:
+            query = query.order_by(ProyectoModel.fecha_publicacion.asc())
+        elif orden == OrdenProyecto.VALORACION_ASC:
+            query = query.order_by(ProyectoModel.valoracion_promedio.asc())
+        elif orden == OrdenProyecto.VALORACION_DESC:
+            query = query.order_by(ProyectoModel.valoracion_promedio.desc())
+        elif orden == OrdenProyecto.TITULO_ASC:
+            query = query.order_by(ProyectoModel.titulo_proyecto.asc())
+        elif orden == OrdenProyecto.TITULO_DESC:
+            query = query.order_by(ProyectoModel.titulo_proyecto.desc())
+        else:
+            # Por defecto: fecha más reciente primero
+            query = query.order_by(ProyectoModel.fecha_publicacion.desc())
         
         # Ejecutar query
         result = await db.execute(query)

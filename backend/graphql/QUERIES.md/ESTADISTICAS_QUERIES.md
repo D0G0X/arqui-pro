@@ -255,12 +255,3 @@ query DashboardVisual {
 3. **Flexible** - pide solo las estadísticas que necesitas
 4. **Optimizado** - usa funciones SQL (COUNT, AVG, GROUP BY)
 5. **Tiempo real** - siempre datos actuales
-
----
-
-## 🚀 Próximos pasos
-
-1. Agregar filtros por fecha (estadísticas de último mes, año, etc.)
-2. Implementar caché para queries frecuentes
-3. Agregar más agregaciones (mediana, percentiles, etc.)
-4. Exportar reportes a CSV/PDF
