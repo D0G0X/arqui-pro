@@ -24,6 +24,8 @@ from adapters.resolvers.incidencia_resolver import QueryIncidencia, MutationInci
 from adapters.resolvers.imagen_resolver import QueryImagen, MutationImagen
 from adapters.resolvers.imagen_asociacion_resolver import QueryImagenAsociacion, MutationImagenAsociacion
 from adapters.resolvers.verificacion_resolver import QueryVerificacion, MutationVerificacion
+from adapters.resolvers.estadisticas_resolver import QueryEstadisticas
+from adapters.resolvers.filtros_resolver import QueryFiltros
 
 
 @strawberry.type
@@ -43,6 +45,8 @@ class Query(
     QueryImagen,
     QueryImagenAsociacion,
     QueryVerificacion,
+    QueryEstadisticas,  # ✨ Queries de estadísticas y reportes
+    QueryFiltros,  # ✨ Queries de filtros y búsqueda
 ):
     pass
 

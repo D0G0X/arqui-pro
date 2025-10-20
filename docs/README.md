@@ -31,14 +31,17 @@ Cambios importantes (HTTP handling)
 
 Estructura clave (ruta `backend/graphql`)
 - `main.py` — router FastAPI, endpoint POST /graphql (manejo HTTP) y GraphiQL en /graphql/ui.
-- `adapters/schemas/` — tipos e inputs Strawberry para las 14 entidades (UsuarioType, ProyectoType, etc.).
-- `adapters/resolvers/` — resolvers Query/Mutation para cada entidad (CRUD completo).
-- `application/use_cases/` — lógica de negocio (validaciones de enums, campos requeridos, códigos de error).
+- `adapters/schemas/` — tipos e inputs Strawberry para las 14 entidades + estadísticas + filtros (UsuarioType, ProyectoType, EstadisticasGenerales, FiltroArquitectoInput, etc.).
+- `adapters/resolvers/` — resolvers Query/Mutation para cada entidad (CRUD completo) + QueryEstadisticas (agregaciones) + QueryFiltros (búsqueda).
+- `application/use_cases/` — lógica de negocio (validaciones de enums, campos requeridos, códigos de error) + EstadisticasUseCase (SQL agregaciones) + FiltrosUseCase (búsqueda avanzada).
 - `domain/entitiesPy/` — entidades del dominio (dataclasses) para las 14 entidades.
 - `infrastructure/orm/` — modelos SQLAlchemy con relaciones, FKs y constraints.
 - `infrastructure/repositories/` — interfaces e implementaciones CRUD para cada entidad.
 - `infrastructure/database.py` — engine async, async_sessionmaker, get_db, init_db con todas las tablas.
-- `TEST_QUERIES.md` — queries de prueba para todas las entidades.
+- `TEST_QUERIES.md` — queries de prueba CRUD para todas las entidades.
+- `NESTED_QUERIES.md` — ejemplos de queries con relaciones anidadas.
+- `ESTADISTICAS_QUERIES.md` — queries de agregación y estadísticas (7 tipos).
+- `FILTROS_QUERIES.md` — queries de filtros y búsqueda (3 tipos).
 
 Requisitos (resumen)
 - Python 3.10+
@@ -139,6 +142,392 @@ Cada entidad tiene operaciones completas: listar, obtener por ID, crear, actuali
     - Queries: `listarVerificaciones`, `obtenerVerificacion`
     - Mutations: `crearVerificacion`, `actualizarVerificacion`, `eliminarVerificacion`
     - Validaciones: estado (pendiente/verificado/rechazado), FK a arquitectos/moderadores
+
+---
+
+## 📊 Queries de Agregación y Estadísticas
+
+Además de las operaciones CRUD, el servicio incluye **queries especializadas para reportes, dashboards y análisis de datos**.
+
+### Queries Disponibles
+
+**1. Estadísticas Generales del Sistema**
+```graphql
+query EstadisticasGenerales {
+  estadisticasGenerales {
+    totalUsuarios
+    totalArquitectos
+    totalClientes
+    totalModeradores
+    totalProyectos
+    totalConversaciones
+    totalValoraciones
+  }
+}
+```
+**Uso:** Dashboard principal, contadores globales del sistema.
+
+**2. Estadísticas de Arquitectos**
+```graphql
+query EstadisticasArquitectos {
+  estadisticasArquitectos {
+    total
+    verificados
+    noVerificados
+    promedioValoracion
+    conProyectos
+    sinProyectos
+  }
+}
+```
+**Uso:** Análisis de arquitectos registrados, verificación y actividad.
+
+**3. Estadísticas de Proyectos**
+```graphql
+query EstadisticasProyectos {
+  estadisticasProyectos {
+    total
+    portafolio
+    contratados
+    promedioValoracion
+    totalAvances
+    totalValoraciones
+  }
+}
+```
+**Uso:** Métricas de proyectos, tipos y engagement.
+
+**4. Proyectos Agrupados por Tipo**
+```graphql
+query ProyectosPorTipo {
+  proyectosPorTipo {
+    tipo
+    cantidad
+    promedioValoracion
+  }
+}
+```
+**Uso:** Gráficos de distribución (portafolio vs contratado).
+
+**5. Top Arquitectos por Valoración**
+```graphql
+query TopArquitectos {
+  topArquitectos(limit: 10) {
+    id
+    nombre
+    apellido
+    cedula
+    promedioValoracion
+    totalProyectos
+    verificado
+  }
+}
+```
+**Uso:** Ranking de mejores arquitectos, destacados en homepage.
+
+**6. Proyectos Más Recientes**
+```graphql
+query ProyectosRecientes {
+  proyectosRecientes(limit: 5) {
+    id
+    titulo
+    tipo
+    fechaPublicacion
+    valoracionPromedio
+    nombreArquitecto
+  }
+}
+```
+**Uso:** Feed de actividad reciente.
+
+**7. Dashboard Completo (Una Sola Query)**
+```graphql
+query DashboardCompleto {
+  dashboardMetricas {
+    generales {
+      totalUsuarios
+      totalArquitectos
+      totalClientes
+      totalProyectos
+    }
+    arquitectos {
+      total
+      verificados
+      promedioValoracion
+      conProyectos
+    }
+    proyectos {
+      total
+      portafolio
+      contratados
+      promedioValoracion
+    }
+    topArquitectos {
+      nombre
+      apellido
+      promedioValoracion
+      totalProyectos
+    }
+    proyectosRecientes {
+      titulo
+      tipo
+      fechaPublicacion
+      valoracionPromedio
+    }
+  }
+}
+```
+**Uso:** Dashboard administrativo completo en una sola llamada.
+
+### Ventajas de las Queries de Agregación
+
+- ✅ **Eficiencia**: Usa funciones SQL (`COUNT`, `AVG`, `GROUP BY`) en la base de datos
+- ✅ **Una sola llamada**: `dashboardMetricas` obtiene todas las métricas juntas
+- ✅ **Datos en tiempo real**: Siempre actualizados, sin caché obsoleto
+- ✅ **Optimizado**: No sobrecarga la red con múltiples requests
+- ✅ **Flexible**: Pide solo las estadísticas que necesitas
+
+### Casos de Uso
+
+- **Dashboard Administrativo**: Usa `dashboardMetricas` para vista completa
+- **Homepage Pública**: Combina `topArquitectos` + `proyectosRecientes`
+- **Panel de Reportes**: Usa estadísticas individuales con gráficos
+- **Análisis de Negocio**: `proyectosPorTipo` para métricas de distribución
+
+📖 **Documentación completa**: Ver `ESTADISTICAS_QUERIES.md` para más ejemplos.
+
+---
+
+## 🔗 Relaciones y Queries Anidadas
+
+El servicio soporta **queries anidadas** para obtener datos relacionados en una sola llamada.
+
+### Relaciones Implementadas
+
+- **Usuario** → Arquitecto/Cliente/Moderador (perfil según rol)
+- **Arquitecto** → Usuario + Proyectos (datos base + proyectos del arquitecto)
+- **Cliente** → Usuario (datos base del cliente)
+- **Proyecto** → Arquitecto + Cliente + Avances + Valoraciones (datos completos del proyecto)
+- **Conversación** → Cliente + Arquitecto + Mensajes (chat completo)
+
+### Ejemplos de Queries Anidadas
+
+**1. Usuario con su Perfil**
+```graphql
+query UsuarioCompleto {
+  listarUsuarios {
+    id
+    nombre
+    apellido
+    rol
+    # Si es arquitecto, obtener perfil
+    arquitecto {
+      cedula
+      especialidades
+      verificado
+      proyectos {
+        id
+        tituloProyecto
+      }
+    }
+    # Si es cliente
+    cliente {
+      cedula
+    }
+  }
+}
+```
+
+**2. Proyecto con Arquitecto y Relaciones**
+```graphql
+query ProyectoCompleto($id: ID!) {
+  obtenerProyecto(id: $id) {
+    id
+    tituloProyecto
+    descripcion
+    # Arquitecto que lo creó
+    arquitecto {
+      cedula
+      usuario {
+        nombre
+        apellido
+        email
+      }
+    }
+    # Avances del proyecto
+    avances {
+      descripcion
+      fecha
+    }
+    # Valoraciones
+    valoraciones {
+      calificacion
+      comentario
+      fecha
+    }
+  }
+}
+```
+
+**3. Dashboard de Arquitecto**
+```graphql
+query DashboardArquitecto($arquitectoId: ID!) {
+  obtenerArquitecto(id: $arquitectoId) {
+    cedula
+    descripcion
+    especialidades
+    verificado
+    usuario {
+      nombre
+      apellido
+      email
+    }
+    proyectos {
+      tituloProyecto
+      valoracionPromedio
+      avances {
+        descripcion
+        fecha
+      }
+      valoraciones {
+        calificacion
+        comentario
+      }
+    }
+  }
+}
+```
+
+### Ventajas de Queries Anidadas
+
+- ✅ **Una sola request**: Evita múltiples llamadas API
+- ✅ **Menos latencia**: Reduce el tiempo total de carga
+- ✅ **Flexibilidad**: Pide solo los campos que necesitas
+- ✅ **Lazy loading**: Solo se cargan las relaciones solicitadas
+- ✅ **Mejor UX**: Datos completos disponibles instantáneamente
+
+📖 **Documentación completa**: Ver `NESTED_QUERIES.md` para 10+ ejemplos avanzados.
+
+---
+
+## 🔍 Filtros y Búsqueda Avanzada
+
+El servicio incluye **queries especializadas para filtros y búsqueda** que permiten encontrar datos específicos rápidamente.
+
+### Queries Disponibles
+
+**1. Buscar Arquitectos con Filtros**
+```graphql
+query BuscarArquitectos {
+  buscarArquitectos(
+    filtro: {
+      especialidad: "residencial"
+      ubicacion: "Madrid"
+      verificado: true
+      valoracionMinima: 4.5
+    }
+  ) {
+    id
+    cedula
+    especialidades
+    ubicacion
+    valoracionPromProyecto
+    usuario {
+      nombre
+      apellido
+    }
+  }
+}
+```
+**Filtros disponibles:**
+- `especialidad` - Búsqueda parcial en especialidades (ej: "residencial", "comercial")
+- `ubicacion` - Búsqueda parcial en ubicación (ej: "Madrid", "Barcelona")
+- `verificado` - Filtrar por estado de verificación (true/false)
+- `valoracionMinima` - Valoración promedio mínima (ej: 4.5)
+
+**Uso:** Directorio de arquitectos, búsqueda avanzada, recomendaciones.
+
+**2. Filtrar Proyectos**
+```graphql
+query FiltrarProyectos {
+  filtrarProyectos(
+    filtro: {
+      tipo: "contratado"
+      arquitectoId: "uuid-del-arquitecto"
+      fechaDesde: "2024-01-01"
+      fechaHasta: "2024-12-31"
+      valoracionMinima: 4.0
+    }
+  ) {
+    id
+    tituloProyecto
+    descripcion
+    fechaPublicacion
+    valoracionPromedio
+    arquitecto {
+      usuario {
+        nombre
+        apellido
+      }
+    }
+  }
+}
+```
+**Filtros disponibles:**
+- `tipo` - Tipo de proyecto ("portafolio" o "contratado")
+- `arquitectoId` - UUID del arquitecto
+- `fechaDesde` - Fecha de publicación desde (formato: "YYYY-MM-DD")
+- `fechaHasta` - Fecha de publicación hasta
+- `valoracionMinima` - Valoración promedio mínima
+
+**Uso:** Portfolio de arquitecto, proyectos recientes, proyectos destacados.
+
+**3. Búsqueda Global de Texto**
+```graphql
+query BusquedaGlobal {
+  busquedaGlobal(
+    busqueda: {
+      texto: "arquitectura moderna"
+      limite: 20
+    }
+  ) {
+    tipo        # "usuario", "arquitecto", "proyecto"
+    id
+    titulo
+    descripcion
+    relevancia  # Score 0-1, ordenado descendente
+  }
+}
+```
+**Busca en:**
+- **Usuarios** - nombre, apellido, email
+- **Arquitectos** - especialidades, ubicación, descripción
+- **Proyectos** - título, descripción
+
+**Uso:** Barra de búsqueda global, autocompletado, resultados unificados.
+
+### Ventajas de los Filtros
+
+- ✅ **Búsqueda Flexible**: Combina múltiples criterios en una query
+- ✅ **Case-Insensitive**: Ignora mayúsculas/minúsculas (ILIKE)
+- ✅ **Resultados Ordenados**: 
+  - Arquitectos por valoración DESC
+  - Proyectos por fecha DESC
+  - Búsqueda global por relevancia
+- ✅ **Performance**: Usa índices de base de datos
+- ✅ **Relevancia**: Score de relevancia en búsqueda global
+
+### Casos de Uso
+
+- **Directorio de Arquitectos**: Filtrar por especialidad + ubicación + verificado
+- **Portfolio Personal**: Filtrar proyectos de un arquitecto específico
+- **Proyectos Destacados**: Filtrar por tipo + valoración mínima
+- **Búsqueda Rápida**: Buscar cualquier texto en todo el sistema
+- **Filtros Combinados**: Múltiples criterios en una sola llamada
+
+📖 **Documentación completa**: Ver `FILTROS_QUERIES.md` para 10+ ejemplos avanzados.
+
+---
 
 Cómo funciona el mapeo HTTP
 - Los resolvers y use cases siguen lanzando GraphQLError con `extensions={"code": "400"}` u otros códigos de negocio.
