@@ -5,7 +5,7 @@ Resumen
 - Persistencia con SQLAlchemy (async) + asyncpg.
 - Arquitectura por capas: adapters (GraphQL/resolvers + schemas), application (use cases), domain (entities), infrastructure (ORM, DB, repositories).
 - Base de datos: Supabase (Postgres).
-- **14 entidades completamente implementadas** con operaciones CRUD completas:
+- **15 entidades completamente implementadas** con operaciones CRUD completas:
   1. Usuarios
   2. Arquitectos
   3. Clientes
@@ -31,10 +31,10 @@ Cambios importantes (HTTP handling)
 
 Estructura clave (ruta `backend/graphql`)
 - `main.py` — router FastAPI, endpoint POST /graphql (manejo HTTP) y GraphiQL en /graphql/ui.
-- `adapters/schemas/` — tipos e inputs Strawberry para las 14 entidades + estadísticas + filtros (UsuarioType, ProyectoType, EstadisticasGenerales, FiltroArquitectoInput, etc.).
+- `adapters/schemas/` — tipos e inputs Strawberry para las 15 entidades + estadísticas + filtros (UsuarioType, ProyectoType, EstadisticasGenerales, FiltroArquitectoInput, etc.).
 - `adapters/resolvers/` — resolvers Query/Mutation para cada entidad (CRUD completo) + QueryEstadisticas (agregaciones) + QueryFiltros (búsqueda).
 - `application/use_cases/` — lógica de negocio (validaciones de enums, campos requeridos, códigos de error) + EstadisticasUseCase (SQL agregaciones) + FiltrosUseCase (búsqueda avanzada).
-- `domain/entitiesPy/` — entidades del dominio (dataclasses) para las 14 entidades.
+- `domain/entitiesPy/` — entidades del dominio (dataclasses) para las 15 entidades.
 - `infrastructure/orm/` — modelos SQLAlchemy con relaciones, FKs y constraints.
 - `infrastructure/repositories/` — interfaces e implementaciones CRUD para cada entidad.
 - `infrastructure/database.py` — engine async, async_sessionmaker, get_db, init_db con todas las tablas.
@@ -42,6 +42,16 @@ Estructura clave (ruta `backend/graphql`)
 - `NESTED_QUERIES.md` — ejemplos de queries con relaciones anidadas.
 - `ESTADISTICAS_QUERIES.md` — queries de agregación y estadísticas (7 tipos).
 - `FILTROS_QUERIES.md` — queries de filtros y búsqueda (3 tipos).
+
+Tabla de contenidos
+- Instalación y ejecución (Windows)
+- Entidades disponibles
+- Queries de Agregación y Estadísticas
+- Relaciones y Queries Anidadas
+- Filtros, Búsqueda y Ordenamiento
+- Uso: llamadas GraphQL (UI) vs Raw JSON (POST)
+- Validaciones implementadas
+- Arquitectura del servicio
 
 Requisitos (resumen)
 - Python 3.10+
@@ -53,7 +63,11 @@ Instalación y ejecución (Windows)
    ```
    cd C:\Users\leoan\Desktop\arqui-pro\backend\graphql
    python -m venv .venv
-   .\.venv\Scripts\Activate.ps1
+  # Activa el entorno virtual:
+  # PowerShell
+  .\.venv\Scripts\Activate.ps1
+  # CMD
+  .\.venv\Scripts\activate.bat
    pip install -r requirements.txt
    ```
 2. Configurar `.env` (archivo en `backend/graphql/.env`):
@@ -67,7 +81,7 @@ Instalación y ejecución (Windows)
 4. UI GraphQL (GraphiQL):
    - http://127.0.0.1:8000/graphql/ui
 
-Entidades disponibles (14 completas)
+Entidades disponibles (15 completas)
 Cada entidad tiene operaciones completas: listar, obtener por ID, crear, actualizar y eliminar.
 
 1. **Usuarios** (`usuarios`) — Tabla base de usuarios del sistema
@@ -149,6 +163,17 @@ Cada entidad tiene operaciones completas: listar, obtener por ID, crear, actuali
 
 Además de las operaciones CRUD, el servicio incluye **queries especializadas para reportes, dashboards y análisis de datos**.
 
+Ejemplo rápido
+```graphql
+query {
+  estadisticasGenerales {
+    totalUsuarios
+    totalArquitectos
+    totalProyectos
+  }
+}
+```
+
 
 ### Casos de Uso
 
@@ -211,6 +236,16 @@ El servicio incluye **queries especializadas para filtros y búsqueda** que perm
   - `FECHA_ASC` | `FECHA_DESC`
   - `VALORACION_ASC` | `VALORACION_DESC`
   - `TITULO_ASC` | `TITULO_DESC`
+
+Ejemplo rápido
+```graphql
+query {
+  buscarArquitectos(filtro: { verificado: true, orden: VALORACION_DESC }) {
+    id
+    valoracionPromProyecto
+  }
+}
+```
 
 
 ### Casos de Uso
@@ -320,40 +355,37 @@ backend/graphql/
 │   │   ├── usuario_schema.py
 │   │   ├── arquitecto_schema.py
 │   │   ├── proyecto_schema.py
-│   │   └── ... (14 schemas totales)
+│   │   └── ... (15 schemas totales)
 │   └── resolvers/                   # GraphQL Query & Mutation resolvers
 │       ├── usuario_resolver.py
 │       ├── arquitecto_resolver.py
 │       ├── proyecto_resolver.py
-│       └── ... (14 resolvers totales)
+│       └── ... (15 resolvers totales)
 ├── application/
 │   └── use_cases/                   # Business logic & validations
 │       ├── usuario_use_case.py
 │       ├── arquitecto_use_case.py
-│       └── ... (14 use cases totales)
+│       └── ... (15 use cases totales)
 ├── domain/
 │   └── entitiesPy/                  # Domain entities (dataclasses)
 │       ├── usuario_entity.py
 │       ├── arquitecto_entity.py
-│       └── ... (14 entities totales)
+│       └── ... (15 entities totales)
 └── infrastructure/
     ├── database.py                  # DB engine, session, init_db
     ├── orm/                         # SQLAlchemy models
     │   ├── usuario_model.py
     │   ├── arquitecto_model.py
-    │   └── ... (14 models totales)
+  │   └── ... (15 models totales)
     └── repositories/                # Repository interfaces & implementations
         ├── usuario_repository.py
         ├── usuario_repository_impl.py
-        └── ... (14 repos + impls totales)
-```
+  └── ... (15 repos + impls totales)
 
-Próximas mejoras sugeridas
-1. **Relaciones entre entidades** - Queries anidadas (ej: obtener proyecto con sus avances)
-2. **Paginación** - Para listas grandes con pageInfo
-3. **Filtros y ordenamiento** - Búsquedas más específicas
-4. **Autenticación JWT** - Seguridad con tokens
-5. **DataLoaders** - Optimización para evitar N+1 queries
-6. **Subscriptions** - Actualizaciones en tiempo real vía WebSocket
-7. **Upload de archivos** - Para imágenes directamente
-8. **Tests unitarios** - Cobertura de use cases y resolvers
+---
+
+Troubleshooting rápido
+- Enums de Strawberry: deben heredar de `enum.Enum` (por ejemplo: `class MiEnum(Enum): ...`) antes de usar `@strawberry.enum`.
+- Uvicorn autoreload: si no recarga cambios, detén el proceso y vuelve a ejecutar `uvicorn`.
+- Conexión a BD: `DATABASE_URL_ASYNC` debe usar el driver async `postgresql+asyncpg://...`.
+```
