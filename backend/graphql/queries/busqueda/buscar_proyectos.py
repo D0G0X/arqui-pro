@@ -77,5 +77,8 @@ async def resolver_buscar_proyectos(
             resultados.append(dashboard)
         
         return resultados
-    except Exception:
-        return []
+    except Exception as e:
+        print(f"❌ Error en buscarProyectos: {type(e).__name__}: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise

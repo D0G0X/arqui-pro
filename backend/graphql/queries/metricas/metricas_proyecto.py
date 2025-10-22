@@ -57,5 +57,8 @@ async def resolver_metricas_proyecto(proyecto_id: strawberry.ID) -> Optional[Met
             dias_transcurridos=dias_transcurridos,
             estado=proy_data.get("tipo_proyecto") or "activo"
         )
-    except Exception:
-        return None
+    except Exception as e:
+        print(f"❌ Error en metricasProyecto: {type(e).__name__}: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise

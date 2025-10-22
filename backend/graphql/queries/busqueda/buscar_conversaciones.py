@@ -80,5 +80,8 @@ async def resolver_buscar_conversaciones(
             resultados.append(historial)
         
         return resultados
-    except Exception:
-        return []
+    except Exception as e:
+        print(f"❌ Error en buscarConversaciones: {type(e).__name__}: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise

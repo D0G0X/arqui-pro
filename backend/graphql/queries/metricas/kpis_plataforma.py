@@ -58,14 +58,8 @@ async def resolver_kpis_plataforma() -> KPIsPlataforma:
             total_incidencias=total_incidencias,
             arquitectos_verificados=arquitectos_verificados
         )
-    except Exception:
-        # Retornar valores por defecto en caso de error
-        return KPIsPlataforma(
-            total_usuarios=0,
-            usuarios_por_rol=[],
-            total_proyectos=0,
-            total_arquitectos=0,
-            total_clientes=0,
-            total_incidencias=0,
-            arquitectos_verificados=0
-        )
+    except Exception as e:
+        print(f"❌ Error en kpisPlataforma: {type(e).__name__}: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise

@@ -22,6 +22,10 @@ async def resolver_perfil_completo_arquitecto(arquitecto_id: strawberry.ID) -> O
     try:
         # Obtener arquitecto
         arq_data = await rest_client.get_arquitecto(str(arquitecto_id))
+        
+        # El serializer de Rails incluye el usuario completo
+        usuario_data = arq_data.get("usuario", {})
+        
         arquitecto = ArquitectoType(
             id=arq_data.get("id"),
             cedula=arq_data.get("cedula"),
@@ -31,22 +35,22 @@ async def resolver_perfil_completo_arquitecto(arquitecto_id: strawberry.ID) -> O
             ubicacion=arq_data.get("ubicacion") or "",
             verificado=arq_data.get("verificado") or False,
             vistas_perfil=arq_data.get("vistas_perfil") or 0,
-            usuario_id=arq_data.get("usuario_id"),
+            usuario_id=usuario_data.get("id"),
         )
         
-        # Obtener usuario
-        usr_data = await rest_client.get_usuario(str(arq_data.get("usuario_id")))
+        # Usar el usuario que ya viene en la respuesta del arquitecto
         usuario = UsuarioType(
-            id=usr_data.get("id"),
-            nombre=usr_data.get("nombre"),
-            apellido=usr_data.get("apellido"),
-            email=usr_data.get("email"),
-            estado_cuenta=usr_data.get("estado_cuenta"),
-            rol=usr_data.get("rol"),
-            fecha_registro=usr_data.get("fecha_registro"),
-            foto_perfil=usr_data.get("foto_perfil"),
+            id=usuario_data.get("id"),
+            nombre=usuario_data.get("nombre"),
+            apellido=usuario_data.get("apellido"),
+            email=usuario_data.get("email"),
+            estado_cuenta=usuario_data.get("estado_cuenta"),
+            rol=usuario_data.get("rol"),
+            fecha_registro=usuario_data.get("fecha_registro"),
+            foto_perfil=usuario_data.get("foto_perfil"),
         )
         
+        # Obtener proyectos del arquitecto
         # Obtener proyectos del arquitecto
         proyectos_data = await rest_client.get_proyectos(params={"arquitecto_id": str(arquitecto_id)})
         proyectos = [
@@ -79,5 +83,8 @@ async def resolver_perfil_completo_arquitecto(arquitecto_id: strawberry.ID) -> O
             total_proyectos=len(proyectos),
             valoracion_promedio=valoracion_prom
         )
-    except Exception:
-        return None
+    except Exception as e:
+        print(f"❌ Error en perfilCompletoArquitecto: {type(e).__name__}: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise

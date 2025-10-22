@@ -42,6 +42,10 @@ async def resolver_dashboard_proyecto(proyecto_id: strawberry.ID) -> Optional[Da
         
         # Obtener arquitecto
         arq_data = await rest_client.get_arquitecto(str(proy_data.get("arquitecto_id")))
+        
+        # El serializer de Rails incluye el usuario completo
+        arq_usuario_data = arq_data.get("usuario", {})
+        
         arquitecto = ArquitectoType(
             id=arq_data.get("id"),
             cedula=arq_data.get("cedula"),
@@ -51,20 +55,19 @@ async def resolver_dashboard_proyecto(proyecto_id: strawberry.ID) -> Optional[Da
             ubicacion=arq_data.get("ubicacion") or "",
             verificado=arq_data.get("verificado") or False,
             vistas_perfil=arq_data.get("vistas_perfil") or 0,
-            usuario_id=arq_data.get("usuario_id"),
+            usuario_id=arq_usuario_data.get("id"),
         )
         
-        # Obtener usuario del arquitecto
-        arq_usr_data = await rest_client.get_usuario(str(arq_data.get("usuario_id")))
+        # Usar el usuario que ya viene en la respuesta del arquitecto
         arquitecto_usuario = UsuarioType(
-            id=arq_usr_data.get("id"),
-            nombre=arq_usr_data.get("nombre"),
-            apellido=arq_usr_data.get("apellido"),
-            email=arq_usr_data.get("email"),
-            estado_cuenta=arq_usr_data.get("estado_cuenta"),
-            rol=arq_usr_data.get("rol"),
-            fecha_registro=arq_usr_data.get("fecha_registro"),
-            foto_perfil=arq_usr_data.get("foto_perfil"),
+            id=arq_usuario_data.get("id"),
+            nombre=arq_usuario_data.get("nombre"),
+            apellido=arq_usuario_data.get("apellido"),
+            email=arq_usuario_data.get("email"),
+            estado_cuenta=arq_usuario_data.get("estado_cuenta"),
+            rol=arq_usuario_data.get("rol"),
+            fecha_registro=arq_usuario_data.get("fecha_registro"),
+            foto_perfil=arq_usuario_data.get("foto_perfil"),
         )
         
         # Obtener cliente (opcional)
@@ -73,22 +76,26 @@ async def resolver_dashboard_proyecto(proyecto_id: strawberry.ID) -> Optional[Da
         if proy_data.get("cliente_id"):
             try:
                 cli_data = await rest_client.get_cliente(str(proy_data.get("cliente_id")))
+                
+                # El serializer de Rails incluye el usuario completo
+                cli_usuario_data = cli_data.get("usuario", {})
+                
                 cliente = ClienteType(
                     id=cli_data.get("id"),
                     cedula=cli_data.get("cedula"),
-                    usuario_id=cli_data.get("usuario_id"),
+                    usuario_id=cli_usuario_data.get("id"),
                 )
                 
-                cli_usr_data = await rest_client.get_usuario(str(cli_data.get("usuario_id")))
+                # Usar el usuario que ya viene en la respuesta del cliente
                 cliente_usuario = UsuarioType(
-                    id=cli_usr_data.get("id"),
-                    nombre=cli_usr_data.get("nombre"),
-                    apellido=cli_usr_data.get("apellido"),
-                    email=cli_usr_data.get("email"),
-                    estado_cuenta=cli_usr_data.get("estado_cuenta"),
-                    rol=cli_usr_data.get("rol"),
-                    fecha_registro=cli_usr_data.get("fecha_registro"),
-                    foto_perfil=cli_usr_data.get("foto_perfil"),
+                    id=cli_usuario_data.get("id"),
+                    nombre=cli_usuario_data.get("nombre"),
+                    apellido=cli_usuario_data.get("apellido"),
+                    email=cli_usuario_data.get("email"),
+                    estado_cuenta=cli_usuario_data.get("estado_cuenta"),
+                    rol=cli_usuario_data.get("rol"),
+                    fecha_registro=cli_usuario_data.get("fecha_registro"),
+                    foto_perfil=cli_usuario_data.get("foto_perfil"),
                 )
             except:
                 pass
@@ -138,5 +145,8 @@ async def resolver_dashboard_proyecto(proyecto_id: strawberry.ID) -> Optional[Da
             total_avances=len(avances),
             valoracion_promedio=val_prom
         )
-    except Exception:
-        return None
+    except Exception as e:
+        print(f"❌ Error en dashboardProyecto: {type(e).__name__}: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise

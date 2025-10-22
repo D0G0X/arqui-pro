@@ -58,5 +58,8 @@ async def resolver_estadisticas_arquitecto(arquitecto_id: strawberry.ID) -> Opti
             total_valoraciones=total_valoraciones,
             verificado=arq_data.get("verificado") or False
         )
-    except Exception:
-        return None
+    except Exception as e:
+        print(f"❌ Error en estadisticasArquitecto: {type(e).__name__}: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise

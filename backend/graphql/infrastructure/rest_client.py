@@ -15,7 +15,11 @@ class RestApiClient:
     
     def __init__(self):
         self.base_url = os.getenv("REST_API_URL", "http://localhost:3000/api/v1")
+        self.auth_token = os.getenv("AUTH_TOKEN")  # Token JWT desde .env
         self.timeout = 30.0
+        
+        if not self.auth_token:
+            logger.warning("⚠️  AUTH_TOKEN no configurado en .env - Las peticiones podrían fallar")
         
     async def _request(
         self,
@@ -32,6 +36,10 @@ class RestApiClient:
             "Content-Type": "application/json",
             "Accept": "application/json"
         }
+        
+        # Agregar token de autenticación si está disponible
+        if self.auth_token:
+            default_headers["Authorization"] = f"Bearer {self.auth_token}"
         
         if headers:
             default_headers.update(headers)
