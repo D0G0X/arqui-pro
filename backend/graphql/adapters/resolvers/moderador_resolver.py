@@ -1,51 +1,37 @@
 import strawberry
 from typing import List, Optional
-from adapters.schemas.moderador_schema import ModeradorType, ModeradorInput
-from application.use_cases.moderador_use_case import ModeradorUseCase
-from infrastructure.database import get_db
-from infrastructure.repositories.moderador_repository_impl import ModeradorRepositoryImpl
+from adapters.schemas.moderador_schema import ModeradorType
+from infrastructure.rest_client import rest_client
 
 
 @strawberry.type
 class QueryModerador:
+    """Queries de moderador. Consume el API REST de Rails."""
+    
     @strawberry.field
-    async def listar_moderadores(self, info) -> List[ModeradorType]:
-        async for db in get_db():
-            repo = ModeradorRepositoryImpl(db)
-            use_case = ModeradorUseCase(repo)
-            items = await use_case.listar()
-            return [ModeradorType(id=m.id, usuario_id=m.usuario_id) for m in items]
+    async def listar_moderadors(self, info) -> List[ModeradorType]:
+        """GET /api/v1/moderadors"""
+        data = await rest_client.get_moderadors()
+        return [
+            ModeradorType(
+                id=item.get("id"),
+                permisos=item.get("permisos"),
+                fecha_asignacion=item.get("fecha_asignacion"),
+                usuario_id=item.get("usuario_id")
+            )
+            for item in data
+        ]
 
     @strawberry.field
     async def obtener_moderador(self, info, id: strawberry.ID) -> Optional[ModeradorType]:
-        async for db in get_db():
-            repo = ModeradorRepositoryImpl(db)
-            use_case = ModeradorUseCase(repo)
-            m = await use_case.obtener(str(id))
-            return ModeradorType(id=m.id, usuario_id=m.usuario_id) if m else None
-
-
-@strawberry.type
-class MutationModerador:
-    @strawberry.mutation
-    async def crear_moderador(self, info, input: ModeradorInput) -> ModeradorType:
-        async for db in get_db():
-            repo = ModeradorRepositoryImpl(db)
-            use_case = ModeradorUseCase(repo)
-            nuevo = await use_case.crear(input.__dict__)
-            return ModeradorType(id=nuevo.id, usuario_id=nuevo.usuario_id)
-
-    @strawberry.mutation
-    async def actualizar_moderador(self, info, id: strawberry.ID, input: ModeradorInput) -> Optional[ModeradorType]:
-        async for db in get_db():
-            repo = ModeradorRepositoryImpl(db)
-            use_case = ModeradorUseCase(repo)
-            actualizado = await use_case.actualizar(str(id), input.__dict__)
-            return ModeradorType(id=actualizado.id, usuario_id=actualizado.usuario_id) if actualizado else None
-
-    @strawberry.mutation
-    async def eliminar_moderador(self, info, id: strawberry.ID) -> bool:
-        async for db in get_db():
-            repo = ModeradorRepositoryImpl(db)
-            use_case = ModeradorUseCase(repo)
-            return await use_case.eliminar(str(id))
+        """GET /api/v1/moderadors/:id"""
+        try:
+            item = await rest_client.get_moderador(str(id))
+            return ModeradorType(
+                id=item.get("id"),
+                permisos=item.get("permisos"),
+                fecha_asignacion=item.get("fecha_asignacion"),
+                usuario_id=item.get("usuario_id")
+            )
+        except Exception:
+            return None

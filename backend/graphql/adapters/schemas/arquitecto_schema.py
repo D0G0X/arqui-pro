@@ -1,5 +1,6 @@
 import strawberry
 from typing import Optional, List, Annotated
+from infrastructure.rest_client import rest_client
 
 
 @strawberry.type
@@ -17,64 +18,44 @@ class ArquitectoType:
     @strawberry.field
     async def usuario(self, info) -> Optional[Annotated["UsuarioType", strawberry.lazy("adapters.schemas.usuario_schema")]]:
         from adapters.schemas.usuario_schema import UsuarioType
-        from infrastructure.database import get_db
-        from sqlalchemy.future import select
-        from infrastructure.orm.usuario_model import UsuarioModel
-        
-        async for db in get_db():
-            result = await db.execute(
-                select(UsuarioModel).where(UsuarioModel.id == self.usuario_id)
+        try:
+            u = await rest_client.get_usuario(str(self.usuario_id))
+            return UsuarioType(
+                id=u.get("id"),
+                nombre=u.get("nombre"),
+                apellido=u.get("apellido"),
+                email=u.get("email"),
+                estado_cuenta=u.get("estado_cuenta"),
+                rol=u.get("rol"),
+                fecha_registro=u.get("fecha_registro"),
+                foto_perfil=u.get("foto_perfil"),
             )
-            user = result.scalars().first()
-            if user:
-                return UsuarioType(
-                    id=str(user.id),
-                    nombre=user.nombre,
-                    apellido=user.apellido,
-                    email=user.email,
-                    estado_cuenta=user.estado_cuenta,
-                    rol=user.rol,
-                    fecha_registro=user.fecha_registro,
-                    foto_perfil=user.foto_perfil
-                )
+        except Exception:
             return None
 
     @strawberry.field
     async def proyectos(self, info) -> List[Annotated["ProyectoType", strawberry.lazy("adapters.schemas.proyecto_schema")]]:
         from adapters.schemas.proyecto_schema import ProyectoType
-        from infrastructure.database import get_db
-        from sqlalchemy.future import select
-        from infrastructure.orm.proyecto_model import ProyectoModel
-        
-        async for db in get_db():
-            result = await db.execute(
-                select(ProyectoModel).where(ProyectoModel.arquitecto_id == self.id)
-            )
-            proyectos = result.scalars().all()
-            return [
+        # Intentar filtrar por arquitecto_id si el API REST lo soporta
+        params = {"arquitecto_id": str(self.id)}
+        data = await rest_client.get_proyectos(params=params)
+        items: List[ProyectoType] = []
+        for p in data:
+            if p.get("arquitecto_id") and str(p.get("arquitecto_id")) != str(self.id):
+                # Si el API ignoró el filtro y devolvió todos, descartamos los que no coinciden
+                continue
+            items.append(
                 ProyectoType(
-                    id=str(p.id),
-                    titulo_proyecto=p.titulo_proyecto,
-                    valoracion_promedio=p.valoracion_promedio,
-                    descripcion=p.descripcion,
-                    tipo_proyecto=p.tipo_proyecto,
-                    fecha_publicacion=p.fecha_publicacion,
-                    arquitecto_id=str(p.arquitecto_id),
-                    conversacion_id=str(p.conversacion_id) if p.conversacion_id else None,
-                    cliente_id=str(p.cliente_id) if p.cliente_id else None,
-                    solicitud_proyecto_id=str(p.solicitud_proyecto_id) if p.solicitud_proyecto_id else None
+                    id=p.get("id"),
+                    titulo_proyecto=p.get("titulo_proyecto"),
+                    valoracion_promedio=p.get("valoracion_promedio"),
+                    descripcion=p.get("descripcion"),
+                    tipo_proyecto=p.get("tipo_proyecto"),
+                    fecha_publicacion=p.get("fecha_publicacion"),
+                    arquitecto_id=p.get("arquitecto_id"),
+                    conversacion_id=p.get("conversacion_id"),
+                    cliente_id=p.get("cliente_id"),
+                    solicitud_proyecto_id=p.get("solicitud_proyecto_id"),
                 )
-                for p in proyectos
-            ]
-
-
-@strawberry.input
-class ArquitectoInput:
-    cedula: str
-    descripcion: str
-    especialidades: str
-    ubicacion: str
-    usuario_id: strawberry.ID
-    valoracion_prom_proyecto: Optional[float] = 0.0
-    verificado: Optional[bool] = False
-    vistas_perfil: Optional[int] = 0
+            )
+        return items

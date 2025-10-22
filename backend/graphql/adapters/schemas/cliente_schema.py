@@ -1,5 +1,6 @@
 import strawberry
 from typing import Optional, Annotated
+from infrastructure.rest_client import rest_client
 
 
 @strawberry.type
@@ -11,30 +12,17 @@ class ClienteType:
     @strawberry.field
     async def usuario(self, info) -> Optional[Annotated["UsuarioType", strawberry.lazy("adapters.schemas.usuario_schema")]]:
         from adapters.schemas.usuario_schema import UsuarioType
-        from infrastructure.database import get_db
-        from sqlalchemy.future import select
-        from infrastructure.orm.usuario_model import UsuarioModel
-        
-        async for db in get_db():
-            result = await db.execute(
-                select(UsuarioModel).where(UsuarioModel.id == self.usuario_id)
+        try:
+            u = await rest_client.get_usuario(str(self.usuario_id))
+            return UsuarioType(
+                id=u.get("id"),
+                nombre=u.get("nombre"),
+                apellido=u.get("apellido"),
+                email=u.get("email"),
+                estado_cuenta=u.get("estado_cuenta"),
+                rol=u.get("rol"),
+                fecha_registro=u.get("fecha_registro"),
+                foto_perfil=u.get("foto_perfil"),
             )
-            user = result.scalars().first()
-            if user:
-                return UsuarioType(
-                    id=str(user.id),
-                    nombre=user.nombre,
-                    apellido=user.apellido,
-                    email=user.email,
-                    estado_cuenta=user.estado_cuenta,
-                    rol=user.rol,
-                    fecha_registro=user.fecha_registro,
-                    foto_perfil=user.foto_perfil
-                )
+        except Exception:
             return None
-
-
-@strawberry.input
-class ClienteInput:
-    cedula: str
-    usuario_id: strawberry.ID

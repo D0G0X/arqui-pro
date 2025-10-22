@@ -8,10 +8,3 @@ class AvanceType:
     descripcion: str
     fecha: date
     proyecto_id: strawberry.ID
-
-
-@strawberry.input
-class AvanceInput:
-    descripcion: str
-    fecha: date
-    proyecto_id: strawberry.ID

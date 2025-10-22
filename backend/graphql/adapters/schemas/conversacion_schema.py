@@ -1,6 +1,7 @@
 import strawberry
 from typing import Optional, List, Annotated
 from datetime import date
+from infrastructure.rest_client import rest_client
 
 
 @strawberry.type
@@ -13,72 +14,44 @@ class ConversacionType:
     @strawberry.field
     async def cliente(self, info) -> Optional[Annotated["ClienteType", strawberry.lazy("adapters.schemas.cliente_schema")]]:
         from adapters.schemas.cliente_schema import ClienteType
-        from infrastructure.database import get_db
-        from sqlalchemy.future import select
-        from infrastructure.orm.cliente_model import ClienteModel
-        
-        async for db in get_db():
-            result = await db.execute(
-                select(ClienteModel).where(ClienteModel.id == self.cliente_id)
-            )
-            cli = result.scalars().first()
-            if cli:
-                return ClienteType(id=str(cli.id), cedula=cli.cedula, usuario_id=str(cli.usuario_id))
+        try:
+            c = await rest_client.get_cliente(str(self.cliente_id))
+            return ClienteType(id=c.get("id"), cedula=c.get("cedula"), usuario_id=c.get("usuario_id"))
+        except Exception:
             return None
 
     @strawberry.field
     async def arquitecto(self, info) -> Optional[Annotated["ArquitectoType", strawberry.lazy("adapters.schemas.arquitecto_schema")]]:
         from adapters.schemas.arquitecto_schema import ArquitectoType
-        from infrastructure.database import get_db
-        from sqlalchemy.future import select
-        from infrastructure.orm.arquitecto_model import ArquitectoModel
-        
-        async for db in get_db():
-            result = await db.execute(
-                select(ArquitectoModel).where(ArquitectoModel.id == self.arquitecto_id)
+        try:
+            a = await rest_client.get_arquitecto(str(self.arquitecto_id))
+            return ArquitectoType(
+                id=a.get("id"),
+                cedula=a.get("cedula"),
+                valoracion_prom_proyecto=a.get("valoracion_prom_proyecto") or 0.0,
+                descripcion=a.get("descripcion") or "",
+                especialidades=a.get("especialidades") or "",
+                ubicacion=a.get("ubicacion") or "",
+                verificado=a.get("verificado") or False,
+                vistas_perfil=a.get("vistas_perfil") or 0,
+                usuario_id=a.get("usuario_id"),
             )
-            arq = result.scalars().first()
-            if arq:
-                return ArquitectoType(
-                    id=str(arq.id),
-                    cedula=arq.cedula,
-                    valoracion_prom_proyecto=arq.valoracion_prom_proyecto,
-                    descripcion=arq.descripcion,
-                    especialidades=arq.especialidades,
-                    ubicacion=arq.ubicacion,
-                    verificado=arq.verificado,
-                    vistas_perfil=arq.vistas_perfil,
-                    usuario_id=str(arq.usuario_id)
-                )
+        except Exception:
             return None
 
     @strawberry.field
     async def mensajes(self, info) -> List[Annotated["MensajeType", strawberry.lazy("adapters.schemas.mensaje_schema")]]:
         from adapters.schemas.mensaje_schema import MensajeType
-        from infrastructure.database import get_db
-        from sqlalchemy.future import select
-        from infrastructure.orm.mensaje_model import MensajeModel
-        
-        async for db in get_db():
-            result = await db.execute(
-                select(MensajeModel).where(MensajeModel.conversacion_id == self.id).order_by(MensajeModel.fecha_envio)
+        data = await rest_client.get_mensajes(params={"conversacion_id": str(self.id)})
+        return [
+            MensajeType(
+                id=m.get("id"),
+                contenido=m.get("contenido"),
+                fecha_envio=m.get("fecha_envio"),
+                leido=m.get("leido"),
+                conversacion_id=m.get("conversacion_id"),
+                remitente_id=m.get("remitente_id"),
             )
-            mensajes = result.scalars().all()
-            return [
-                MensajeType(
-                    id=str(m.id),
-                    contenido=m.contenido,
-                    fecha_envio=m.fecha_envio,
-                    leido=m.leido,
-                    conversacion_id=str(m.conversacion_id),
-                    remitente_id=str(m.remitente_id)
-                )
-                for m in mensajes
-            ]
-
-
-@strawberry.input
-class ConversacionInput:
-    fecha: date
-    cliente_id: strawberry.ID
-    arquitecto_id: strawberry.ID
+            for m in data
+            if not m.get("conversacion_id") or str(m.get("conversacion_id")) == str(self.id)
+        ]

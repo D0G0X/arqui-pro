@@ -11,12 +11,3 @@ class MensajeType:
     leido: bool
     conversacion_id: strawberry.ID
     remitente_id: strawberry.ID
-
-
-@strawberry.input
-class MensajeInput:
-    contenido: str
-    fecha_envio: date
-    conversacion_id: strawberry.ID
-    remitente_id: strawberry.ID
-    leido: Optional[bool] = False

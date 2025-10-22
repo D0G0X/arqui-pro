@@ -1,6 +1,7 @@
 import strawberry
 from typing import Optional, Annotated
 from datetime import datetime
+from infrastructure.rest_client import rest_client
 
 
 @strawberry.type
@@ -17,69 +18,41 @@ class UsuarioType:
     @strawberry.field
     async def arquitecto(self, info) -> Optional[Annotated["ArquitectoType", strawberry.lazy("adapters.schemas.arquitecto_schema")]]:
         from adapters.schemas.arquitecto_schema import ArquitectoType
-        from infrastructure.repositories.arquitecto_repository_impl import ArquitectoRepositoryImpl
-        from infrastructure.database import get_db
-        
-        async for db in get_db():
-            from sqlalchemy.future import select
-            from infrastructure.orm.arquitecto_model import ArquitectoModel
-            result = await db.execute(
-                select(ArquitectoModel).where(ArquitectoModel.usuario_id == self.id)
+        # Intentar obtener por filtro usuario_id
+        data = await rest_client.get_arquitectos(params={"usuario_id": str(self.id)})
+        if data:
+            a = data[0]
+            return ArquitectoType(
+                id=a.get("id"),
+                cedula=a.get("cedula"),
+                valoracion_prom_proyecto=a.get("valoracion_prom_proyecto") or 0.0,
+                descripcion=a.get("descripcion") or "",
+                especialidades=a.get("especialidades") or "",
+                ubicacion=a.get("ubicacion") or "",
+                verificado=a.get("verificado") or False,
+                vistas_perfil=a.get("vistas_perfil") or 0,
+                usuario_id=a.get("usuario_id"),
             )
-            arq = result.scalars().first()
-            if arq:
-                return ArquitectoType(
-                    id=str(arq.id),
-                    cedula=arq.cedula,
-                    valoracion_prom_proyecto=arq.valoracion_prom_proyecto,
-                    descripcion=arq.descripcion,
-                    especialidades=arq.especialidades,
-                    ubicacion=arq.ubicacion,
-                    verificado=arq.verificado,
-                    vistas_perfil=arq.vistas_perfil,
-                    usuario_id=str(arq.usuario_id)
-                )
-            return None
+        return None
 
     @strawberry.field
     async def cliente(self, info) -> Optional[Annotated["ClienteType", strawberry.lazy("adapters.schemas.cliente_schema")]]:
         from adapters.schemas.cliente_schema import ClienteType
-        from infrastructure.database import get_db
-        
-        async for db in get_db():
-            from sqlalchemy.future import select
-            from infrastructure.orm.cliente_model import ClienteModel
-            result = await db.execute(
-                select(ClienteModel).where(ClienteModel.usuario_id == self.id)
+        data = await rest_client.get_clientes(params={"usuario_id": str(self.id)})
+        if data:
+            c = data[0]
+            return ClienteType(
+                id=c.get("id"),
+                cedula=c.get("cedula"),
+                usuario_id=c.get("usuario_id"),
             )
-            cli = result.scalars().first()
-            if cli:
-                return ClienteType(id=str(cli.id), cedula=cli.cedula, usuario_id=str(cli.usuario_id))
-            return None
+        return None
 
     @strawberry.field
     async def moderador(self, info) -> Optional[Annotated["ModeradorType", strawberry.lazy("adapters.schemas.moderador_schema")]]:
         from adapters.schemas.moderador_schema import ModeradorType
-        from infrastructure.database import get_db
-        
-        async for db in get_db():
-            from sqlalchemy.future import select
-            from infrastructure.orm.moderador_model import ModeradorModel
-            result = await db.execute(
-                select(ModeradorModel).where(ModeradorModel.usuario_id == self.id)
-            )
-            mod = result.scalars().first()
-            if mod:
-                return ModeradorType(id=str(mod.id), usuario_id=str(mod.usuario_id))
-            return None
-
-
-@strawberry.input
-class UsuarioInput:
-    nombre: str
-    apellido: str
-    email: str
-    password: str
-    estado_cuenta: Optional[str] = "activo"
-    rol: Optional[str] = "cliente"
-    foto_perfil: Optional[str] = None
+        data = await rest_client.get_moderadores(params={"usuario_id": str(self.id)})
+        if data:
+            m = data[0]
+            return ModeradorType(id=m.get("id"), usuario_id=m.get("usuario_id"))
+        return None

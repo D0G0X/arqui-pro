@@ -10,12 +10,3 @@ class ValoracionType:
     fecha: date
     cliente_id: strawberry.ID
     proyecto_id: strawberry.ID
-
-
-@strawberry.input
-class ValoracionInput:
-    calificacion: float
-    comentario: str
-    fecha: date
-    cliente_id: strawberry.ID
-    proyecto_id: strawberry.ID

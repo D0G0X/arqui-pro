@@ -8,24 +8,23 @@ from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse, JSONResponse
 from strawberry.fastapi import GraphQLRouter
 
-# resolvers
-from adapters.resolvers.usuario_resolver import QueryUsuario, MutationUsuario
-from adapters.resolvers.arquitecto_resolver import QueryArquitecto, MutationArquitecto
-from adapters.resolvers.cliente_resolver import QueryCliente, MutationCliente
-from adapters.resolvers.proyecto_resolver import QueryProyecto, MutationProyecto
-from adapters.resolvers.solicitud_proyecto_resolver import QuerySolicitudProyecto, MutationSolicitudProyecto
-from adapters.resolvers.moderador_resolver import QueryModerador, MutationModerador
-from adapters.resolvers.conversacion_resolver import QueryConversacion, MutationConversacion
-from adapters.resolvers.mensaje_resolver import QueryMensaje, MutationMensaje
-from adapters.resolvers.notificacion_resolver import QueryNotificacion, MutationNotificacion
-from adapters.resolvers.valoracion_resolver import QueryValoracion, MutationValoracion
-from adapters.resolvers.avance_resolver import QueryAvance, MutationAvance
-from adapters.resolvers.incidencia_resolver import QueryIncidencia, MutationIncidencia
-from adapters.resolvers.imagen_resolver import QueryImagen, MutationImagen
-from adapters.resolvers.imagen_asociacion_resolver import QueryImagenAsociacion, MutationImagenAsociacion
-from adapters.resolvers.verificacion_resolver import QueryVerificacion, MutationVerificacion
-from adapters.resolvers.estadisticas_resolver import QueryEstadisticas
-from adapters.resolvers.filtros_resolver import QueryFiltros
+# resolvers (solo queries)
+from adapters.resolvers.usuario_resolver import QueryUsuario
+from adapters.resolvers.arquitecto_resolver import QueryArquitecto
+from adapters.resolvers.cliente_resolver import QueryCliente
+from adapters.resolvers.proyecto_resolver import QueryProyecto
+from adapters.resolvers.solicitud_proyecto_resolver import QuerySolicitudProyecto
+from adapters.resolvers.moderador_resolver import QueryModerador
+from adapters.resolvers.conversacion_resolver import QueryConversacion
+from adapters.resolvers.mensaje_resolver import QueryMensaje
+from adapters.resolvers.notificacion_resolver import QueryNotificacion
+from adapters.resolvers.valoracion_resolver import QueryValoracion
+from adapters.resolvers.avance_resolver import QueryAvance
+from adapters.resolvers.incidencia_resolver import QueryIncidencia
+from adapters.resolvers.imagen_resolver import QueryImagen
+from adapters.resolvers.imagen_asociacion_resolver import QueryImagenAsociacion
+from adapters.resolvers.verificacion_resolver import QueryVerificacion
+# Consultas avanzadas (estadísticas/filtros) deshabilitadas por ahora
 
 
 @strawberry.type
@@ -45,33 +44,22 @@ class Query(
     QueryImagen,
     QueryImagenAsociacion,
     QueryVerificacion,
-    QueryEstadisticas,  # ✨ Queries de estadísticas y reportes
-    QueryFiltros,  # ✨ Queries de filtros y búsqueda
 ):
+    """
+    Root Query Type - Solo consultas (no mutaciones).
+    
+    CRUD (crear/actualizar/eliminar) se realiza directamente
+    desde el frontend al API REST de Rails.
+    
+    Por ahora, GraphQL expone solo consultas simples que delegan en el API REST.
+    Las consultas agregadas/avanzadas (estadísticas, filtros, KPIs) se añadirán
+    más adelante también consumiendo el REST.
+    """
     pass
 
 
-@strawberry.type
-class Mutation(
-    MutationUsuario,
-    MutationArquitecto,
-    MutationCliente,
-    MutationProyecto,
-    MutationSolicitudProyecto,
-    MutationModerador,
-    MutationConversacion,
-    MutationMensaje,
-    MutationNotificacion,
-    MutationValoracion,
-    MutationAvance,
-    MutationIncidencia,
-    MutationImagen,
-    MutationImagenAsociacion,
-    MutationVerificacion,
-):
-    pass
-
-schema = strawberry.Schema(query=Query, mutation=Mutation)
+# Schema sin mutaciones
+schema = strawberry.Schema(query=Query)
 graphql_app = GraphQLRouter(schema)  # lo usaremos solo para la UI
 
 app = FastAPI(title="Arquitectos / Usuarios GraphQL Service")
