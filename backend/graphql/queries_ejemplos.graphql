@@ -1,0 +1,671 @@
+# ================================================================
+# COLECCIÓN DE QUERIES GRAPHQL
+# Sistema de Arquitectos y Proyectos
+# ================================================================
+
+# ================================================================
+# GRUPO 1: CONSULTAS DE INFORMACIÓN AGREGADA (3)
+# ================================================================
+
+# ---------------------------------------------------------------
+# Query 1: Perfil Completo de Arquitecto
+# ---------------------------------------------------------------
+
+query PerfilCompletoArquitecto {
+  perfilCompletoArquitecto(arquitectoId: "1") {
+    arquitecto {
+      id
+      cedula
+      especialidades
+      ubicacion
+      valoracion_prom_proyecto
+      verificado
+      vistas_perfil
+      descripcion
+    }
+    usuario {
+      id
+      nombre
+      apellido
+      email
+      rol
+      estado_cuenta
+      fecha_registro
+    }
+    proyectos {
+      id
+      titulo_proyecto
+      descripcion
+      tipo_proyecto
+      valoracion_promedio
+      fecha_publicacion
+    }
+    total_proyectos
+    valoracion_promedio
+  }
+}
+
+# ---------------------------------------------------------------
+# Query 2: Dashboard de Proyecto
+# ---------------------------------------------------------------
+
+query DashboardProyecto {
+  dashboardProyecto(proyectoId: "5") {
+    proyecto {
+      id
+      titulo_proyecto
+      descripcion
+      tipo_proyecto
+      valoracion_promedio
+      fecha_publicacion
+    }
+    arquitecto {
+      id
+      cedula
+      especialidades
+      ubicacion
+      verificado
+    }
+    arquitecto_usuario {
+      nombre
+      apellido
+      email
+      foto_perfil
+    }
+    cliente {
+      id
+      cedula
+    }
+    cliente_usuario {
+      nombre
+      apellido
+      email
+    }
+    avances {
+      id
+      descripcion
+      fecha
+    }
+    valoraciones {
+      id
+      calificacion
+      comentario
+      fecha
+    }
+    total_avances
+    valoracion_promedio
+  }
+}
+
+# ---------------------------------------------------------------
+# Query 3: Historial de Conversación
+# ---------------------------------------------------------------
+
+query HistorialConversacion {
+  historialConversacion(conversacionId: "10") {
+    conversacion {
+      id
+      fecha
+    }
+    cliente {
+      id
+      cedula
+    }
+    cliente_usuario {
+      nombre
+      apellido
+      email
+      foto_perfil
+    }
+    arquitecto {
+      id
+      cedula
+      especialidades
+    }
+    arquitecto_usuario {
+      nombre
+      apellido
+      email
+    }
+    mensajes {
+      id
+      contenido
+      fecha_envio
+      leido
+      usuario_emisor_id
+    }
+    total_mensajes
+    mensajes_no_leidos
+  }
+}
+
+
+# ================================================================
+# GRUPO 2: CONSULTAS DE ANÁLISIS Y MÉTRICAS (3)
+# ================================================================
+
+# ---------------------------------------------------------------
+# Query 4: Estadísticas de Arquitecto
+# ---------------------------------------------------------------
+
+query EstadisticasArquitecto {
+  estadisticasArquitecto(arquitectoId: "1") {
+    arquitecto_id
+    nombre_completo
+    total_proyectos
+    valoracion_promedio
+    proyectos_por_tipo {
+      tipo
+      cantidad
+    }
+    total_valoraciones
+    verificado
+  }
+}
+
+# ---------------------------------------------------------------
+# Query 5: KPIs de la Plataforma
+# ---------------------------------------------------------------
+
+query KPIsPlataforma {
+  kpisPlataforma {
+    total_usuarios
+    usuarios_por_rol {
+      rol
+      cantidad
+    }
+    total_proyectos
+    total_arquitectos
+    total_clientes
+    total_incidencias
+    arquitectos_verificados
+  }
+}
+
+# ---------------------------------------------------------------
+# Query 6: Métricas de Proyecto
+# ---------------------------------------------------------------
+
+query MetricasProyecto {
+  metricasProyecto(proyectoId: "5") {
+    proyecto_id
+    titulo
+    total_avances
+    total_valoraciones
+    valoracion_promedio
+    dias_transcurridos
+    estado
+  }
+}
+
+
+# ================================================================
+# GRUPO 3: CONSULTAS DE BÚSQUEDA AVANZADA (3)
+# ================================================================
+
+# ---------------------------------------------------------------
+# Query 7: Buscar Arquitectos
+# ---------------------------------------------------------------
+
+# Ejemplo 1: Buscar todos los arquitectos verificados en Lima
+query BuscarArquitectosVerificadosLima {
+  buscarArquitectos(ubicacion: "Lima", verificado: true) {
+    id
+    cedula
+    especialidades
+    ubicacion
+    valoracion_prom_proyecto
+    verificado
+    usuario {
+      nombre
+      apellido
+      email
+    }
+  }
+}
+
+# Ejemplo 2: Buscar arquitectos con especialidad en Residencial y valoración mínima 4.0
+query BuscarArquitectosResidencialesCalificados {
+  buscarArquitectos(especialidad: "Residencial", valoracionMinima: 4.0) {
+    id
+    cedula
+    especialidades
+    valoracion_prom_proyecto
+    usuario {
+      nombre
+      apellido
+    }
+    proyectos {
+      titulo_proyecto
+      valoracion_promedio
+    }
+  }
+}
+
+# Ejemplo 3: Buscar arquitectos verificados con valoración excelente
+query BuscarArquitectosExcelentes {
+  buscarArquitectos(valoracionMinima: 4.5, verificado: true) {
+    id
+    usuario {
+      nombre
+      apellido
+      email
+    }
+    especialidades
+    valoracion_prom_proyecto
+    vistas_perfil
+  }
+}
+
+# ---------------------------------------------------------------
+# Query 8: Buscar Proyectos
+# ---------------------------------------------------------------
+
+# Ejemplo 1: Buscar proyectos residenciales con buena valoración
+query BuscarProyectosResidencialesCalificados {
+  buscarProyectos(tipoProyecto: "Residencial", valoracionMinima: 4.0) {
+    id
+    titulo_proyecto
+    descripcion
+    valoracion_promedio
+    fecha_publicacion
+    arquitecto {
+      usuario {
+        nombre
+        apellido
+      }
+      especialidades
+    }
+  }
+}
+
+# Ejemplo 2: Buscar proyectos publicados en un rango de fechas
+query BuscarProyectosRangoFechas {
+  buscarProyectos(fechaDesde: "2024-01-01", fechaHasta: "2024-12-31") {
+    id
+    titulo_proyecto
+    tipo_proyecto
+    fecha_publicacion
+    valoracion_promedio
+    arquitecto {
+      cedula
+      usuario {
+        nombre
+      }
+    }
+  }
+}
+
+# Ejemplo 3: Buscar proyectos comerciales recientes con excelente valoración
+query BuscarProyectosComerciales Excelentes {
+  buscarProyectos(
+    tipoProyecto: "Comercial"
+    valoracionMinima: 4.5
+    fechaDesde: "2024-06-01"
+  ) {
+    id
+    titulo_proyecto
+    descripcion
+    valoracion_promedio
+    avances {
+      descripcion
+      fecha
+    }
+    valoraciones {
+      calificacion
+      comentario
+    }
+  }
+}
+
+# ---------------------------------------------------------------
+# Query 9: Buscar Conversaciones
+# ---------------------------------------------------------------
+
+# Ejemplo 1: Buscar conversaciones de un cliente específico
+query BuscarConversacionesDeCliente {
+  buscarConversaciones(clienteId: "3") {
+    id
+    fecha
+    cliente {
+      usuario {
+        nombre
+        apellido
+      }
+    }
+    arquitecto {
+      usuario {
+        nombre
+        apellido
+      }
+      especialidades
+    }
+    mensajes {
+      contenido
+      fecha_envio
+      leido
+    }
+  }
+}
+
+# Ejemplo 2: Buscar conversaciones con mensajes no leídos
+query BuscarConversacionesConNoLeidos {
+  buscarConversaciones(soloConNoLeidos: true) {
+    id
+    fecha
+    cliente_usuario {
+      nombre
+      apellido
+    }
+    arquitecto_usuario {
+      nombre
+      apellido
+    }
+    total_mensajes
+    mensajes_no_leidos
+  }
+}
+
+# Ejemplo 3: Buscar conversaciones de un arquitecto desde una fecha
+query BuscarConversacionesArquitecto {
+  buscarConversaciones(arquitectoId: "2", fechaDesde: "2024-01-01") {
+    id
+    fecha
+    cliente {
+      cedula
+      usuario {
+        nombre
+        email
+      }
+    }
+    mensajes {
+      contenido
+      fecha_envio
+      leido
+      usuario_emisor_id
+    }
+  }
+}
+
+
+# ================================================================
+# QUERIES CRUD BÁSICAS (Queries simples de entidades)
+# ================================================================
+
+# ---------------------------------------------------------------
+# Usuarios
+# ---------------------------------------------------------------
+
+query ListarUsuarios {
+  listar_usuarios {
+    id
+    nombre
+    apellido
+    email
+    rol
+    estado_cuenta
+    fecha_registro
+  }
+}
+
+query ObtenerUsuario {
+  obtener_usuario(id: "1") {
+    id
+    nombre
+    apellido
+    email
+    rol
+    estado_cuenta
+    arquitecto {
+      cedula
+      especialidades
+    }
+    cliente {
+      cedula
+    }
+  }
+}
+
+# ---------------------------------------------------------------
+# Arquitectos
+# ---------------------------------------------------------------
+
+query ListarArquitectos {
+  listar_arquitectos {
+    id
+    cedula
+    especialidades
+    ubicacion
+    valoracion_prom_proyecto
+    verificado
+    usuario {
+      nombre
+      apellido
+      email
+    }
+  }
+}
+
+query ObtenerArquitecto {
+  obtener_arquitecto(id: "1") {
+    id
+    cedula
+    especialidades
+    ubicacion
+    valoracion_prom_proyecto
+    verificado
+    vistas_perfil
+    usuario {
+      nombre
+      apellido
+      email
+      foto_perfil
+    }
+    proyectos {
+      titulo_proyecto
+      valoracion_promedio
+    }
+  }
+}
+
+# ---------------------------------------------------------------
+# Proyectos
+# ---------------------------------------------------------------
+
+query ListarProyectos {
+  listar_proyectos {
+    id
+    titulo_proyecto
+    descripcion
+    tipo_proyecto
+    valoracion_promedio
+    fecha_publicacion
+  }
+}
+
+query ObtenerProyecto {
+  obtener_proyecto(id: "5") {
+    id
+    titulo_proyecto
+    descripcion
+    tipo_proyecto
+    valoracion_promedio
+    fecha_publicacion
+    arquitecto {
+      cedula
+      usuario {
+        nombre
+      }
+    }
+    cliente {
+      cedula
+      usuario {
+        nombre
+      }
+    }
+    avances {
+      descripcion
+      fecha
+    }
+    valoraciones {
+      calificacion
+      comentario
+    }
+  }
+}
+
+# ---------------------------------------------------------------
+# Conversaciones y Mensajes
+# ---------------------------------------------------------------
+
+query ListarConversaciones {
+  listar_conversacions {
+    id
+    fecha
+    cliente {
+      usuario {
+        nombre
+      }
+    }
+    arquitecto {
+      usuario {
+        nombre
+      }
+    }
+  }
+}
+
+query ListarMensajes {
+  listar_mensajes {
+    id
+    contenido
+    fecha_envio
+    leido
+  }
+}
+
+# ---------------------------------------------------------------
+# Valoraciones y Avances
+# ---------------------------------------------------------------
+
+query ListarValoraciones {
+  listar_valoracions {
+    id
+    calificacion
+    comentario
+    fecha
+  }
+}
+
+query ListarAvances {
+  listar_avances {
+    id
+    descripcion
+    fecha
+  }
+}
+
+
+# ================================================================
+# QUERIES COMBINADAS COMPLEJAS (Ejemplos avanzados)
+# ================================================================
+
+# ---------------------------------------------------------------
+# Ejemplo: Perfil completo con proyectos y sus valoraciones
+# ---------------------------------------------------------------
+
+query PerfilArquitectoConProyectosDetallados {
+  perfilCompletoArquitecto(arquitectoId: "1") {
+    arquitecto {
+      cedula
+      especialidades
+      ubicacion
+      verificado
+    }
+    usuario {
+      nombre
+      apellido
+      email
+      foto_perfil
+    }
+    proyectos {
+      id
+      titulo_proyecto
+      tipo_proyecto
+      valoracion_promedio
+      avances {
+        descripcion
+        fecha
+      }
+      valoraciones {
+        calificacion
+        comentario
+        fecha
+      }
+    }
+    total_proyectos
+    valoracion_promedio
+  }
+}
+
+# ---------------------------------------------------------------
+# Ejemplo: Dashboard completo con estadísticas y KPIs
+# ---------------------------------------------------------------
+
+query DashboardCompleto {
+  kpisPlataforma {
+    total_usuarios
+    total_proyectos
+    total_arquitectos
+    arquitectos_verificados
+    usuarios_por_rol {
+      rol
+      cantidad
+    }
+  }
+  buscarArquitectos(verificado: true, valoracionMinima: 4.5) {
+    id
+    usuario {
+      nombre
+    }
+    valoracion_prom_proyecto
+  }
+}
+
+# ---------------------------------------------------------------
+# Ejemplo: Búsqueda multi-criterio con nested data
+# ---------------------------------------------------------------
+
+query BusquedaAvanzadaProyectos {
+  buscarProyectos(
+    tipoProyecto: "Residencial"
+    valoracionMinima: 4.0
+    fechaDesde: "2024-01-01"
+  ) {
+    id
+    titulo_proyecto
+    valoracion_promedio
+    arquitecto {
+      cedula
+      especialidades
+      usuario {
+        nombre
+        apellido
+        email
+      }
+      proyectos {
+        titulo_proyecto
+      }
+    }
+    cliente {
+      usuario {
+        nombre
+        apellido
+      }
+    }
+    avances {
+      descripcion
+      fecha
+    }
+  }
+}

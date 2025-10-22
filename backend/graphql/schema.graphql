@@ -1,0 +1,257 @@
+type ArquitectoType {
+  id: ID!
+  cedula: String!
+  valoracionPromProyecto: Float!
+  descripcion: String!
+  especialidades: String!
+  ubicacion: String!
+  verificado: Boolean!
+  vistasPerfil: Int!
+  usuarioId: ID!
+  usuario: UsuarioType
+  proyectos: [ProyectoType!]!
+}
+
+type AvanceType {
+  id: ID!
+  descripcion: String!
+  fecha: Date!
+  proyectoId: ID!
+}
+
+type ClienteType {
+  id: ID!
+  cedula: String!
+  usuarioId: ID!
+  usuario: UsuarioType
+}
+
+type ConversacionType {
+  id: ID!
+  fecha: Date!
+  clienteId: ID!
+  arquitectoId: ID!
+  cliente: ClienteType
+  arquitecto: ArquitectoType
+  mensajes: [MensajeType!]!
+}
+
+type DashboardProyecto {
+  proyecto: ProyectoType!
+  arquitecto: ArquitectoType!
+  arquitectoUsuario: UsuarioType!
+  cliente: ClienteType
+  clienteUsuario: UsuarioType
+  avances: [AvanceType!]!
+  valoraciones: [ValoracionType!]!
+  totalAvances: Int!
+  valoracionPromedio: Float!
+}
+
+"""Date (isoformat)"""
+scalar Date
+
+"""Date with time (isoformat)"""
+scalar DateTime
+
+type EstadisticasArquitecto {
+  arquitectoId: ID!
+  nombreCompleto: String!
+  totalProyectos: Int!
+  valoracionPromedio: Float!
+  proyectosPorTipo: [ProyectosPorTipo!]!
+  totalValoraciones: Int!
+  verificado: Boolean!
+}
+
+type HistorialConversacion {
+  conversacion: ConversacionType!
+  cliente: ClienteType!
+  clienteUsuario: UsuarioType!
+  arquitecto: ArquitectoType!
+  arquitectoUsuario: UsuarioType!
+  mensajes: [MensajeType!]!
+  totalMensajes: Int!
+  mensajesNoLeidos: Int!
+}
+
+type ImagenAsociacionType {
+  id: ID!
+  asociableType: String!
+  asociableId: String!
+  imagenId: ID!
+}
+
+type ImagenType {
+  id: ID!
+  imagenUrl: String!
+  fecha: Date!
+}
+
+type IncidenciaType {
+  id: ID!
+  descripcion: String!
+  estado: String!
+  fecha: Date!
+  usuarioEmisorId: ID!
+  usuarioInfractorId: ID!
+  moderadorId: ID!
+}
+
+type KPIsPlataforma {
+  totalUsuarios: Int!
+  usuariosPorRol: [UsuariosPorRol!]!
+  totalProyectos: Int!
+  totalArquitectos: Int!
+  totalClientes: Int!
+  totalIncidencias: Int!
+  arquitectosVerificados: Int!
+}
+
+type MensajeType {
+  id: ID!
+  contenido: String!
+  fechaEnvio: Date!
+  leido: Boolean!
+  conversacionId: ID!
+  remitenteId: ID!
+}
+
+type MetricasProyecto {
+  proyectoId: ID!
+  titulo: String!
+  totalAvances: Int!
+  totalValoraciones: Int!
+  valoracionPromedio: Float!
+  diasTranscurridos: Int
+  estado: String!
+}
+
+type ModeradorType {
+  id: ID!
+  usuarioId: ID!
+}
+
+type NotificacionType {
+  id: ID!
+  mensaje: String!
+  fecha: Date!
+  leido: Boolean!
+  usuarioId: ID!
+}
+
+type PerfilCompletoArquitecto {
+  arquitecto: ArquitectoType!
+  usuario: UsuarioType!
+  proyectos: [ProyectoType!]!
+  totalProyectos: Int!
+  valoracionPromedio: Float!
+}
+
+type ProyectoType {
+  id: ID!
+  tituloProyecto: String!
+  valoracionPromedio: Float!
+  descripcion: String!
+  tipoProyecto: String!
+  fechaPublicacion: Date!
+  arquitectoId: ID!
+  conversacionId: ID
+  clienteId: ID
+  solicitudProyectoId: ID
+  arquitecto: ArquitectoType
+  cliente: ClienteType
+  avances: [AvanceType!]!
+  valoraciones: [ValoracionType!]!
+}
+
+type ProyectosPorTipo {
+  tipo: String!
+  cantidad: Int!
+}
+
+type Query {
+  listarUsuarios: [UsuarioType!]!
+  obtenerUsuario(id: ID!): UsuarioType
+  listarArquitectos: [ArquitectoType!]!
+  obtenerArquitecto(id: ID!): ArquitectoType
+  listarClientes: [ClienteType!]!
+  obtenerCliente(id: ID!): ClienteType
+  listarProyectos: [ProyectoType!]!
+  obtenerProyecto(id: ID!): ProyectoType
+  listarSolicitudesProyecto: [SolicitudProyectoType!]!
+  obtenerSolicitudProyecto(id: ID!): SolicitudProyectoType
+  listarModeradors: [ModeradorType!]!
+  obtenerModerador(id: ID!): ModeradorType
+  listarConversacions: [ConversacionType!]!
+  obtenerConversacion(id: ID!): ConversacionType
+  listarMensajes: [MensajeType!]!
+  obtenerMensaje(id: ID!): MensajeType
+  listarNotificacions: [NotificacionType!]!
+  obtenerNotificacion(id: ID!): NotificacionType
+  listarValoracions: [ValoracionType!]!
+  obtenerValoracion(id: ID!): ValoracionType
+  listarAvances: [AvanceType!]!
+  obtenerAvance(id: ID!): AvanceType
+  listarIncidencias: [IncidenciaType!]!
+  obtenerIncidencia(id: ID!): IncidenciaType
+  listarImagens: [ImagenType!]!
+  obtenerImagen(id: ID!): ImagenType
+  listarImagenAsociacions: [ImagenAsociacionType!]!
+  obtenerImagenAsociacion(id: ID!): ImagenAsociacionType
+  listarVerificacions: [VerificacionType!]!
+  obtenerVerificacion(id: ID!): VerificacionType
+  perfilCompletoArquitecto(arquitectoId: ID!): PerfilCompletoArquitecto
+  dashboardProyecto(proyectoId: ID!): DashboardProyecto
+  historialConversacion(conversacionId: ID!): HistorialConversacion
+  estadisticasArquitecto(arquitectoId: ID!): EstadisticasArquitecto
+  kpisPlataforma: KPIsPlataforma!
+  metricasProyecto(proyectoId: ID!): MetricasProyecto
+  buscarArquitectos(ubicacion: String = null, especialidad: String = null, valoracionMinima: Float = null, verificado: Boolean = null): [ArquitectoType!]!
+  buscarProyectos(tipoProyecto: String = null, valoracionMinima: Float = null, fechaDesde: Date = null, fechaHasta: Date = null): [ProyectoType!]!
+  buscarConversaciones(clienteId: ID = null, arquitectoId: ID = null, fechaDesde: Date = null, soloConNoLeidos: Boolean = false): [ConversacionType!]!
+}
+
+type SolicitudProyectoType {
+  id: ID!
+  estado: String!
+  fecha: Date!
+  arquitectoId: ID!
+  clienteId: ID!
+}
+
+type UsuarioType {
+  id: ID!
+  nombre: String!
+  apellido: String!
+  email: String!
+  estadoCuenta: String!
+  rol: String!
+  fechaRegistro: DateTime
+  fotoPerfil: String
+  arquitecto: ArquitectoType
+  cliente: ClienteType
+  moderador: ModeradorType
+}
+
+type UsuariosPorRol {
+  rol: String!
+  cantidad: Int!
+}
+
+type ValoracionType {
+  id: ID!
+  calificacion: Float!
+  comentario: String!
+  fecha: Date!
+  clienteId: ID!
+  proyectoId: ID!
+}
+
+type VerificacionType {
+  id: ID!
+  estado: String!
+  fechaVerificacion: Date!
+  arquitectoId: ID!
+  moderadorId: ID!
+}
