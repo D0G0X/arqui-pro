@@ -1,4 +1,12 @@
 class Usuario < ApplicationRecord
+    include Devise::JWT::RevocationStrategies::JTIMatcher
+    devise :database_authenticatable,
+    :registerable,
+    :jwt_authenticatable,
+    jwt_revocation_strategy: self # para revocar tokens, se usa la clase usuario para revocar tokens
+
+    before_create :generate_jti
+
     # Solo tiene un cliente asociado
     # Cuando se elimina un usuario, se elimina también su cliente asociado
     has_one :cliente, dependent: :destroy
@@ -28,4 +36,20 @@ class Usuario < ApplicationRecord
     validates :rol, inclusion: { in: ['cliente', 'arquitecto', 'moderador'] }
     # El email debe ser único
     validates :email, uniqueness: true
+
+    def self.jwt_revoked?(payload, user)
+        return true unless payload && payload['jti'] && user&.jti
+        payload['jti'] != user.jti
+    end
+    
+    def self.revoke_jwt(payload, user)
+        return unless user
+        user.update_column(:jti, SecureRandom.uuid)
+    end
+    
+      private
+    
+      def generate_jti
+        self.jti = SecureRandom.uuid
+      end    
 end

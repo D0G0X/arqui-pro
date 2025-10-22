@@ -9,6 +9,12 @@ Rails.application.routes.draw do
   # root "posts#index"
   namespace :api do
     namespace :v1 do
+      devise_for :usuarios,
+      controllers: {
+        registrations: 'usuarios/registrations',
+        sessions: 'usuarios/sessions'
+      },
+      defaults: { format: :json }
       resources :usuarios
       resources :clientes
       resources :arquitectos

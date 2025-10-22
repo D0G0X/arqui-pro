@@ -1,6 +1,7 @@
 module Api
     module V1
         class UsuariosController < ApplicationController
+            before_action :authenticate_usuario!, only: [:show, :update, :destroy]
             before_action :set_usuario, only: %i[update show destroy]
 
             def index
