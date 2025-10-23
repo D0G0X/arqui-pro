@@ -480,18 +480,3 @@ bundle install
 rails tmp:clear
 rails db:reset  # ⚠️ Esto borra toda la BD
 ```
-
----
-
-## 👥 Contribución
-
-1. Crea una rama: `git checkout -b feature/nueva-funcionalidad`
-2. Commit: `git commit -m "feat: añade nueva funcionalidad"`
-3. Push: `git push origin feature/nueva-funcionalidad`
-4. Abre un Pull Request
-
----
-
-## 📄 Licencia
-
-Proyecto desarrollado para ArquiPro © 2025
