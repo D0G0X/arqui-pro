@@ -6,6 +6,9 @@ import strawberry
 from typing import Optional, List
 from infrastructure.rest_client import rest_client
 from graphql_types.perfil_completo_arquitecto import PerfilCompletoArquitecto
+from adapters.schemas.arquitecto_schema import ArquitectoType
+from adapters.schemas.usuario_schema import UsuarioType
+from adapters.schemas.proyecto_schema import ProyectoType
 
 
 async def resolver_buscar_arquitectos(
@@ -35,11 +38,10 @@ async def resolver_buscar_arquitectos(
                 if especialidad.lower() not in arq.get("especialidad").lower():
                     continue
             
-            # Obtener datos del usuario
-            try:
-                usr_data = await rest_client.get_usuario(str(arq.get("usuario_id")))
-            except:
-                continue
+            # El serializer de Rails incluye el usuario completo
+            usuario_data = arq.get("usuario", {})
+            if not usuario_data:
+                continue  # Saltar si no tiene usuario
             
             # Obtener proyectos para calcular valoración
             proyectos_data = await rest_client.get_proyectos(params={"arquitecto_id": str(arq.get("id"))})
@@ -60,18 +62,52 @@ async def resolver_buscar_arquitectos(
             if valoracion_minima is not None and val_prom < valoracion_minima:
                 continue
             
-            # Construir perfil completo
-            perfil = PerfilCompletoArquitecto(
-                arquitecto_id=str(arq.get("id")),
-                nombre_completo=f"{usr_data.get('nombre')} {usr_data.get('apellido')}",
-                email=usr_data.get("email"),
-                telefono=usr_data.get("telefono"),
-                especialidad=arq.get("especialidad"),
-                años_experiencia=arq.get("años_experiencia"),
-                total_proyectos=len(proyectos),
-                valoracion_promedio=val_prom,
+            # Construir objetos completos
+            arquitecto = ArquitectoType(
+                id=arq.get("id"),
+                cedula=arq.get("cedula"),
+                valoracion_prom_proyecto=val_prom,
+                descripcion=arq.get("descripcion") or "",
+                especialidades=arq.get("especialidades") or "",
+                ubicacion=arq.get("ubicacion") or "",
                 verificado=arq.get("verificado") or False,
-                descripcion=arq.get("descripcion")
+                vistas_perfil=arq.get("vistas_perfil") or 0,
+                usuario_id=usuario_data.get("id"),
+            )
+            
+            usuario = UsuarioType(
+                id=usuario_data.get("id"),
+                nombre=usuario_data.get("nombre"),
+                apellido=usuario_data.get("apellido"),
+                email=usuario_data.get("email"),
+                estado_cuenta=usuario_data.get("estado_cuenta"),
+                rol=usuario_data.get("rol"),
+                fecha_registro=usuario_data.get("fecha_registro"),
+                foto_perfil=usuario_data.get("foto_perfil"),
+            )
+            
+            proyectos_list = [
+                ProyectoType(
+                    id=p.get("id"),
+                    titulo_proyecto=p.get("titulo_proyecto"),
+                    valoracion_promedio=p.get("valoracion_promedio") or 0.0,
+                    descripcion=p.get("descripcion") or "",
+                    tipo_proyecto=p.get("tipo_proyecto") or "",
+                    fecha_publicacion=p.get("fecha_publicacion"),
+                    arquitecto_id=p.get("arquitecto_id"),
+                    conversacion_id=p.get("conversacion_id"),
+                    cliente_id=p.get("cliente_id"),
+                    solicitud_proyecto_id=p.get("solicitud_proyecto_id"),
+                )
+                for p in proyectos
+            ]
+            
+            perfil = PerfilCompletoArquitecto(
+                arquitecto=arquitecto,
+                usuario=usuario,
+                proyectos=proyectos_list,
+                total_proyectos=len(proyectos),
+                valoracion_promedio=val_prom
             )
             resultados.append(perfil)
         

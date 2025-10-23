@@ -20,8 +20,8 @@ async def resolver_estadisticas_arquitecto(arquitecto_id: strawberry.ID) -> Opti
     try:
         # Obtener arquitecto
         arq_data = await rest_client.get_arquitecto(str(arquitecto_id))
-        usr_data = await rest_client.get_usuario(str(arq_data.get("usuario_id")))
-        nombre_completo = f"{usr_data.get('nombre')} {usr_data.get('apellido')}"
+        usuario_data = arq_data.get("usuario", {})
+        nombre_completo = f"{usuario_data.get('nombre')} {usuario_data.get('apellido')}"
         
         # Obtener proyectos
         proyectos_data = await rest_client.get_proyectos(params={"arquitecto_id": str(arquitecto_id)})

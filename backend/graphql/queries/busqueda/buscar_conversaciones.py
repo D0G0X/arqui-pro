@@ -6,6 +6,11 @@ import strawberry
 from typing import Optional, List
 from infrastructure.rest_client import rest_client
 from graphql_types.historial_conversacion import HistorialConversacion
+from adapters.schemas.conversacion_schema import ConversacionType
+from adapters.schemas.cliente_schema import ClienteType
+from adapters.schemas.arquitecto_schema import ArquitectoType
+from adapters.schemas.usuario_schema import UsuarioType
+from adapters.schemas.mensaje_schema import MensajeType
 
 
 async def resolver_buscar_conversaciones(
@@ -41,41 +46,97 @@ async def resolver_buscar_conversaciones(
                 if str(conv.get("arquitecto_id")) != str(arquitecto_id):
                     continue
             
-            # Obtener datos del proyecto
-            try:
-                proy_data = await rest_client.get_proyecto(str(conv.get("proyecto_id")))
-                titulo_proy = proy_data.get("titulo_proyecto") or "Sin título"
-            except:
-                titulo_proy = "Proyecto desconocido"
+            # Construir conversacion
+            conversacion = ConversacionType(
+                id=conv.get("id"),
+                fecha=conv.get("fecha"),
+                cliente_id=conv.get("cliente_id"),
+                arquitecto_id=conv.get("arquitecto_id"),
+            )
             
             # Obtener datos del cliente
             try:
                 cli_data = await rest_client.get_cliente(str(conv.get("cliente_id")))
-                usr_cli = await rest_client.get_usuario(str(cli_data.get("usuario_id")))
-                nombre_cli = f"{usr_cli.get('nombre')} {usr_cli.get('apellido')}"
+                cli_usuario_data = cli_data.get("usuario", {})
+                
+                cliente = ClienteType(
+                    id=cli_data.get("id"),
+                    cedula=cli_data.get("cedula"),
+                    usuario_id=cli_usuario_data.get("id"),
+                )
+                
+                cliente_usuario = UsuarioType(
+                    id=cli_usuario_data.get("id"),
+                    nombre=cli_usuario_data.get("nombre"),
+                    apellido=cli_usuario_data.get("apellido"),
+                    email=cli_usuario_data.get("email"),
+                    estado_cuenta=cli_usuario_data.get("estado_cuenta"),
+                    rol=cli_usuario_data.get("rol"),
+                    fecha_registro=cli_usuario_data.get("fecha_registro"),
+                    foto_perfil=cli_usuario_data.get("foto_perfil"),
+                )
             except:
-                nombre_cli = "Cliente desconocido"
+                continue  # Saltar si no se puede obtener cliente
             
             # Obtener datos del arquitecto
             try:
                 arq_data = await rest_client.get_arquitecto(str(conv.get("arquitecto_id")))
-                usr_arq = await rest_client.get_usuario(str(arq_data.get("usuario_id")))
-                nombre_arq = f"{usr_arq.get('nombre')} {usr_arq.get('apellido')}"
+                arq_usuario_data = arq_data.get("usuario", {})
+                
+                arquitecto = ArquitectoType(
+                    id=arq_data.get("id"),
+                    cedula=arq_data.get("cedula"),
+                    valoracion_prom_proyecto=arq_data.get("valoracion_prom_proyecto") or 0.0,
+                    descripcion=arq_data.get("descripcion") or "",
+                    especialidades=arq_data.get("especialidades") or "",
+                    ubicacion=arq_data.get("ubicacion") or "",
+                    verificado=arq_data.get("verificado") or False,
+                    vistas_perfil=arq_data.get("vistas_perfil") or 0,
+                    usuario_id=arq_usuario_data.get("id"),
+                )
+                
+                arquitecto_usuario = UsuarioType(
+                    id=arq_usuario_data.get("id"),
+                    nombre=arq_usuario_data.get("nombre"),
+                    apellido=arq_usuario_data.get("apellido"),
+                    email=arq_usuario_data.get("email"),
+                    estado_cuenta=arq_usuario_data.get("estado_cuenta"),
+                    rol=arq_usuario_data.get("rol"),
+                    fecha_registro=arq_usuario_data.get("fecha_registro"),
+                    foto_perfil=arq_usuario_data.get("foto_perfil"),
+                )
             except:
-                nombre_arq = "Arquitecto desconocido"
+                continue  # Saltar si no se puede obtener arquitecto
             
             # Obtener mensajes de la conversación
             mensajes_data = await rest_client.get_mensajes(params={"conversacion_id": str(conv.get("id"))})
-            mensajes = [m for m in mensajes_data if str(m.get("conversacion_id")) == str(conv.get("id"))]
+            mensajes_filtrados = [m for m in mensajes_data if str(m.get("conversacion_id")) == str(conv.get("id"))]
+            
+            mensajes_list = [
+                MensajeType(
+                    id=m.get("id"),
+                    contenido=m.get("contenido"),
+                    fecha_envio=m.get("fecha_envio"),
+                    leido=m.get("leido") or False,
+                    conversacion_id=m.get("conversacion_id"),
+                    usuario_emisor_id=m.get("usuario_emisor_id"),
+                )
+                for m in mensajes_filtrados
+            ]
+            
+            # Contar mensajes no leídos
+            mensajes_no_leidos = sum(1 for m in mensajes_filtrados if not m.get("leido"))
             
             # Construir historial
             historial = HistorialConversacion(
-                conversacion_id=str(conv.get("id")),
-                proyecto_titulo=titulo_proy,
-                cliente_nombre=nombre_cli,
-                arquitecto_nombre=nombre_arq,
-                total_mensajes=len(mensajes),
-                ultimo_mensaje=mensajes[-1].get("contenido") if mensajes else None
+                conversacion=conversacion,
+                cliente=cliente,
+                cliente_usuario=cliente_usuario,
+                arquitecto=arquitecto,
+                arquitecto_usuario=arquitecto_usuario,
+                mensajes=mensajes_list,
+                total_mensajes=len(mensajes_list),
+                mensajes_no_leidos=mensajes_no_leidos
             )
             resultados.append(historial)
         
