@@ -11,13 +11,3 @@ class IncidenciaType:
     usuario_emisor_id: strawberry.ID
     usuario_infractor_id: strawberry.ID
     moderador_id: strawberry.ID
-
-
-@strawberry.input
-class IncidenciaInput:
-    descripcion: str
-    estado: str
-    fecha: date
-    usuario_emisor_id: strawberry.ID
-    usuario_infractor_id: strawberry.ID
-    moderador_id: strawberry.ID

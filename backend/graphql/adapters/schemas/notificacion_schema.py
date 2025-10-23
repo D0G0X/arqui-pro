@@ -10,11 +10,3 @@ class NotificacionType:
     fecha: date
     leido: bool
     usuario_id: strawberry.ID
-
-
-@strawberry.input
-class NotificacionInput:
-    mensaje: str
-    fecha: date
-    usuario_id: strawberry.ID
-    leido: Optional[bool] = False

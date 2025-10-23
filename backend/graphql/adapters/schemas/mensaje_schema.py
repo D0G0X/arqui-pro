@@ -1,5 +1,4 @@
 import strawberry
-from datetime import date
 from typing import Optional
 
 
@@ -7,16 +6,7 @@ from typing import Optional
 class MensajeType:
     id: strawberry.ID
     contenido: str
-    fecha_envio: date
+    fecha_envio: str  # ISO 8601 string
     leido: bool
     conversacion_id: strawberry.ID
-    remitente_id: strawberry.ID
-
-
-@strawberry.input
-class MensajeInput:
-    contenido: str
-    fecha_envio: date
-    conversacion_id: strawberry.ID
-    remitente_id: strawberry.ID
-    leido: Optional[bool] = False
+    usuario_emisor_id: strawberry.ID

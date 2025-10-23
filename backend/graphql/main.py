@@ -7,71 +7,118 @@ import strawberry
 from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse, JSONResponse
 from strawberry.fastapi import GraphQLRouter
+from typing import Optional, List
 
-# resolvers
-from adapters.resolvers.usuario_resolver import QueryUsuario, MutationUsuario
-from adapters.resolvers.arquitecto_resolver import QueryArquitecto, MutationArquitecto
-from adapters.resolvers.cliente_resolver import QueryCliente, MutationCliente
-from adapters.resolvers.proyecto_resolver import QueryProyecto, MutationProyecto
-from adapters.resolvers.solicitud_proyecto_resolver import QuerySolicitudProyecto, MutationSolicitudProyecto
-from adapters.resolvers.moderador_resolver import QueryModerador, MutationModerador
-from adapters.resolvers.conversacion_resolver import QueryConversacion, MutationConversacion
-from adapters.resolvers.mensaje_resolver import QueryMensaje, MutationMensaje
-from adapters.resolvers.notificacion_resolver import QueryNotificacion, MutationNotificacion
-from adapters.resolvers.valoracion_resolver import QueryValoracion, MutationValoracion
-from adapters.resolvers.avance_resolver import QueryAvance, MutationAvance
-from adapters.resolvers.incidencia_resolver import QueryIncidencia, MutationIncidencia
-from adapters.resolvers.imagen_resolver import QueryImagen, MutationImagen
-from adapters.resolvers.imagen_asociacion_resolver import QueryImagenAsociacion, MutationImagenAsociacion
-from adapters.resolvers.verificacion_resolver import QueryVerificacion, MutationVerificacion
-from adapters.resolvers.estadisticas_resolver import QueryEstadisticas
-from adapters.resolvers.filtros_resolver import QueryFiltros
+# Importar tipos personalizados
+from graphql_types.perfil_completo_arquitecto import PerfilCompletoArquitecto
+from graphql_types.dashboard_proyecto import DashboardProyecto
+from graphql_types.historial_conversacion import HistorialConversacion
+from graphql_types.estadisticas_arquitecto import EstadisticasArquitecto
+from graphql_types.kpis_plataforma import KPIsPlataforma
+from graphql_types.metricas_proyecto import MetricasProyecto
 
+# Importar resolvers de queries - Grupo 1: Información Agregada
+from queries.agregacion.perfil_completo_arquitecto import resolver_perfil_completo_arquitecto
+from queries.agregacion.dashboard_proyecto import resolver_dashboard_proyecto
+from queries.agregacion.historial_conversacion import resolver_historial_conversacion
 
-@strawberry.type
-class Query(
-    QueryUsuario,
-    QueryArquitecto,
-    QueryCliente,
-    QueryProyecto,
-    QuerySolicitudProyecto,
-    QueryModerador,
-    QueryConversacion,
-    QueryMensaje,
-    QueryNotificacion,
-    QueryValoracion,
-    QueryAvance,
-    QueryIncidencia,
-    QueryImagen,
-    QueryImagenAsociacion,
-    QueryVerificacion,
-    QueryEstadisticas,  # ✨ Queries de estadísticas y reportes
-    QueryFiltros,  # ✨ Queries de filtros y búsqueda
-):
-    pass
+# Importar resolvers de queries - Grupo 2: Análisis y Métricas
+from queries.metricas.estadisticas_arquitecto import resolver_estadisticas_arquitecto
+from queries.metricas.kpis_plataforma import resolver_kpis_plataforma
+from queries.metricas.metricas_proyecto import resolver_metricas_proyecto
+
+# Importar resolvers de queries - Grupo 3: Búsqueda Avanzada
+from queries.busqueda.buscar_arquitectos import resolver_buscar_arquitectos
+from queries.busqueda.buscar_proyectos import resolver_buscar_proyectos
+from queries.busqueda.buscar_conversaciones import resolver_buscar_conversaciones
 
 
 @strawberry.type
-class Mutation(
-    MutationUsuario,
-    MutationArquitecto,
-    MutationCliente,
-    MutationProyecto,
-    MutationSolicitudProyecto,
-    MutationModerador,
-    MutationConversacion,
-    MutationMensaje,
-    MutationNotificacion,
-    MutationValoracion,
-    MutationAvance,
-    MutationIncidencia,
-    MutationImagen,
-    MutationImagenAsociacion,
-    MutationVerificacion,
-):
-    pass
+class Query:
+    """
+    Root Query Type - 9 Queries Especializadas.
+    
+    Organización:
+    
+    📊 GRUPO 1: Información Agregada (combinan múltiples entidades)
+    - perfilCompletoArquitecto: Perfil detallado de arquitecto con estadísticas
+    - dashboardProyecto: Vista completa de proyecto con métricas
+    - historialConversacion: Conversación con todos sus mensajes
+    
+    📈 GRUPO 2: Análisis y Métricas (cálculos y estadísticas)
+    - estadisticasArquitecto: Métricas calculadas de un arquitecto
+    - kpisPlataforma: Indicadores generales de la plataforma
+    - metricasProyecto: Análisis detallado de un proyecto
+    
+    🔍 GRUPO 3: Búsqueda Avanzada (filtros complejos)
+    - buscarArquitectos: Búsqueda con filtros múltiples
+    - buscarProyectos: Búsqueda avanzada de proyectos
+    - buscarConversaciones: Búsqueda de conversaciones
+    
+    Nota: CRUD (crear/actualizar/eliminar) se realiza directamente
+    desde el frontend al API REST de Rails.
+    """
+    
+    # ========== GRUPO 1: Información Agregada ==========
+    
+    @strawberry.field(description="Obtiene el perfil completo de un arquitecto con sus proyectos y estadísticas")
+    async def perfil_completo_arquitecto(self, arquitecto_id: strawberry.ID) -> Optional[PerfilCompletoArquitecto]:
+        return await resolver_perfil_completo_arquitecto(arquitecto_id)
+    
+    @strawberry.field(description="Obtiene el dashboard completo de un proyecto con avances, valoraciones e incidencias")
+    async def dashboard_proyecto(self, proyecto_id: strawberry.ID) -> Optional[DashboardProyecto]:
+        return await resolver_dashboard_proyecto(proyecto_id)
+    
+    @strawberry.field(description="Obtiene el historial completo de una conversación con todos sus mensajes")
+    async def historial_conversacion(self, conversacion_id: strawberry.ID) -> Optional[HistorialConversacion]:
+        return await resolver_historial_conversacion(conversacion_id)
+    
+    # ========== GRUPO 2: Análisis y Métricas ==========
+    
+    @strawberry.field(description="Obtiene estadísticas calculadas de un arquitecto (proyectos por tipo, valoraciones)")
+    async def estadisticas_arquitecto(self, arquitecto_id: strawberry.ID) -> Optional[EstadisticasArquitecto]:
+        return await resolver_estadisticas_arquitecto(arquitecto_id)
+    
+    @strawberry.field(description="Obtiene KPIs generales de la plataforma (usuarios, proyectos, estadísticas)")
+    async def kpis_plataforma(self) -> KPIsPlataforma:
+        return await resolver_kpis_plataforma()
+    
+    @strawberry.field(description="Obtiene métricas calculadas de un proyecto (avances, valoraciones, días transcurridos)")
+    async def metricas_proyecto(self, proyecto_id: strawberry.ID) -> Optional[MetricasProyecto]:
+        return await resolver_metricas_proyecto(proyecto_id)
+    
+    # ========== GRUPO 3: Búsqueda Avanzada ==========
+    
+    @strawberry.field(description="Búsqueda avanzada de arquitectos con filtros (especialidad, valoración, verificado)")
+    async def buscar_arquitectos(
+        self,
+        especialidad: Optional[str] = None,
+        valoracion_minima: Optional[float] = None,
+        verificado: Optional[bool] = None
+    ) -> List[PerfilCompletoArquitecto]:
+        return await resolver_buscar_arquitectos(especialidad, valoracion_minima, verificado)
+    
+    @strawberry.field(description="Búsqueda avanzada de proyectos con filtros (tipo, arquitecto, estado)")
+    async def buscar_proyectos(
+        self,
+        tipo_proyecto: Optional[str] = None,
+        arquitecto_id: Optional[strawberry.ID] = None,
+        estado: Optional[str] = None
+    ) -> List[DashboardProyecto]:
+        return await resolver_buscar_proyectos(tipo_proyecto, arquitecto_id, estado)
+    
+    @strawberry.field(description="Búsqueda avanzada de conversaciones con filtros (proyecto, cliente, arquitecto)")
+    async def buscar_conversaciones(
+        self,
+        proyecto_id: Optional[strawberry.ID] = None,
+        cliente_id: Optional[strawberry.ID] = None,
+        arquitecto_id: Optional[strawberry.ID] = None
+    ) -> List[HistorialConversacion]:
+        return await resolver_buscar_conversaciones(proyecto_id, cliente_id, arquitecto_id)
 
-schema = strawberry.Schema(query=Query, mutation=Mutation)
+
+# Schema sin mutaciones
+schema = strawberry.Schema(query=Query)
 graphql_app = GraphQLRouter(schema)  # lo usaremos solo para la UI
 
 app = FastAPI(title="Arquitectos / Usuarios GraphQL Service")
