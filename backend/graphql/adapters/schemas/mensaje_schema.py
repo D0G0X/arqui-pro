@@ -9,4 +9,4 @@ class MensajeType:
     fecha_envio: str  # ISO 8601 string
     leido: bool
     conversacion_id: strawberry.ID
-    usuario_emisor_id: strawberry.ID
+    remitente_id: strawberry.ID
