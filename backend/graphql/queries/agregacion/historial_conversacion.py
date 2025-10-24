@@ -93,7 +93,7 @@ async def resolver_historial_conversacion(conversacion_id: strawberry.ID) -> Opt
                 fecha_envio=m.get("fecha_envio"),
                 leido=m.get("leido") or False,
                 conversacion_id=m.get("conversacion_id"),
-                usuario_emisor_id=m.get("usuario_emisor_id"),
+                remitente_id=m.get("remitente_id"),
             )
             for m in mensajes_data
             if str(m.get("conversacion_id")) == str(conversacion_id)
