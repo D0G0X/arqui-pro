@@ -1,0 +1,14 @@
+{
+  "dependencies": {
+    "@rails/actioncable": "^8.1.0",
+    "@types/rails__actioncable": "^8.0.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.4",
+    "@types/node": "^24.9.1",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@types/ws": "^8.18.1",
+    "ts-node-dev": "^1.1.8"
+  }
+}
