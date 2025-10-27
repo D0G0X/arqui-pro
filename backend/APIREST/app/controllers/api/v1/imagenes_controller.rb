@@ -1,6 +1,9 @@
 class Api::V1::ImagenesController < ApplicationController
   before_action :set_imagen, only: %i[update show destroy]
 
+  # Solo usuarios autenticados pueden crear/actualizar/eliminar
+  before_action :authenticate_usuario!, only: %i[create update destroy]
+
   def index
     @imagenes = Imagen.all
     render json: @imagenes

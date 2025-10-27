@@ -1,6 +1,11 @@
 class Api::V1::SolicitudesProyectoController < ApplicationController
   before_action :set_solicitud, only: %i[update show destroy]
 
+  # Solo usuarios autenticados pueden crear/actualizar/eliminar
+  before_action :authenticate_usuario!, only: %i[create update destroy]
+  # Solo usuarios propietarios pueden actualizar/eliminar
+  before_action :require_solicitud_ownership!, only: %i[update destroy]
+
   def index
     @solicitud = SolicitudProyecto.all
     render json: @solicitud
@@ -44,5 +49,12 @@ class Api::V1::SolicitudesProyectoController < ApplicationController
 
   def set_solicitud
     @solicitud = SolicitudProyecto.find_by(id: params[:id])
-  end  
+  end
+
+  def require_solicitud_ownership!
+    return not_found_response!("solicitud_proyecto") unless @solicitud
+    unless @solicitud.cliente.usuario_id == current_usuario.id || @solicitud.arquitecto.usuario.id == current_usuario.id
+      render json: { error: "No autorizado" }, status: :forbidden and return
+    end
+  end
 end

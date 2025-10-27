@@ -21,7 +21,8 @@ class Arquitecto < ApplicationRecord
   has_many :proyectos, dependent: :destroy
 
   # validaciones
-  validates :cedula, :valoracion_prom_proyecto, :descripcion, :especialidades, :ubicacion, :vistas_perfil, presence: true
+  validates :cedula, presence: true, uniqueness: true
+  validates :descripcion, :especialidades, :ubicacion, presence: true
   validates :verificado, inclusion: { in: [ true, false ] }
-  validates :cedula, uniqueness: true
+  # valoracion_prom_proyecto y vistas_perfil tienen valores por defecto en la BD
 end

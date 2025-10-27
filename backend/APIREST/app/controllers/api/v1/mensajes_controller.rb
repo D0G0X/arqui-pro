@@ -1,6 +1,10 @@
 class Api::V1::MensajesController < ApplicationController
   before_action :set_mensaje, only: %i[update show destroy]
 
+  # Solo usuarios autenticados pueden crear/actualizar/eliminar
+  before_action :authenticate_usuario!, only: %i[create update destroy]
+  before_action :require_mensaje_ownership!, only: %i[update destroy]
+
   def index
     @mensajes = Mensaje.all
     render json: @mensajes
@@ -44,5 +48,12 @@ class Api::V1::MensajesController < ApplicationController
 
   def set_mensaje
     @mensaje = Mensaje.find_by(id: params[:id])
+  end
+
+  def require_mensaje_ownership!
+    return not_found_response!("mensaje") unless @mensaje
+    unless @mensaje.remitente_id == current_usuario.id
+      render json: { error: "No autorizado" }, status: :forbidden and return
+    end
   end
 end

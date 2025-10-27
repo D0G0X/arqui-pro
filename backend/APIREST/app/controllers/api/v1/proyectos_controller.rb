@@ -1,6 +1,13 @@
 class Api::V1::ProyectosController < ApplicationController
   before_action :set_proyecto, only: %i[update show destroy]
 
+  # Solo arquitectos autenticados pueden crear/actualizar/eliminar
+  before_action :authenticate_usuario!, only: %i[create update destroy]
+  # Solo arquitectos pueden crear/actualizar/eliminar
+  before_action :require_arquitecto!, only: %i[create update destroy]
+  # Solo arquitecto dueño pueden actualizar/eliminar
+  before_action :require_proyecto_ownership!, only: %i[update destroy]
+
   def index
     @proyecto = Proyecto.all
     render json: @proyecto
@@ -46,4 +53,12 @@ class Api::V1::ProyectosController < ApplicationController
   def set_proyecto
     @proyecto = Proyecto.find_by(id: params[:id])
   end  
+
+  def require_proyecto_ownership!
+    return not_found_response!("proyecto") unless @proyecto
+    unless @proyecto.arquitecto.usuario.id == current_usuario.id
+      render json: { error: "No autorizado" }, status: :forbidden and return
+    end
+  end
+
 end

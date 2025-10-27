@@ -4,8 +4,6 @@ class Verificacion < ApplicationRecord
   belongs_to :moderador
 
   # Validaciones
-  validates :estado, :fecha_verificacion, presence: true
-  # El estado debe ser uno de los valores permitidos
   validates :estado, inclusion: { in: [ "pendiente", "verificado", "rechazado" ] }
   
   # Un arquitecto solo puede tener una verificación

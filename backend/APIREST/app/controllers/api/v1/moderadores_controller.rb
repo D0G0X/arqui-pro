@@ -1,5 +1,9 @@
 class Api::V1::ModeradoresController < ApplicationController
   before_action :set_moderador, only: %i[update show destroy]
+  # Solo moderadores autenticados pueden actualizar/eliminar
+  before_action :authenticate_usuario!, only: %i[update destroy]
+  before_action :require_moderador!, only: %i[update destroy]
+  before_action :require_moderador_ownership!, only: %i[update destroy]
 
   def index
     @moderadores = Moderador.all
@@ -39,10 +43,16 @@ class Api::V1::ModeradoresController < ApplicationController
   private
 
   def moderador_params
-    params.require(:moderador).permit(:usuario_id, usuario_attributes: [ :id, :nombre, :apellido, :email, :estado, :password, :rol, :fecha_registro, :foto_perfil ])
+    params.require(:moderador).permit(:usuario_id, :num_incidencias_resueltas, :num_arquitectos_verificados, usuario_attributes: [ :id, :nombre, :apellido, :email, :estado, :password, :rol, :fecha_registro, :foto_perfil ])
   end
 
   def set_moderador
     @moderador = Moderador.find_by(id: params[:id])
   end
+
+  def require_moderador_ownership!
+    return not_found_response!("moderador") unless @moderador
+    require_ownership!(@moderador)
+  end
+
 end

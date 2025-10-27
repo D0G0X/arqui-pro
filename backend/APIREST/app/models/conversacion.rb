@@ -10,5 +10,5 @@ class Conversacion < ApplicationRecord
   has_many :mensajes, dependent: :destroy
 
   # Validaciones
-  validates :fecha, presence: true
+  # fecha tiene default (CURRENT_DATE), por lo que no es obligatoria en entrada
 end

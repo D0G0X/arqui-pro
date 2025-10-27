@@ -10,7 +10,7 @@ class Incidencia < ApplicationRecord
 
   # validaciones
   validates :descripcion, presence: true
-  validates :estado, presence: true, inclusion: { in: [ 'pendiente', 'resuelto', 'en revision' ] }
+  validates :estado, inclusion: { in: [ 'pendiente', 'resuelto', 'en revision' ] }
   private
   def set_fecha()
     self.fecha ||= Time.current

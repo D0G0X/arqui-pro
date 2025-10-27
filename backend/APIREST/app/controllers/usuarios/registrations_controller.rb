@@ -26,6 +26,15 @@ class Usuarios::RegistrationsController < Devise::RegistrationsController
     end
 
     def sign_up_params
-        params.require(:usuario).permit(:email, :password, :password_confirmation, :nombre, :apellido, :rol, :estado_cuenta, :fecha_registro, :foto_perfil)
+        params.require(:usuario).permit(
+          :email, :password, :password_confirmation, :nombre, :apellido, 
+          :rol, :estado_cuenta, :fecha_registro, :foto_perfil,
+          cliente_attributes: [:cedula],
+          arquitecto_attributes: [
+            :cedula, :valoracion_prom_proyecto, :descripcion, 
+            :especialidades, :ubicacion, :verificado, :vistas_perfil
+          ],
+          moderador_attributes: [:id] # Moderador solo necesita usuario_id (se asigna automáticamente)
+        )
     end
 end

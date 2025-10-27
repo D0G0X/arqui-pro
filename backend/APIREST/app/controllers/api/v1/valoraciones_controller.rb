@@ -1,6 +1,11 @@
 class Api::V1::ValoracionesController < ApplicationController
   before_action :set_valoracion, only: %i[update show destroy]
 
+  # Solo usuarios autenticados pueden crear/actualizar/eliminar
+  before_action :authenticate_usuario!, only: %i[create update destroy]
+  # Solo usuarios propietarios pueden actualizar/eliminar
+  before_action :require_valoracion_ownership!, only: %i[update destroy]
+
   def index
     @valoraciones = Valoracion.all
     render json: @valoraciones
@@ -44,5 +49,12 @@ class Api::V1::ValoracionesController < ApplicationController
 
   def set_valoracion
     @valoracion = Valoracion.find_by(id: params[:id])
+  end
+
+  def require_valoracion_ownership!
+    return not_found_response!("valoracion") unless @valoracion
+    unless @valoracion.cliente.usuario.id == current_usuario.id
+      render json: { error: "No autorizado" }, status: :forbidden and return
+    end
   end
 end

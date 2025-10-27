@@ -1,5 +1,9 @@
 class Api::V1::ClientesController < ApplicationController
   before_action :set_cliente, only: %i[update show destroy]
+  # Solo clientes autenticados pueden actualizar/eliminar
+  before_action :authenticate_usuario!, only: %i[update destroy]
+  before_action :require_cliente!, only: %i[update destroy]
+  before_action :require_cliente_ownership!, only: %i[update destroy]
 
   def index
     @clientes = Cliente.all
@@ -39,10 +43,15 @@ class Api::V1::ClientesController < ApplicationController
   private
 
   def cliente_params
-    params.require(:cliente).permit(:usuario_id, :cedula, usuario_attributes: [ :id, :nombre, :apellido, :email, :estado, :password, :rol, :fecha_registro, :foto_perfil ])
+    params.require(:cliente).permit(:usuario_id, :cedula, usuario_attributes: [ :id, :nombre, :apellido, :email, :estado_cuenta, :password, :rol, :fecha_registro, :foto_perfil ])
   end
 
   def set_cliente
     @cliente = Cliente.find_by(id: params[:id])
+  end
+
+  def require_cliente_ownership!
+    return not_found_response!("cliente") unless @cliente
+    require_ownership!(@cliente)
   end
 end

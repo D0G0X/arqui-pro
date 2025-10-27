@@ -1,6 +1,9 @@
 class Api::V1::VerificacionesController < ApplicationController
   before_action :set_verificacion, only: %i[update show destroy]
 
+  # Solo usuarios moderador pueden actualizar/eliminar
+  before_action :require_moderador!, only: %i[update destroy]
+
   def index
     @verificaciones = Verificacion.all
     render json: @verificaciones

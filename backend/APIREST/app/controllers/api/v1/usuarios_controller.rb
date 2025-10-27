@@ -3,6 +3,10 @@ module Api
         class UsuariosController < ApplicationController
             # before_action :authenticate_usuario!, only: [:show, :update, :destroy]
             before_action :set_usuario, only: %i[update show destroy]
+            # Solo usuarios autenticados pueden actualizar/eliminar
+            before_action :authenticate_usuario!, only: %i[update destroy]
+            before_action :require_rol_if_usuario!, only: %i[update destroy]
+            before_action -> { require_ownership!(@usuario) }, only: %i[update destroy]
 
             def index
                 @usuarios = Usuario.all
@@ -47,6 +51,11 @@ module Api
 
             def set_usuario
                 @usuario = Usuario.find_by(id: params[:id])
+            end
+
+            def require_rol_if_usuario!
+                return not_found_response!("usuario") unless @usuario
+                require_rol!(@usuario.rol)
             end
         end
     end

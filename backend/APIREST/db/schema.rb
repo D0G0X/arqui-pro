@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_17_160144) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_24_230730) do
   create_schema "auth"
   create_schema "extensions"
   create_schema "graphql"
@@ -56,7 +56,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_17_160144) do
   end
 
   create_table "conversaciones", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.date "fecha", null: false
+    t.date "fecha", default: -> { "CURRENT_DATE" }, null: false
     t.uuid "cliente_id", null: false
     t.uuid "arquitecto_id", null: false
     t.index ["arquitecto_id"], name: "index_conversaciones_on_arquitecto_id"
@@ -69,7 +69,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_17_160144) do
     t.uuid "imagen_id", null: false
     t.index ["asociable_type", "asociable_id"], name: "index_imagen_asociaciones_on_asociable_type_and_asociable_id"
     t.index ["imagen_id"], name: "index_imagen_asociaciones_on_imagen_id"
-    t.check_constraint "asociable_type::text = ANY (ARRAY['Proyecto'::character varying, 'Mensaje'::character varying, 'Incidencia'::character varying, 'Avance'::character varying]::text[])", name: "asociable_type_imagen_asociacion_check"
+    t.check_constraint "asociable_type::text = ANY (ARRAY['Proyecto'::character varying::text, 'Mensaje'::character varying::text, 'Incidencia'::character varying::text, 'Avance'::character varying::text])", name: "asociable_type_imagen_asociacion_check"
   end
 
   create_table "imagenes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -79,7 +79,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_17_160144) do
 
   create_table "incidencias", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.text "descripcion", null: false
-    t.string "estado", null: false
+    t.string "estado", default: "pendiente", null: false
     t.date "fecha", default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.uuid "usuario_emisor_id", null: false
     t.uuid "usuario_infractor_id", null: false
@@ -87,7 +87,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_17_160144) do
     t.index ["moderador_id"], name: "index_incidencias_on_moderador_id"
     t.index ["usuario_emisor_id"], name: "index_incidencias_on_usuario_emisor_id"
     t.index ["usuario_infractor_id"], name: "index_incidencias_on_usuario_infractor_id"
-    t.check_constraint "estado::text = ANY (ARRAY['pendiente'::character varying, 'resuelto'::character varying, 'en revision'::character varying]::text[])", name: "estado_incidencia_check"
+    t.check_constraint "estado::text = ANY (ARRAY['pendiente'::character varying::text, 'resuelto'::character varying::text, 'en revision'::character varying::text])", name: "estado_incidencia_check"
   end
 
   create_table "mensajes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -102,12 +102,14 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_17_160144) do
 
   create_table "moderadores", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "usuario_id", null: false
+    t.integer "num_incidencias_resueltas", default: 0, null: false
+    t.integer "num_arquitectos_verificados", default: 0, null: false
     t.index ["usuario_id"], name: "index_moderadores_on_usuario_id"
   end
 
   create_table "notificaciones", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.text "mensaje", null: false
-    t.date "fecha", null: false
+    t.date "fecha", default: -> { "CURRENT_DATE" }, null: false
     t.boolean "leido", default: false, null: false
     t.uuid "usuario_id", null: false
     t.index ["usuario_id"], name: "index_notificaciones_on_usuario_id"
@@ -118,7 +120,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_17_160144) do
     t.float "valoracion_promedio", default: 0.0, null: false
     t.text "descripcion", null: false
     t.string "tipo_proyecto", null: false
-    t.date "fecha_publicacion", null: false
+    t.date "fecha_publicacion", default: -> { "CURRENT_DATE" }, null: false
     t.uuid "arquitecto_id", null: false
     t.uuid "conversacion_id"
     t.uuid "cliente_id"
@@ -127,29 +129,32 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_17_160144) do
     t.index ["cliente_id"], name: "index_proyectos_on_cliente_id"
     t.index ["conversacion_id"], name: "index_proyectos_on_conversacion_id"
     t.index ["solicitud_proyecto_id"], name: "index_proyectos_on_solicitud_proyecto_id"
-    t.check_constraint "tipo_proyecto::text = ANY (ARRAY['portafolio'::character varying, 'contratado'::character varying]::text[])", name: "tipo_proyecto_check"
+    t.check_constraint "tipo_proyecto::text = ANY (ARRAY['portafolio'::character varying::text, 'contratado'::character varying::text])", name: "tipo_proyecto_check"
   end
 
   create_table "solicitudes_proyecto", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "estado", default: "pendiente", null: false
-    t.date "fecha", null: false
+    t.date "fecha", default: -> { "CURRENT_DATE" }, null: false
     t.uuid "arquitecto_id", null: false
     t.uuid "cliente_id", null: false
     t.index ["arquitecto_id"], name: "index_solicitudes_proyecto_on_arquitecto_id"
     t.index ["cliente_id"], name: "index_solicitudes_proyecto_on_cliente_id"
-    t.check_constraint "estado::text = ANY (ARRAY['pendiente'::character varying, 'aceptado'::character varying, 'rechazado'::character varying]::text[])", name: "estado_solicitud_proyecto_check"
+    t.check_constraint "estado::text = ANY (ARRAY['pendiente'::character varying::text, 'aceptado'::character varying::text, 'rechazado'::character varying::text])", name: "estado_solicitud_proyecto_check"
   end
 
   create_table "usuarios", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "nombre", null: false
     t.string "apellido", null: false
-    t.string "email", null: false
-    t.string "estado_cuenta", null: false
-    t.string "password", null: false
+    t.string "email", default: "", null: false
+    t.string "estado_cuenta", default: "activo", null: false
+    t.string "encrypted_password", default: "", null: false
     t.string "rol", null: false
-    t.date "fecha_registro", default: -> { "now()" }, null: false
+    t.date "fecha_registro", default: -> { "CURRENT_DATE" }, null: false
     t.string "foto_perfil"
+    t.datetime "remember_created_at"
+    t.string "jti"
     t.index ["email"], name: "index_usuarios_on_email", unique: true
+    t.index ["jti"], name: "index_usuarios_on_jti", unique: true
     t.check_constraint "estado_cuenta::text = ANY (ARRAY['suspendido'::character varying::text, 'activo'::character varying::text])", name: "estado_check"
     t.check_constraint "rol::text = ANY (ARRAY['cliente'::character varying::text, 'arquitecto'::character varying::text, 'moderador'::character varying::text])", name: "rol_check"
   end
@@ -165,8 +170,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_17_160144) do
   end
 
   create_table "verificaciones", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.string "estado", null: false
-    t.date "fecha_verificacion", null: false
+    t.string "estado", default: "pendiente", null: false
+    t.date "fecha_verificacion", default: -> { "CURRENT_DATE" }, null: false
     t.uuid "arquitecto_id", null: false
     t.uuid "moderador_id", null: false
     t.index ["arquitecto_id"], name: "index_verificaciones_on_arquitecto_id", unique: true

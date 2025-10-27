@@ -1,6 +1,11 @@
 class Api::V1::ArquitectosController < ApplicationController
   before_action :set_arquitecto, only: %i[update show destroy]
 
+  # Solo arquitectos autenticados pueden actualizar/eliminar
+  before_action :authenticate_usuario!, only: %i[update destroy]
+  before_action :require_arquitecto!, only: %i[update destroy]
+  before_action :require_arquitecto_ownership!, only: %i[update destroy]
+
   def index
     @arquitectos = Arquitecto.all
     render json: @arquitectos
@@ -45,5 +50,10 @@ class Api::V1::ArquitectosController < ApplicationController
 
   def set_arquitecto
     @arquitecto = Arquitecto.find_by(id: params[:id])
+  end
+
+  def require_arquitecto_ownership!
+    return not_found_response!("arquitecto") unless @arquitecto
+    require_ownership!(@arquitecto)
   end
 end

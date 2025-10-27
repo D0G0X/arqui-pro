@@ -30,9 +30,9 @@ module Apirest
     config.api_only = true
     
     # Enable sessions for Devise authentication
-    config.session_store :cookie_store, key: '_apirest_session'
-    config.generators do |g|
-      g.orm :active_record, primary_key_type: :uuid
-    end
+    # config.session_store :cookie_store, key: '_apirest_session'
+    # config.generators do |g|
+    #   g.orm :active_record, primary_key_type: :uuid
+    # end
   end
 end

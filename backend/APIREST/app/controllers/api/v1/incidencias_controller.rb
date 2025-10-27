@@ -1,6 +1,11 @@
 class Api::V1::IncidenciasController < ApplicationController
   before_action :set_incidencia, only: %i[update show destroy]
 
+  # Solo usuarios autenticados pueden crear/actualizar/eliminar
+  before_action :authenticate_usuario!, only: %i[create update destroy]
+  # Solo usuarios propietarios y moderadores pueden actualizar/eliminar
+  before_action :require_incidencia_ownership!, only: %i[update destroy]
+
   def index
     @incidencias = Incidencia.all
     render json: @incidencias
@@ -44,5 +49,12 @@ class Api::V1::IncidenciasController < ApplicationController
 
   def set_incidencia
     @incidencia = Incidencia.find_by(id: params[:id])
+  end
+
+  def require_incidencia_ownership!
+    return not_found_response!("incidencia") unless @incidencia
+    unless @incidencia.usuario_emisor_id == current_usuario.id || @incidencia.moderador_id == current_usuario.id
+      render json: { error: "No autorizado" }, status: :forbidden and return
+    end
   end
 end

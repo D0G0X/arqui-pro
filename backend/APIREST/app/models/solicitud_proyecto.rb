@@ -5,6 +5,5 @@ class SolicitudProyecto < ApplicationRecord
   belongs_to :cliente
 
   # Validaciones
-  validates :estado, presence: true, inclusion: { in: ["pendiente", "aceptado", "rechazado"] }
-  validates :fecha, presence: true
+  validates :estado, inclusion: { in: ["pendiente", "aceptado", "rechazado"] }
 end

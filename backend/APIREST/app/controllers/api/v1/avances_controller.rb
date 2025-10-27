@@ -1,5 +1,9 @@
 class Api::V1::AvancesController < ApplicationController
   before_action :set_avance, only: %i[update show destroy]
+  # Solo arquitectos autenticados pueden crear/actualizar/eliminar
+  before_action :authenticate_usuario!, only: %i[create update destroy]
+  before_action :require_arquitecto!, only: %i[create update destroy]
+  before_action :require_avance_ownership!, only: %i[update destroy]
 
   def index
     @avances = Avance.all
@@ -45,4 +49,12 @@ class Api::V1::AvancesController < ApplicationController
   def set_avance
     @avance = Avance.find_by(id: params[:id])
   end
+
+  def require_avance_ownership!
+    return not_found_response!("avance") unless @avance
+    unless @avance.proyecto.arquitecto.usuario.id == current_usuario.id
+      render json: { error: "No autorizado" }, status: :forbidden and return
+    end
+  end
+
 end
