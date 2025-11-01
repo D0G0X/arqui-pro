@@ -3,6 +3,8 @@ import Header from '../components/layout/Header'
 import Footer from '../components/layout/Footer'
 import ArquitectoSimpleCard from '../components/common/ArquitectoSimpleCard'
 import SearchBar from '../components/common/SearchBar'
+import LoadingSpinner from '../components/common/LoadingSpinner'
+import ErrorMessage from '../components/common/ErrorMessage'
 import { useBuscarArquitectos } from '../services/graphql/arquitectosGraphQL'
 import '../styles/FindArchitects.css'
 
@@ -67,19 +69,14 @@ function FindArchitects() {
         </section>
 
         {error && (
-          <div className="error-message">
-            <p>⚠️ Error loading architects. Please try again later.</p>
-            <button onClick={() => refetch()} className="retry-btn">
-              Try Again
-            </button>
-          </div>
+          <ErrorMessage 
+            message="Error loading architects. Please try again later."
+            onRetry={() => refetch()}
+          />
         )}
 
         {loading ? (
-          <div className="loading-container">
-            <div className="loading-spinner"></div>
-            <p>Loading architects...</p>
-          </div>
+          <LoadingSpinner message="Loading architects..." />
         ) : arquitectos.length === 0 ? (
           <div className="no-results">
             <div className="no-results-icon">🔍</div>

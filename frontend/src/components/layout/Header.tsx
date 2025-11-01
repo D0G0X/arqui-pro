@@ -1,8 +1,10 @@
 import { Link, useLocation } from 'react-router-dom'
+import { useAuth } from '../../hooks/useAuth'
 import '../../styles/Header.css'
 
 function Header() {
   const location = useLocation()
+  const { user, isAuthenticated, logout } = useAuth()
 
   const isActive = (path: string) => {
     return location.pathname === path ? 'active' : ''
@@ -23,8 +25,19 @@ function Header() {
         </nav>
 
         <div className="auth-buttons">
-          <button className="signin-btn">SIGN IN</button>
-          <button className="login-btn">LOG IN</button>
+          {isAuthenticated ? (
+            <>
+              <span className="user-greeting">Hi, {user?.nombre}!</span>
+              <button onClick={logout} className="login-btn">
+                LOG OUT
+              </button>
+            </>
+          ) : (
+            <>
+              <button className="signin-btn">SIGN IN</button>
+              <button className="login-btn">LOG IN</button>
+            </>
+          )}
         </div>
       </div>
     </header>
