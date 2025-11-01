@@ -1,47 +1,12 @@
-import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import SearchBar from '../components/common/SearchBar'
-import ArquitectoCard from '../components/common/ArquitectoCard'
 import Header from '../components/layout/Header'
 import Footer from '../components/layout/Footer'
-import arquitectosService from '../services/api/arquitectosService'
-import type { Arquitecto } from '../types'
 import '../styles/Home.css'
 
 function Home() {
   const navigate = useNavigate()
-  const [arquitectos, setArquitectos] = useState<Arquitecto[]>([])
-  const [loading, setLoading] = useState<boolean>(true)
-  const [error, setError] = useState<string | null>(null)
-  const [especialidad, setEspecialidad] = useState<string>('Specialty')
-  const [rating, setRating] = useState<string>('Rating')
-
-  useEffect(() => {
-    fetchTopArquitectos()
-  }, [])
-
-  const fetchTopArquitectos = async () => {
-    try {
-      setLoading(true)
-      setError(null)
-      console.log('Fetching arquitectos from API...')
-      const response = await arquitectosService.getAll({ 
-        per_page: 10,
-        verificado: true 
-      })
-      console.log('API Response:', response)
-      setArquitectos(response.arquitectos || [])
-    } catch (error: any) {
-      console.error('Error fetching arquitectos:', error)
-      setError(error.message || 'Error loading architects. Please check if the backend is running.')
-      setArquitectos([])
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handleSearch = () => {
-    // Redirigir a la página de búsqueda con filtros
     navigate('/architects')
   }
 
@@ -50,60 +15,146 @@ function Home() {
       <Header />
       
       <main className="main-content">
-        {/* Hero Section */}
-        <section className="hero-section">
-          <h1 className="hero-title">Find Your Perfect Architect</h1>
-          <p className="hero-subtitle">
-            Discover and connect with top-rated architects for your next project.
-          </p>
-          
-          <SearchBar
-            onSearch={handleSearch}
-            filters={{
-              especialidad,
-              rating,
-              setEspecialidad,
-              setRating,
-            }}
-          />
-        </section>
-
-        {/* Featured Arquitectos */}
-        <section className="arquitectos-section">
-          <h2 className="section-title">Featured Architects</h2>
-          
-          {error && (
-            <div className="error-message">
-              <p>⚠️ {error}</p>
-              <button onClick={fetchTopArquitectos} className="retry-btn">
-                Try Again
+        {/* Hero Section with Background Image */}
+        <section className="hero-banner">
+          <div className="hero-overlay">
+            <h1 className="hero-main-title">Bring Your Architectural Vision to Life</h1>
+            <p className="hero-main-subtitle">
+              ArquiPro seamlessly connects clients with professional architects to create extraordinary spaces.
+            </p>
+            <div className="hero-buttons">
+              <button onClick={() => navigate('/architects')} className="btn-primary">
+                Get Started
+              </button>
+              <button onClick={() => navigate('/architects')} className="btn-secondary">
+                Join as an Architect
               </button>
             </div>
-          )}
-          
-          {loading ? (
-            <div className="loading-container">
-              <div className="loading-spinner"></div>
-              <p>Loading architects...</p>
-            </div>
-          ) : !error && arquitectos && arquitectos.length > 0 ? (
-            <div className="arquitectos-grid">
-              {arquitectos.slice(0, 10).map((arquitecto) => (
-                <ArquitectoCard
-                  key={arquitecto.id}
-                  arquitecto={arquitecto}
-                />
-              ))}
-            </div>
-          ) : !error ? (
-            <div className="no-results">
-              <p>No architects available at the moment.</p>
-            </div>
-          ) : null}
+          </div>
+        </section>
 
-          <div className="view-all-container">
-            <button onClick={() => navigate('/architects')} className="view-all-btn">
-              View All Architects →
+        {/* Search Section */}
+        <section className="search-section">
+          <h2 className="search-title">Find the Perfect Architect for Your Project</h2>
+          <p className="search-subtitle">Start your search below to discover talented professionals.</p>
+          
+          <div className="search-box">
+            <span className="search-icon">🔍</span>
+            <input
+              type="text"
+              placeholder="Search by location, project type, or specialty"
+              className="search-input-main"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  handleSearch()
+                }
+              }}
+            />
+          </div>
+        </section>
+
+        {/* Features Section */}
+        <section className="features-section">
+          <h2 className="features-title">Everything You Need to Collaborate and Create</h2>
+          <p className="features-subtitle">
+            Discover a suite of tools designed to make your architectural journey smoother from start to finish.
+          </p>
+          
+          <div className="features-grid">
+            <div className="feature-card">
+              <div className="feature-icon">🔍</div>
+              <h3>Advanced Search</h3>
+              <p>Filter architects by specialty, location, and project type to find the perfect match.</p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon">📁</div>
+              <h3>Project Portfolios</h3>
+              <p>Browse stunning portfolios to see the quality and style of each architect's work.</p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon">💬</div>
+              <h3>Direct Messaging</h3>
+              <p>Communicate directly and securely with architects right on our platform.</p>
+            </div>
+          </div>
+        </section>
+
+        {/* How It Works Section */}
+        <section className="how-it-works-section">
+          <h2 className="section-title-large">How It Works</h2>
+          <p className="section-subtitle-large">
+            A simple, streamlined process to bring your project to life.
+          </p>
+          
+          <div className="steps-grid">
+            <div className="step-card">
+              <div className="step-icon">🔍</div>
+              <h3>1. Search & Discover</h3>
+              <p>Browse profiles, check reviews to find the right architect for your vision and budget.</p>
+            </div>
+            <div className="step-card">
+              <div className="step-icon">🤝</div>
+              <h3>2. Connect & Collaborate</h3>
+              <p>Use our secure messaging to discuss your project, share files, and align on the details.</p>
+            </div>
+            <div className="step-card">
+              <div className="step-icon">🏗️</div>
+              <h3>3. Build Your Dream</h3>
+              <p>Once you've hired your architect, begin the exciting journey of turning your ideas into reality.</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Testimonials Section */}
+        <section className="testimonials-section">
+          <h2 className="section-title-large">Trusted by Clients and Architects Alike</h2>
+          <p className="section-subtitle-large">
+            See what our users are saying about their experience on ArquiPro.
+          </p>
+          
+          <div className="testimonials-grid">
+            <div className="testimonial-card">
+              <p className="testimonial-text">
+                "ArquiPro made finding an architect for our dream home renovation an absolute breeze. 
+                The platform is intuitive, and the quality of talent is exceptional. We couldn't be happier with the result."
+              </p>
+              <div className="testimonial-author">
+                <div className="author-avatar">MF</div>
+                <div className="author-info">
+                  <h4>Michael Foster</h4>
+                  <p>Homeowner & Client</p>
+                </div>
+              </div>
+            </div>
+            <div className="testimonial-card">
+              <p className="testimonial-text">
+                "As an architect, this platform has been a game-changer for my practice. 
+                It connects me with serious clients and provides the tools I need to manage projects efficiently from start to finish."
+              </p>
+              <div className="testimonial-author">
+                <div className="author-avatar">SJ</div>
+                <div className="author-info">
+                  <h4>Sarah Jennings</h4>
+                  <p>Principal Architect</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="cta-section">
+          <h2 className="cta-title">Ready to Start Your Next Project?</h2>
+          <p className="cta-subtitle">
+            Join ArquiPro today and take the first step towards creating your perfect space. 
+            Find an architect or find your next client.
+          </p>
+          <div className="cta-buttons">
+            <button onClick={() => navigate('/architects')} className="btn-cta-primary">
+              Find Your Architect
+            </button>
+            <button onClick={() => navigate('/architects')} className="btn-cta-secondary">
+              Join as an Architect
             </button>
           </div>
         </section>

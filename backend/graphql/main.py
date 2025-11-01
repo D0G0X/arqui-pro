@@ -16,6 +16,7 @@ from graphql_types.historial_conversacion import HistorialConversacion
 from graphql_types.estadisticas_arquitecto import EstadisticasArquitecto
 from graphql_types.kpis_plataforma import KPIsPlataforma
 from graphql_types.metricas_proyecto import MetricasProyecto
+from graphql_types.arquitecto_busqueda import ArquitectoBusqueda
 
 # Importar resolvers de queries - Grupo 1: Información Agregada
 from queries.agregacion.perfil_completo_arquitecto import resolver_perfil_completo_arquitecto
@@ -94,9 +95,10 @@ class Query:
         self,
         especialidad: Optional[str] = None,
         valoracion_minima: Optional[float] = None,
-        verificado: Optional[bool] = None
-    ) -> List[PerfilCompletoArquitecto]:
-        return await resolver_buscar_arquitectos(especialidad, valoracion_minima, verificado)
+        verificado: Optional[bool] = None,
+        limite: Optional[int] = None
+    ) -> List[ArquitectoBusqueda]:
+        return await resolver_buscar_arquitectos(especialidad, valoracion_minima, verificado, limite)
     
     @strawberry.field(description="Búsqueda avanzada de proyectos con filtros (tipo, arquitecto, estado)")
     async def buscar_proyectos(
@@ -122,6 +124,22 @@ schema = strawberry.Schema(query=Query)
 graphql_app = GraphQLRouter(schema)  # lo usaremos solo para la UI
 
 app = FastAPI(title="Arquitectos / Usuarios GraphQL Service")
+
+# Configurar CORS para permitir peticiones desde el frontend
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",  # Vite dev server
+        "http://localhost:3000",  # Otro posible puerto
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:3000"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],  # Permitir GET, POST, OPTIONS, etc.
+    allow_headers=["*"],  # Permitir todos los headers
+)
 
 # POST personalizado para controlar status HTTP según errores
 @app.post("/graphql")
