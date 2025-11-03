@@ -5,8 +5,15 @@
 
 const { io } = require('socket.io-client');
 
-const WS_HOST = process.env.WS_HOST || 'http://localhost:3000';
+const WS_HOST = process.env.WS_HOST || 'http://localhost:3006';
 const TOKEN = process.env.TOKEN || 'Bearer <tu_jwt_aqui>';
+const USUARIO_ID = process.env.USUARIO_ID;
+const CONVERSACION_ID = process.env.CONVERSACION_ID;
+
+if (!USUARIO_ID || !CONVERSACION_ID) {
+  console.error('Error: Necesitas proporcionar USUARIO_ID y CONVERSACION_ID como variables de entorno');
+  process.exit(1);
+}
 
 // Chat namespace
 const chat = io(WS_HOST + '/chat', {
@@ -15,17 +22,39 @@ const chat = io(WS_HOST + '/chat', {
 
 chat.on('connect', () => {
   console.log('chat connected', chat.id);
-  chat.emit('join_conversation', { conversacion_id: 1 });
+  chat.emit('unirseAConversacion', CONVERSACION_ID);
   setTimeout(() => {
-    chat.emit('message:create', { contenido: 'Prueba desde test-client', remitente_id: 1, conversacion_id: 1 });
+    chat.emit('enviarMensaje', {
+      contenido: 'Prueba desde test-client',
+      emisor_id: USUARIO_ID,
+      conversacion_id: CONVERSACION_ID,
+      tipo: 'texto'
+    });
   }, 500);
 });
 
-chat.on('message:new', (m) => console.log('chat message:new', m));
-chat.on('message:typing', (p) => console.log('chat typing', p));
+chat.on('nuevoMensaje', (m) => console.log('Nuevo mensaje recibido:', m));
+chat.on('error', (error) => console.log('Error en chat:', error));
+
+// Mensajes namespace
+const mensajes = io(WS_HOST + '/mensajes', { extraHeaders: { Authorization: TOKEN } });
+mensajes.on('connect', () => {
+  console.log('mensajes connected', mensajes.id);
+  setTimeout(() => {
+    mensajes.emit('enviarMensaje', {
+      contenido: 'Prueba desde namespace de mensajes',
+      emisor_id: USUARIO_ID,
+      conversacion_id: CONVERSACION_ID,
+      tipo: 'texto'
+    });
+  }, 1000);
+});
+
+mensajes.on('nuevoMensaje', (m) => console.log('Nuevo mensaje en namespace mensajes:', m));
+mensajes.on('error', (error) => console.log('Error en mensajes:', error));
 
 // Notification namespace
-const noti = io(WS_HOST + '/notificacion', { extraHeaders: { Authorization: TOKEN } });
+const noti = io(WS_HOST + '/notificaciones', { extraHeaders: { Authorization: TOKEN } });
 noti.on('connect', () => {
   console.log('notificacion connected', noti.id);
   noti.emit('join_user', { usuario_id: 1 });

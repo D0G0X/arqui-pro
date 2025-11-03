@@ -3,6 +3,7 @@
     "@nestjs/axios": "^4.0.1",
     "@nestjs/platform-socket.io": "^11.1.8",
     "@nestjs/websockets": "^11.1.8",
-    "axios": "^1.13.1"
+    "axios": "^1.13.1",
+    "socket.io-client": "^4.8.1"
   }
 }
