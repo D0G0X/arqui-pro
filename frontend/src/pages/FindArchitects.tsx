@@ -20,7 +20,7 @@ function FindArchitects() {
     valoracionMinima?: number
     limite?: number
   }>({
-    limite: 5
+    limite: 15
   })
 
   // Usar GraphQL para obtener arquitectos
@@ -28,7 +28,7 @@ function FindArchitects() {
 
   const handleSearch = () => {
     const newVariables: typeof graphqlVariables = {
-      limite: 5
+      limite: 15
     }
 
     if (especialidad !== 'Specialty') {
@@ -85,8 +85,8 @@ function FindArchitects() {
             <button onClick={() => {
               setEspecialidad('Specialty')
               setRating('Rating')
-              setGraphqlVariables({ limite: 5 })
-              refetch({ limite: 5 })
+              setGraphqlVariables({ limite: 15 })
+              refetch({ limite: 15 })
             }} className="reset-btn">
               Reset Filters
             </button>

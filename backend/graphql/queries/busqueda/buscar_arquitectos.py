@@ -53,24 +53,19 @@ async def resolver_buscar_arquitectos(
             
             print(f"  ✅ Usuario encontrado: {usuario_data.get('nombre')} {usuario_data.get('apellido')}")
             
-            # Obtener proyectos para calcular valoración
-            proyectos_data = await rest_client.get_proyectos(params={"arquitecto_id": str(arq.get("id"))})
-            proyectos = [p for p in proyectos_data if str(p.get("arquitecto_id")) == str(arq.get("id"))]
-            
-            # Calcular valoración promedio
-            total_val = 0
-            suma_val = 0.0
-            for p in proyectos:
-                val_data = await rest_client.get_valoraciones(params={"proyecto_id": str(p.get("id"))})
-                vals = [v for v in val_data if str(v.get("proyecto_id")) == str(p.get("id"))]
-                total_val += len(vals)
-                suma_val += sum(v.get("calificacion", 0.0) for v in vals)
-            
-            val_prom = suma_val / total_val if total_val > 0 else 0.0
+            # 🔧 USAR VALOR DE LA BD EN LUGAR DE RECALCULAR
+            # La BD ya tiene el valor pre-calculado en "valoracion_prom_proyecto"
+            val_prom = float(arq.get("valoracion_prom_proyecto") or 0.0)
+            print(f"  📊 Valoración promedio de BD: {val_prom}")
             
             # Aplicar filtro de valoración mínima
             if valoracion_minima is not None and val_prom < valoracion_minima:
+                print(f"  ❌ Rechazado por valoración mínima: {val_prom} < {valoracion_minima}")
                 continue
+            
+            # Obtener proyectos solo para la lista (no para calcular)
+            proyectos_data = await rest_client.get_proyectos(params={"arquitecto_id": str(arq.get("id"))})
+            proyectos = [p for p in proyectos_data if str(p.get("arquitecto_id")) == str(arq.get("id"))]
             
             # Construir usuario simple
             usuario = UsuarioSimple(
