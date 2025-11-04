@@ -4,6 +4,10 @@ import { GET_INCIDENCIAS } from '../../services/graphql/queries'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import ErrorMessage from '../../components/common/ErrorMessage'
 import type { Incidencia } from '../../types/moderator.types'
+import { usePagination } from '../../hooks/usePagination'
+import { formatDateTime, getBadgeClass, getIncidenciaEstadoLabel, truncateText } from '../../utils/formatters'
+import { logger } from '../../utils/logger'
+import { INCIDENCIA_ESTADOS_OPTIONS } from '../../config/constants'
 import '../../styles/Moderator/Incidencias.css'
 
 interface IncidenciasResponse {
@@ -12,17 +16,19 @@ interface IncidenciasResponse {
 
 export const Incidencias = () => {
   const [filtroEstado, setFiltroEstado] = useState<string>('todos')
-  const [paginaActual, setPaginaActual] = useState(1)
   const [verDetalles, setVerDetalles] = useState<number | null>(null)
-  const itemsPorPagina = 10
+  
+  const { currentPage, limit, offset, nextPage, previousPage, canGoPrevious, canGoNext } = usePagination({
+    limit: 10
+  })
 
   const { data, loading, error, refetch } = useQuery<IncidenciasResponse>(
     GET_INCIDENCIAS,
     {
       variables: {
         estado: filtroEstado === 'todos' ? undefined : filtroEstado,
-        limite: itemsPorPagina,
-        offset: (paginaActual - 1) * itemsPorPagina
+        limite: limit,
+        offset: offset
       },
       fetchPolicy: 'network-only'
     }
@@ -30,49 +36,14 @@ export const Incidencias = () => {
 
   const handleResolver = async (id: number) => {
     // TODO: Implement REST API call to resolve incident
-    console.log('Resolver incidencia:', id)
+    logger.info('Resolver incidencia', { id })
     alert('Función de resolver en desarrollo')
   }
 
   const handleRechazar = async (id: number) => {
     // TODO: Implement REST API call to reject incident
-    console.log('Rechazar incidencia:', id)
+    logger.info('Rechazar incidencia', { id })
     alert('Función de rechazar en desarrollo')
-  }
-
-  const formatFecha = (fecha: string) => {
-    return new Date(fecha).toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
-
-  const getEstadoBadgeClass = (estado: string) => {
-    switch (estado.toLowerCase()) {
-      case 'pendiente':
-        return 'badge badge--warning'
-      case 'resuelto':
-        return 'badge badge--success'
-      case 'rechazado':
-        return 'badge badge--danger'
-      case 'en_revision':
-        return 'badge badge--info'
-      default:
-        return 'badge badge--default'
-    }
-  }
-
-  const getEstadoLabel = (estado: string) => {
-    const labels: Record<string, string> = {
-      pendiente: 'Pendiente',
-      resuelto: 'Resuelto',
-      rechazado: 'Rechazado',
-      en_revision: 'En Revisión'
-    }
-    return labels[estado.toLowerCase()] || estado
   }
 
   if (loading) {
@@ -115,19 +86,23 @@ export const Incidencias = () => {
             value={filtroEstado}
             onChange={(e) => {
               setFiltroEstado(e.target.value)
-              setPaginaActual(1)
             }}
             className="filter-select"
+            aria-label="Filtrar incidencias por estado"
           >
-            <option value="todos">Todos</option>
-            <option value="pendiente">Pendiente</option>
-            <option value="en_revision">En Revisión</option>
-            <option value="resuelto">Resuelto</option>
-            <option value="rechazado">Rechazado</option>
+            {INCIDENCIA_ESTADOS_OPTIONS.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
           </select>
         </div>
 
-        <button onClick={() => refetch()} className="btn btn--secondary">
+        <button 
+          onClick={() => refetch()} 
+          className="btn btn--secondary"
+          aria-label="Actualizar lista de incidencias"
+        >
           <svg
             width="16"
             height="16"
@@ -135,6 +110,7 @@ export const Incidencias = () => {
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
+            aria-hidden="true"
           >
             <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2" />
           </svg>
@@ -165,11 +141,11 @@ export const Incidencias = () => {
                 {incidencias.map((incidencia) => (
                   <tr key={incidencia.id}>
                     <td>
-                      <span className={getEstadoBadgeClass(incidencia.estado)}>
-                        {getEstadoLabel(incidencia.estado)}
+                      <span className={getBadgeClass(incidencia.estado)}>
+                        {getIncidenciaEstadoLabel(incidencia.estado)}
                       </span>
                     </td>
-                    <td>{formatFecha(incidencia.fechaCreacion)}</td>
+                    <td>{formatDateTime(incidencia.fechaCreacion)}</td>
                     <td>
                       <div className="descripcion-cell">
                         {verDetalles === incidencia.id ? (
@@ -180,6 +156,7 @@ export const Incidencias = () => {
                             <button
                               onClick={() => setVerDetalles(null)}
                               className="btn-link"
+                              aria-label="Ver menos descripción"
                             >
                               Ver menos
                             </button>
@@ -187,14 +164,13 @@ export const Incidencias = () => {
                         ) : (
                           <>
                             <p className="descripcion-truncated">
-                              {incidencia.descripcion.length > 60
-                                ? `${incidencia.descripcion.substring(0, 60)}...`
-                                : incidencia.descripcion}
+                              {truncateText(incidencia.descripcion, 60)}
                             </p>
                             {incidencia.descripcion.length > 60 && (
                               <button
                                 onClick={() => setVerDetalles(incidencia.id)}
                                 className="btn-link"
+                                aria-label="Ver más descripción"
                               >
                                 Ver más
                               </button>
@@ -226,6 +202,7 @@ export const Incidencias = () => {
                               onClick={() => handleResolver(incidencia.id)}
                               className="btn btn--success btn--sm"
                               title="Resolver"
+                              aria-label={`Resolver incidencia de ${incidencia.emisor?.nombre}`}
                             >
                               <svg
                                 width="14"
@@ -234,6 +211,7 @@ export const Incidencias = () => {
                                 fill="none"
                                 stroke="currentColor"
                                 strokeWidth="2"
+                                aria-hidden="true"
                               >
                                 <polyline points="20 6 9 17 4 12" />
                               </svg>
@@ -243,6 +221,7 @@ export const Incidencias = () => {
                               onClick={() => handleRechazar(incidencia.id)}
                               className="btn btn--danger btn--sm"
                               title="Rechazar"
+                              aria-label={`Rechazar incidencia de ${incidencia.emisor?.nombre}`}
                             >
                               <svg
                                 width="14"
@@ -251,6 +230,7 @@ export const Incidencias = () => {
                                 fill="none"
                                 stroke="currentColor"
                                 strokeWidth="2"
+                                aria-hidden="true"
                               >
                                 <line x1="18" y1="6" x2="6" y2="18" />
                                 <line x1="6" y1="6" x2="18" y2="18" />
@@ -262,7 +242,7 @@ export const Incidencias = () => {
                         {incidencia.estado.toLowerCase() !== 'pendiente' && (
                           <span className="action-completed">
                             {incidencia.fechaResolucion
-                              ? `Resuelto: ${formatFecha(incidencia.fechaResolucion)}`
+                              ? `Resuelto: ${formatDateTime(incidencia.fechaResolucion)}`
                               : 'Completado'}
                           </span>
                         )}
@@ -276,17 +256,19 @@ export const Incidencias = () => {
 
           <div className="incidencias__pagination">
             <button
-              onClick={() => setPaginaActual((p) => Math.max(1, p - 1))}
-              disabled={paginaActual === 1}
+              onClick={previousPage}
+              disabled={!canGoPrevious}
               className="btn btn--secondary btn--sm"
+              aria-label="Ir a página anterior"
             >
               Anterior
             </button>
-            <span className="pagination-info">Página {paginaActual}</span>
+            <span className="pagination-info">Página {currentPage}</span>
             <button
-              onClick={() => setPaginaActual((p) => p + 1)}
-              disabled={incidencias.length < itemsPorPagina}
+              onClick={nextPage}
+              disabled={!canGoNext(incidencias.length)}
               className="btn btn--secondary btn--sm"
+              aria-label="Ir a página siguiente"
             >
               Siguiente
             </button>

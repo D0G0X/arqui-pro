@@ -1,16 +1,11 @@
 import type { Arquitecto } from '../../types'
+import { AVATAR_COLORS } from '../../config/constants'
+import { getInitials, getAvatarColor } from '../../utils/formatters'
 import '../../styles/ArquitectoCard.css'
 
 interface ArquitectoCardProps {
   arquitecto: Arquitecto
 }
-
-// Colores aleatorios para avatares
-const AVATAR_COLORS = [
-  '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', 
-  '#98D8C8', '#6C5CE7', '#FDA7DF', '#F8B500',
-  '#95E1D3', '#F38181'
-]
 
 function ArquitectoCard({ arquitecto }: ArquitectoCardProps) {
   // Usamos los campos REALES que devuelve la API de Rails
@@ -28,20 +23,16 @@ function ArquitectoCard({ arquitecto }: ArquitectoCardProps) {
     ? `${usuario.nombre} ${usuario.apellido}` 
     : (ubicacion || `Arq. ${cedula?.substring(0, 4) || 'Profesional'}`)
   
-  // Iniciales para avatar
+  // Iniciales para avatar usando utilidad
   const iniciales = usuario 
-    ? `${usuario.nombre?.[0] || ''}${usuario.apellido?.[0] || ''}` 
+    ? getInitials(usuario.nombre || '', usuario.apellido || '')
     : (ubicacion && ubicacion.length >= 2 ? ubicacion.substring(0, 2).toUpperCase() : 'AR')
   
   const fotoPerfil = usuario?.foto_perfil
   
-  // Generar color basado en el nombre
-  const getAvatarColor = (name: string) => {
-    const index = name.charCodeAt(0) % AVATAR_COLORS.length
-    return AVATAR_COLORS[index]
-  }
+  // Generar color basado en el nombre usando utilidad
+  const avatarColor = getAvatarColor(nombreCompleto, AVATAR_COLORS)
 
-  const avatarColor = getAvatarColor(nombreCompleto)
   const rating = valoracion_prom_proyecto || 0
   
   // Especialidades viene como string separado por comas
@@ -67,8 +58,9 @@ function ArquitectoCard({ arquitecto }: ArquitectoCardProps) {
       )}
       
       <div className="arquitecto-rating">
-        <span className="rating-star">⭐</span>
+        <span className="rating-star" aria-hidden="true">⭐</span>
         <span className="rating-value">{rating.toFixed(1)}</span>
+        <span className="sr-only">Rating: {rating.toFixed(1)} out of 5</span>
       </div>
     </div>
   )

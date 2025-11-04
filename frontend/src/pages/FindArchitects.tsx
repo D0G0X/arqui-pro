@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import Header from '../components/layout/Header'
 import Footer from '../components/layout/Footer'
 import ArquitectoSimpleCard from '../components/common/ArquitectoSimpleCard'
@@ -6,42 +5,31 @@ import SearchBar from '../components/common/SearchBar'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 import ErrorMessage from '../components/common/ErrorMessage'
 import { useBuscarArquitectos } from '../services/graphql/arquitectosGraphQL'
+import { useArchitectFilters } from '../hooks/useArchitectFilters'
 import '../styles/FindArchitects.css'
 
 function FindArchitects() {
-  // Estados para filtros
-  const [especialidad, setEspecialidad] = useState<string>('Specialty')
-  const [rating, setRating] = useState<string>('Rating')
-  
-  // Variables para GraphQL
-  const [graphqlVariables, setGraphqlVariables] = useState<{
-    especialidad?: string
-    verificado?: boolean
-    valoracionMinima?: number
-    limite?: number
-  }>({
-    limite: 15
-  })
+  // Usar el hook de filtros para gestionar la lógica de filtrado
+  const {
+    filters,
+    variables,
+    setEspecialidad,
+    setRating,
+    resetFilters,
+    hasActiveFilters,
+  } = useArchitectFilters()
 
   // Usar GraphQL para obtener arquitectos
-  const { data, loading, error, refetch } = useBuscarArquitectos(graphqlVariables)
+  const { data, loading, error, refetch } = useBuscarArquitectos(variables)
 
   const handleSearch = () => {
-    const newVariables: typeof graphqlVariables = {
-      limite: 15
-    }
+    refetch()
+  }
 
-    if (especialidad !== 'Specialty') {
-      newVariables.especialidad = especialidad
-    }
-
-    if (rating !== 'Rating' && rating !== '0') {
-      const ratingValue = parseFloat(rating)
-      newVariables.valoracionMinima = ratingValue
-    }
-
-    setGraphqlVariables(newVariables)
-    refetch(newVariables)
+  const handleResetFilters = () => {
+    resetFilters()
+    // El refetch usará automáticamente las variables reseteadas
+    setTimeout(() => refetch(), 0)
   }
 
   const arquitectos = data?.buscarArquitectos || []
@@ -60,8 +48,8 @@ function FindArchitects() {
           <SearchBar
             onSearch={handleSearch}
             filters={{
-              especialidad,
-              rating,
+              especialidad: filters.especialidad,
+              rating: filters.rating,
               setEspecialidad,
               setRating,
             }}
@@ -79,17 +67,18 @@ function FindArchitects() {
           <LoadingSpinner message="Loading architects..." />
         ) : arquitectos.length === 0 ? (
           <div className="no-results">
-            <div className="no-results-icon">🔍</div>
+            <div className="no-results-icon" aria-hidden="true">🔍</div>
             <h2>No architects found</h2>
             <p>Try adjusting your filters or search criteria.</p>
-            <button onClick={() => {
-              setEspecialidad('Specialty')
-              setRating('Rating')
-              setGraphqlVariables({ limite: 15 })
-              refetch({ limite: 15 })
-            }} className="reset-btn">
-              Reset Filters
-            </button>
+            {hasActiveFilters && (
+              <button 
+                onClick={handleResetFilters} 
+                className="reset-btn"
+                aria-label="Reset all filters"
+              >
+                Reset Filters
+              </button>
+            )}
           </div>
         ) : (
           <>

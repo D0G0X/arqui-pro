@@ -1,3 +1,4 @@
+import { ESPECIALIDADES, RATINGS } from '../../config/constants'
 import '../../styles/SearchBar.css'
 
 interface SearchBarProps {
@@ -16,48 +17,53 @@ function SearchBar({ onSearch, filters }: SearchBarProps) {
   return (
     <div className="search-bar">
       <div className="search-input-container">
-        <span className="search-icon">🔍</span>
+        <span className="search-icon" aria-hidden="true">🔍</span>
         <input
           type="text"
           placeholder="Search by name, specialty, or location..."
           className="search-input"
+          aria-label="Search architects"
         />
       </div>
 
       <div className="filters-container">
-        <label className="filter-label">Filters:</label>
+        <label className="filter-label" htmlFor="especialidad-filter">
+          Filters:
+        </label>
         
         <select
+          id="especialidad-filter"
           value={especialidad}
           onChange={(e) => setEspecialidad(e.target.value)}
           className="filter-select"
+          aria-label="Filter by specialty"
         >
-          <option value="Specialty">Specialty</option>
-          <option value="Arquitectura Residencial">Arquitectura Residencial</option>
-          <option value="Diseño Sostenible">Diseño Sostenible</option>
-          <option value="Comercial">Comercial</option>
-          <option value="Diseño de Interiores">Diseño de Interiores</option>
-          <option value="Restauración">Restauración</option>
-          <option value="Arquitectura Industrial">Arquitectura Industrial</option>
-          <option value="Diseño Urbano">Diseño Urbano</option>
-          <option value="Arquitectura Sostenible">Arquitectura Sostenible</option>
+          {ESPECIALIDADES.map((esp) => (
+            <option key={esp.value} value={esp.value}>
+              {esp.label}
+            </option>
+          ))}
         </select>
 
         <select
+          id="rating-filter"
           value={rating}
           onChange={(e) => setRating(e.target.value)}
           className="filter-select"
+          aria-label="Filter by rating"
         >
-          <option value="Rating">Rating</option>
-          <option value="5">5 ⭐⭐⭐⭐⭐</option>
-          <option value="4">4+ ⭐⭐⭐⭐</option>
-          <option value="3">3+ ⭐⭐⭐</option>
-          <option value="2">2+ ⭐⭐</option>
-          <option value="1">1+ ⭐</option>
-          <option value="0">All Ratings</option>
+          {RATINGS.map((rat) => (
+            <option key={rat.value} value={rat.value}>
+              {rat.label}
+            </option>
+          ))}
         </select>
 
-        <button onClick={onSearch} className="apply-btn">
+        <button 
+          onClick={onSearch} 
+          className="apply-btn"
+          aria-label="Apply filters"
+        >
           Apply
         </button>
       </div>

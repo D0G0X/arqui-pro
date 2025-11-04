@@ -3,6 +3,10 @@ import { useQuery } from '@apollo/client'
 import { GET_VERIFICACIONES } from '../../services/graphql/queries'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import ErrorMessage from '../../components/common/ErrorMessage'
+import { usePagination } from '../../hooks/usePagination'
+import { formatDate, getBadgeClass } from '../../utils/formatters'
+import { VERIFICACION_ESTADOS_OPTIONS } from '../../config/constants'
+import { logger } from '../../utils/logger'
 import type { Verificacion } from '../../types/moderator.types'
 import '../../styles/Moderator/Verificaciones.css'
 
@@ -12,16 +16,16 @@ interface VerificacionesResponse {
 
 export const Verificaciones = () => {
   const [filtroEstado, setFiltroEstado] = useState<string>('todos')
-  const [paginaActual, setPaginaActual] = useState(1)
-  const itemsPorPagina = 10
+  const { currentPage, limit, offset, nextPage, previousPage, canGoPrevious, canGoNext } =
+    usePagination()
 
   const { data, loading, error, refetch } = useQuery<VerificacionesResponse>(
     GET_VERIFICACIONES,
     {
       variables: {
         estado: filtroEstado === 'todos' ? undefined : filtroEstado,
-        limite: itemsPorPagina,
-        offset: (paginaActual - 1) * itemsPorPagina
+        limite: limit,
+        offset: offset
       },
       fetchPolicy: 'network-only'
     }
@@ -29,35 +33,14 @@ export const Verificaciones = () => {
 
   const handleAprobar = async (id: number) => {
     // TODO: Implement REST API call to approve verification
-    console.log('Aprobar verificación:', id)
+    logger.info('Aprobar verificación', { id })
     alert('Función de aprobar en desarrollo')
   }
 
   const handleRechazar = async (id: number) => {
     // TODO: Implement REST API call to reject verification
-    console.log('Rechazar verificación:', id)
+    logger.info('Rechazar verificación', { id })
     alert('Función de rechazar en desarrollo')
-  }
-
-  const formatFecha = (fecha: string) => {
-    return new Date(fecha).toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    })
-  }
-
-  const getEstadoBadgeClass = (estado: string) => {
-    switch (estado.toLowerCase()) {
-      case 'pendiente':
-        return 'badge badge--warning'
-      case 'aprobado':
-        return 'badge badge--success'
-      case 'rechazado':
-        return 'badge badge--danger'
-      default:
-        return 'badge badge--default'
-    }
   }
 
   if (loading) {
@@ -98,16 +81,14 @@ export const Verificaciones = () => {
           <select
             id="estado-filter"
             value={filtroEstado}
-            onChange={(e) => {
-              setFiltroEstado(e.target.value)
-              setPaginaActual(1)
-            }}
+            onChange={(e) => setFiltroEstado(e.target.value)}
             className="filter-select"
           >
-            <option value="todos">Todos</option>
-            <option value="pendiente">Pendiente</option>
-            <option value="aprobado">Aprobado</option>
-            <option value="rechazado">Rechazado</option>
+            {VERIFICACION_ESTADOS_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -119,6 +100,7 @@ export const Verificaciones = () => {
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
+            aria-hidden="true"
           >
             <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2" />
           </svg>
@@ -149,11 +131,11 @@ export const Verificaciones = () => {
                 {verificaciones.map((verificacion) => (
                   <tr key={verificacion.id}>
                     <td>
-                      <span className={getEstadoBadgeClass(verificacion.estado)}>
+                      <span className={getBadgeClass(verificacion.estado)}>
                         {verificacion.estado}
                       </span>
                     </td>
-                    <td>{formatFecha(verificacion.fechaSolicitud)}</td>
+                    <td>{formatDate(verificacion.fechaSolicitud)}</td>
                     <td>
                       {verificacion.arquitecto?.usuario
                         ? `${verificacion.arquitecto.usuario.nombre} ${verificacion.arquitecto.usuario.apellido}`
@@ -176,6 +158,7 @@ export const Verificaciones = () => {
                               onClick={() => handleAprobar(verificacion.id)}
                               className="btn btn--success btn--sm"
                               title="Aprobar"
+                              aria-label={`Aprobar verificación ${verificacion.id}`}
                             >
                               <svg
                                 width="14"
@@ -184,6 +167,7 @@ export const Verificaciones = () => {
                                 fill="none"
                                 stroke="currentColor"
                                 strokeWidth="2"
+                                aria-hidden="true"
                               >
                                 <polyline points="20 6 9 17 4 12" />
                               </svg>
@@ -193,6 +177,7 @@ export const Verificaciones = () => {
                               onClick={() => handleRechazar(verificacion.id)}
                               className="btn btn--danger btn--sm"
                               title="Rechazar"
+                              aria-label={`Rechazar verificación ${verificacion.id}`}
                             >
                               <svg
                                 width="14"
@@ -201,6 +186,7 @@ export const Verificaciones = () => {
                                 fill="none"
                                 stroke="currentColor"
                                 strokeWidth="2"
+                                aria-hidden="true"
                               >
                                 <line x1="18" y1="6" x2="6" y2="18" />
                                 <line x1="6" y1="6" x2="18" y2="18" />
@@ -212,7 +198,7 @@ export const Verificaciones = () => {
                         {verificacion.estado.toLowerCase() !== 'pendiente' && (
                           <span className="action-completed">
                             {verificacion.fechaResolucion
-                              ? `Resuelto: ${formatFecha(verificacion.fechaResolucion)}`
+                              ? `Resuelto: ${formatDate(verificacion.fechaResolucion)}`
                               : 'Completado'}
                           </span>
                         )}
@@ -226,17 +212,19 @@ export const Verificaciones = () => {
 
           <div className="verificaciones__pagination">
             <button
-              onClick={() => setPaginaActual((p) => Math.max(1, p - 1))}
-              disabled={paginaActual === 1}
+              onClick={previousPage}
+              disabled={!canGoPrevious}
               className="btn btn--secondary btn--sm"
+              aria-label="Ir a página anterior"
             >
               Anterior
             </button>
-            <span className="pagination-info">Página {paginaActual}</span>
+            <span className="pagination-info">Página {currentPage}</span>
             <button
-              onClick={() => setPaginaActual((p) => p + 1)}
-              disabled={verificaciones.length < itemsPorPagina}
+              onClick={nextPage}
+              disabled={!canGoNext(verificaciones.length)}
               className="btn btn--secondary btn--sm"
+              aria-label="Ir a página siguiente"
             >
               Siguiente
             </button>

@@ -1,6 +1,8 @@
 import { useModeratorData } from '../../hooks/useModeratorData'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import ErrorMessage from '../../components/common/ErrorMessage'
+import { formatNumber, formatPercentage } from '../../utils/formatters'
+import { ROUTES } from '../../config/constants'
 import '../../styles/Moderator/Dashboard.css'
 
 export const ModeratorDashboard = () => {
@@ -44,7 +46,7 @@ export const ModeratorDashboard = () => {
 
       <div className="moderator-dashboard__stats">
         <div className="stat-card stat-card--users">
-          <div className="stat-card__icon">
+          <div className="stat-card__icon" aria-hidden="true">
             <svg
               width="24"
               height="24"
@@ -63,14 +65,14 @@ export const ModeratorDashboard = () => {
           </div>
           <div className="stat-card__content">
             <p className="stat-card__label">Total Usuarios</p>
-            <p className="stat-card__value">
-              {stats.totalUsuarios.toLocaleString()}
+            <p className="stat-card__value" aria-label={`${stats.totalUsuarios} usuarios en total`}>
+              {formatNumber(stats.totalUsuarios)}
             </p>
           </div>
         </div>
 
         <div className="stat-card stat-card--projects">
-          <div className="stat-card__icon">
+          <div className="stat-card__icon" aria-hidden="true">
             <svg
               width="24"
               height="24"
@@ -88,14 +90,14 @@ export const ModeratorDashboard = () => {
           </div>
           <div className="stat-card__content">
             <p className="stat-card__label">Total Proyectos</p>
-            <p className="stat-card__value">
-              {stats.totalProyectos.toLocaleString()}
+            <p className="stat-card__value" aria-label={`${stats.totalProyectos} proyectos en total`}>
+              {formatNumber(stats.totalProyectos)}
             </p>
           </div>
         </div>
 
         <div className="stat-card stat-card--incidents">
-          <div className="stat-card__icon">
+          <div className="stat-card__icon" aria-hidden="true">
             <svg
               width="24"
               height="24"
@@ -113,14 +115,14 @@ export const ModeratorDashboard = () => {
           </div>
           <div className="stat-card__content">
             <p className="stat-card__label">Incidencias</p>
-            <p className="stat-card__value">
-              {stats.totalIncidencias.toLocaleString()}
+            <p className="stat-card__value" aria-label={`${stats.totalIncidencias} incidencias reportadas`}>
+              {formatNumber(stats.totalIncidencias)}
             </p>
           </div>
         </div>
 
         <div className="stat-card stat-card--verified">
-          <div className="stat-card__icon">
+          <div className="stat-card__icon" aria-hidden="true">
             <svg
               width="24"
               height="24"
@@ -137,11 +139,11 @@ export const ModeratorDashboard = () => {
           </div>
           <div className="stat-card__content">
             <p className="stat-card__label">Arquitectos Verificados</p>
-            <p className="stat-card__value">
-              {stats.arquitectosVerificados.toLocaleString()}
+            <p className="stat-card__value" aria-label={`${stats.arquitectosVerificados} arquitectos verificados`}>
+              {formatNumber(stats.arquitectosVerificados)}
             </p>
             <p className="stat-card__percentage">
-              {stats.tasaVerificacion.toFixed(1)}% del total
+              {formatPercentage(stats.tasaVerificacion, 1)} del total
             </p>
           </div>
         </div>
@@ -150,8 +152,12 @@ export const ModeratorDashboard = () => {
       <div className="moderator-dashboard__quick-actions">
         <h2 className="moderator-dashboard__section-title">Acciones Rápidas</h2>
         <div className="quick-actions-grid">
-          <a href="/moderador/verificaciones" className="quick-action-card">
-            <div className="quick-action-card__icon">
+          <a 
+            href={ROUTES.MODERATOR.VERIFICACIONES}
+            className="quick-action-card"
+            aria-label="Ir a verificaciones de arquitectos"
+          >
+            <div className="quick-action-card__icon" aria-hidden="true">
               <svg
                 width="20"
                 height="20"
@@ -174,8 +180,12 @@ export const ModeratorDashboard = () => {
             </div>
           </a>
 
-          <a href="/moderador/incidencias" className="quick-action-card">
-            <div className="quick-action-card__icon">
+          <a 
+            href={ROUTES.MODERATOR.INCIDENCIAS}
+            className="quick-action-card"
+            aria-label="Ir a gestión de incidencias"
+          >
+            <div className="quick-action-card__icon" aria-hidden="true">
               <svg
                 width="20"
                 height="20"
@@ -199,8 +209,12 @@ export const ModeratorDashboard = () => {
             </div>
           </a>
 
-          <a href="/moderador/usuarios" className="quick-action-card">
-            <div className="quick-action-card__icon">
+          <a 
+            href={ROUTES.MODERATOR.USUARIOS}
+            className="quick-action-card"
+            aria-label="Ir a administración de usuarios"
+          >
+            <div className="quick-action-card__icon" aria-hidden="true">
               <svg
                 width="20"
                 height="20"
@@ -225,8 +239,12 @@ export const ModeratorDashboard = () => {
             </div>
           </a>
 
-          <a href="/moderador/reportes" className="quick-action-card">
-            <div className="quick-action-card__icon">
+          <a 
+            href={ROUTES.MODERATOR.REPORTES}
+            className="quick-action-card"
+            aria-label="Ir a visualización de reportes"
+          >
+            <div className="quick-action-card__icon" aria-hidden="true">
               <svg
                 width="20"
                 height="20"
