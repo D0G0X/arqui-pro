@@ -112,3 +112,84 @@ export const PERFIL_COMPLETO_ARQUITECTO = gql`
     }
   }
 `
+
+export const GET_MODERATOR_STATS = gql`
+  query GetModeratorStats {
+    kpisPlataforma {
+      totalUsuarios
+      totalProyectos
+      arquitectosVerificados
+      totalIncidencias
+    }
+  }
+`
+
+export const GET_VERIFICACIONES = gql`
+  query GetVerificaciones(
+    $estado: String
+    $limite: Int
+    $offset: Int
+  ) {
+    verificaciones(
+      estado: $estado
+      limite: $limite
+      offset: $offset
+    ) {
+      id
+      arquitectoId
+      estado
+      fechaSolicitud
+      fechaResolucion
+      moderadorId
+      comentarios
+      arquitecto {
+        id
+        cedula
+        usuario {
+          nombre
+          apellido
+          email
+        }
+      }
+      moderador {
+        nombre
+        apellido
+      }
+    }
+  }
+`
+
+export const GET_INCIDENCIAS = gql`
+  query GetIncidencias(
+    $estado: String
+    $limite: Int
+    $offset: Int
+  ) {
+    incidencias(
+      estado: $estado
+      limite: $limite
+      offset: $offset
+    ) {
+      id
+      descripcion
+      estado
+      fechaCreacion
+      fechaResolucion
+      emisorId
+      infractorId
+      moderadorId
+      emisor {
+        nombre
+        apellido
+      }
+      infractor {
+        nombre
+        apellido
+      }
+      moderador {
+        nombre
+        apellido
+      }
+    }
+  }
+`
