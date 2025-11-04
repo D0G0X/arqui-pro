@@ -16,12 +16,15 @@
 const { io } = require('socket.io-client');
 
 const WS_HOST = process.env.WS_HOST || 'http://localhost:3006';
+const WS_HOST = process.env.WS_HOST || 'http://localhost:3006';
 const TOKEN = process.env.TOKEN || 'Bearer <tu_jwt_aqui>';
-const TESTING_MODE = !TOKEN.includes('<tu_jwt_aqui>');
+const USUARIO_ID = process.env.USUARIO_ID;
+const CONVERSACION_ID = process.env.CONVERSACION_ID;
 
-console.log('🔌 Conectando a WebSocket Server:', WS_HOST);
-console.log('🔑 Token:', TOKEN);
-console.log('🧪 Modo:', TESTING_MODE ? 'FULL (con API REST)' : 'BÁSICO (sin persistencia)');
+if (!USUARIO_ID || !CONVERSACION_ID) {
+  console.error('Error: Necesitas proporcionar USUARIO_ID y CONVERSACION_ID como variables de entorno');
+  process.exit(1);
+}
 
 // Chat namespace
 const chat = io(WS_HOST + '/chat', {
@@ -30,63 +33,40 @@ const chat = io(WS_HOST + '/chat', {
 });
 
 chat.on('connect', () => {
-  console.log('✅ Chat connected:', chat.id);
-  
-  // Unirse a conversación (no requiere BD)
-  console.log('📨 Enviando: join_conversation');
-  chat.emit('join_conversation', { conversacion_id: 1 });
-  
-  if (TESTING_MODE) {
-    // Enviar mensaje REAL (requiere API REST + token válido)
-    setTimeout(() => {
-      console.log('📨 Enviando: message:create (REQUIERE API REST)');
-      chat.emit('message:create', { 
-        contenido: 'Prueba desde test-client', 
-        remitente_id: 1, 
-        conversacion_id: 1 
-      });
-    }, 500);
-  } else {
-    console.log('⚠️  SKIP: message:create (necesitas token válido y API REST corriendo)');
-  }
-  
-  // Simular escritura (no requiere BD)
+  console.log('chat connected', chat.id);
+  chat.emit('unirseAConversacion', CONVERSACION_ID);
   setTimeout(() => {
-    console.log('📨 Enviando: message:typing');
-    chat.emit('message:typing', { 
-      usuario_id: 1, 
-      conversacion_id: 1, 
-      typing: true 
+    chat.emit('enviarMensaje', {
+      contenido: 'Prueba desde test-client',
+      emisor_id: USUARIO_ID,
+      conversacion_id: CONVERSACION_ID,
+      tipo: 'texto'
+    });
+  }, 500);
+});
+
+chat.on('nuevoMensaje', (m) => console.log('Nuevo mensaje recibido:', m));
+chat.on('error', (error) => console.log('Error en chat:', error));
+
+// Mensajes namespace
+const mensajes = io(WS_HOST + '/mensajes', { extraHeaders: { Authorization: TOKEN } });
+mensajes.on('connect', () => {
+  console.log('mensajes connected', mensajes.id);
+  setTimeout(() => {
+    mensajes.emit('enviarMensaje', {
+      contenido: 'Prueba desde namespace de mensajes',
+      emisor_id: USUARIO_ID,
+      conversacion_id: CONVERSACION_ID,
+      tipo: 'texto'
     });
   }, 1000);
 });
 
-chat.on('conversation:joined', (data) => {
-  console.log('✅ Conversation joined:', data);
-});
-
-chat.on('message:new', (m) => {
-  console.log('📬 New message received:', m);
-});
-
-chat.on('message:typing', (p) => {
-  console.log('⌨️  Typing indicator:', p);
-});
-
-chat.on('disconnect', () => {
-  console.log('❌ Chat disconnected');
-});
-
-chat.on('connect_error', (error) => {
-  console.error('❌ Chat connection error:', error.message);
-});
+mensajes.on('nuevoMensaje', (m) => console.log('Nuevo mensaje en namespace mensajes:', m));
+mensajes.on('error', (error) => console.log('Error en mensajes:', error));
 
 // Notification namespace
-const noti = io(WS_HOST + '/notificaciones', { 
-  extraHeaders: { Authorization: TOKEN },
-  transports: ['websocket']
-});
-
+const noti = io(WS_HOST + '/notificaciones', { extraHeaders: { Authorization: TOKEN } });
 noti.on('connect', () => {
   console.log('✅ Notificaciones connected:', noti.id);
   

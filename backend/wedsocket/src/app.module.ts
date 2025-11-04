@@ -4,13 +4,10 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ChatModule } from '../chat/chat.module';
 import { NotificacionModule } from '../notificacion/notificacion.module';
+import { MensajeModule } from '../mensaje/mensaje.module';
 
 @Module({
-  imports: [
-    HttpModule,
-    ChatModule,
-    NotificacionModule,
-  ],
+  imports: [ChatModule, NotificacionModule, MensajeModule],
   controllers: [AppController],
   providers: [AppService],
 })

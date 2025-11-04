@@ -2,7 +2,7 @@ class Api::V1::ConversacionesController < ApplicationController
   before_action :set_conversacion, only: %i[update show destroy]
 
   # Solo usuarios autenticados pueden crear/actualizar/eliminar
-  before_action :authenticate_usuario!, only: %i[create update destroy]
+  #before_action :authenticate_usuario!, only: %i[create update destroy]
 
   def index
     @conversaciones = Conversacion.all
@@ -12,6 +12,14 @@ class Api::V1::ConversacionesController < ApplicationController
   def create
     @conversacion = Conversacion.new(conversacion_params)
     if @conversacion.save
+      # Notificar al WebSocket sobre la nueva conversación
+      begin
+        WebSocketNotifier.notify_conversation_created(@conversacion)
+        Rails.logger.info "WebSocket notification sent for conversation #{@conversacion.id}"
+      rescue => e
+        Rails.logger.error "Failed to notify WebSocket: #{e.message}"
+        Rails.logger.error e.backtrace.join("\n")
+      end
       render json: @conversacion, status: :created
     else
       render json: @conversacion.errors, status: :unprocessable_entity

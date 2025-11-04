@@ -7,7 +7,7 @@ export class ChatService {
 	private readonly logger = new Logger(ChatService.name);
 	constructor(private readonly http: HttpService) {}
 
-	async createMessage(dto: { contenido: string; remitente_id: number; conversacion_id: number }, authorization?: string) {
+	async createMessage(dto: { contenido: string; remitente_id: string; conversacion_id: string }, authorization?: string) {
 		const apiUrl = process.env.APIREST_URL || 'http://localhost:3000';
 		const url = `${apiUrl}/api/v1/mensajes`;
 		const headers: Record<string, string> = { 'Content-Type': 'application/json' };

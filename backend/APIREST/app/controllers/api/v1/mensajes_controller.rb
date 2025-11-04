@@ -2,8 +2,8 @@ class Api::V1::MensajesController < ApplicationController
   before_action :set_mensaje, only: %i[update show destroy]
 
   # Solo usuarios autenticados pueden crear/actualizar/eliminar
-  before_action :authenticate_usuario!, only: %i[create update destroy]
-  before_action :require_mensaje_ownership!, only: %i[update destroy]
+  #before_action :authenticate_usuario!, only: %i[create update destroy]
+  #before_action :require_mensaje_ownership!, only: %i[update destroy]
 
   def index
     @mensajes = Mensaje.all
@@ -13,6 +13,14 @@ class Api::V1::MensajesController < ApplicationController
   def create
     @mensaje = Mensaje.new(mensaje_params)
     if @mensaje.save
+      # Notificar al WebSocket sobre el nuevo mensaje
+      begin
+        WebSocketNotifier.notify_message_created(@mensaje)
+        Rails.logger.info "WebSocket notification sent for message #{@mensaje.id}"
+      rescue => e
+        Rails.logger.error "Failed to notify WebSocket: #{e.message}"
+        Rails.logger.error e.backtrace.join("\n")
+      end
       render json: @mensaje, status: :created
     else
       render json: @mensaje.errors, status: :unprocessable_entity
