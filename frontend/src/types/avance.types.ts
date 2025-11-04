@@ -1,0 +1,12 @@
+import type { Proyecto } from './proyecto.types'
+
+// Avance Type
+export interface Avance {
+  id: string
+  descripcion: string
+  fecha: string
+  proyecto_id: string
+  created_at: string
+  updated_at: string
+  proyecto?: Proyecto
+}
