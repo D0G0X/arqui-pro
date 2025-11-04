@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect } from 'react'
+import { createContext, useState, useEffect, useContext } from 'react'
 import type { ReactNode } from 'react'
 import { logger } from '../utils/logger'
 import { USER_ROLES } from '../config/constants'
@@ -130,4 +130,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       {children}
     </AuthContext.Provider>
   )
+}
+
+// Hook personalizado para usar el contexto
+export function useAuth() {
+  const context = useContext(AuthContext)
+  if (context === undefined) {
+    throw new Error('useAuth debe ser usado dentro de un AuthProvider')
+  }
+  return context
 }
