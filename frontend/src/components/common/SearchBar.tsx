@@ -1,3 +1,4 @@
+import { memo, useCallback } from 'react'
 import { ESPECIALIDADES, RATINGS } from '../../config/constants'
 import '../../styles/SearchBar.css'
 
@@ -11,8 +12,16 @@ interface SearchBarProps {
   }
 }
 
-function SearchBar({ onSearch, filters }: SearchBarProps) {
+const SearchBar = memo(function SearchBar({ onSearch, filters }: SearchBarProps) {
   const { especialidad, rating, setEspecialidad, setRating } = filters
+
+  const handleEspecialidadChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setEspecialidad(e.target.value)
+  }, [setEspecialidad])
+
+  const handleRatingChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setRating(e.target.value)
+  }, [setRating])
 
   return (
     <div className="search-bar">
@@ -34,7 +43,7 @@ function SearchBar({ onSearch, filters }: SearchBarProps) {
         <select
           id="especialidad-filter"
           value={especialidad}
-          onChange={(e) => setEspecialidad(e.target.value)}
+          onChange={handleEspecialidadChange}
           className="filter-select"
           aria-label="Filter by specialty"
         >
@@ -48,7 +57,7 @@ function SearchBar({ onSearch, filters }: SearchBarProps) {
         <select
           id="rating-filter"
           value={rating}
-          onChange={(e) => setRating(e.target.value)}
+          onChange={handleRatingChange}
           className="filter-select"
           aria-label="Filter by rating"
         >
@@ -69,6 +78,6 @@ function SearchBar({ onSearch, filters }: SearchBarProps) {
       </div>
     </div>
   )
-}
+})
 
 export default SearchBar

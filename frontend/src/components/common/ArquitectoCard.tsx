@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import type { Arquitecto } from '../../types'
 import { AVATAR_COLORS } from '../../config/constants'
 import { getInitials, getAvatarColor } from '../../utils/formatters'
@@ -7,7 +8,7 @@ interface ArquitectoCardProps {
   arquitecto: Arquitecto
 }
 
-function ArquitectoCard({ arquitecto }: ArquitectoCardProps) {
+const ArquitectoCard = memo(function ArquitectoCard({ arquitecto }: ArquitectoCardProps) {
   // Usamos los campos REALES que devuelve la API de Rails
   const {
     usuario,
@@ -64,6 +65,6 @@ function ArquitectoCard({ arquitecto }: ArquitectoCardProps) {
       </div>
     </div>
   )
-}
+})
 
 export default ArquitectoCard
