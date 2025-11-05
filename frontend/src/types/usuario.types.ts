@@ -1,14 +1,16 @@
+import type { RegistroArquitectoAttributesInput } from "./arquitecto.types"
+import type { RegistroClienteAttributesInput } from "./cliente.types"
+
 // Usuario Base Type
 export interface Usuario {
   id: string
   nombre: string
   apellido: string
   email: string
+  estado_cuenta: 'activo' | 'suspendido'
   rol: 'arquitecto' | 'cliente' | 'moderador'
-  estado_cuenta: 'activa' | 'suspendida' | 'baneada'
+  fecha_registro: string
   foto_perfil: string | null
-  created_at: string
-  updated_at: string
 }
 
 // Auth Types
@@ -23,6 +25,9 @@ export interface RegistroUsuarioInput {
   email: string
   password: string
   password_confirmation: string
+  rol: 'arquitecto' | 'cliente' | 'moderador'
+  arquitecto_attributes?: RegistroArquitectoAttributesInput
+  cliente_attributes?: RegistroClienteAttributesInput
 }
 
 export interface AuthResponse {

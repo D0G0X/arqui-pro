@@ -12,7 +12,12 @@ export interface Arquitecto {
   vistas_perfil: number
   // Optional relations (only if explicitly included by Rails)
   usuario_id?: string
-  created_at?: string
-  updated_at?: string
   usuario?: Usuario
+}
+
+export interface RegistroArquitectoAttributesInput{
+  cedula: string
+  descripcion: string
+  especialidades: string
+  ubicacion: string
 }

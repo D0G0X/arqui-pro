@@ -7,8 +7,6 @@ export interface Verificacion {
   estado: 'pendiente' | 'verificado' | 'rechazado'
   arquitecto_id: string
   moderador_id: string | null
-  created_at: string
-  updated_at: string
   arquitecto?: Arquitecto
   moderador?: Moderador
 }

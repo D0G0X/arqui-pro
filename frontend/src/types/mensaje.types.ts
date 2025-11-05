@@ -9,8 +9,6 @@ export interface Mensaje {
   leido: boolean
   remitente_id: string
   conversacion_id: string
-  created_at: string
-  updated_at: string
   remitente?: Usuario
   conversacion?: Conversacion
 }
