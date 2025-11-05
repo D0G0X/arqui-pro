@@ -7,7 +7,5 @@ export interface Notificacion {
   fecha: string
   leido: boolean
   usuario_id: string
-  created_at: string
-  updated_at: string
   usuario?: Usuario
 }

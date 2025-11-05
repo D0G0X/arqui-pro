@@ -10,8 +10,6 @@ export interface Proyecto {
   valoracion_promedio: number
   arquitecto_id: string
   cliente_id: string | null
-  created_at: string
-  updated_at: string
   arquitecto?: Arquitecto
   cliente?: Cliente
 }

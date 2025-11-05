@@ -9,8 +9,6 @@ export interface Valoracion {
   fecha: string
   cliente_id: string
   proyecto_id: string
-  created_at: string
-  updated_at: string
   cliente?: Cliente
   proyecto?: Proyecto
 }

@@ -9,8 +9,6 @@ export interface Incidencia {
   usuario_emisor_id: string
   usuario_infractor_id: string
   moderador_id: string | null
-  created_at: string
-  updated_at: string
   usuario_emisor?: Usuario
   usuario_infractor?: Usuario
   moderador?: Moderador

@@ -5,7 +5,9 @@ export interface Cliente {
   id: string
   usuario_id: string
   cedula: string
-  created_at: string
-  updated_at: string
   usuario?: Usuario
+}
+
+export interface RegistroClienteAttributesInput {
+  cedula: string
 }

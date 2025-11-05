@@ -11,8 +11,6 @@ export interface SolicitudProyecto {
   cliente_id: string
   arquitecto_id: string
   proyecto_id: string | null
-  created_at: string
-  updated_at: string
   cliente?: Cliente
   arquitecto?: Arquitecto
   proyecto?: Proyecto

@@ -6,7 +6,5 @@ export interface Avance {
   descripcion: string
   fecha: string
   proyecto_id: string
-  created_at: string
-  updated_at: string
   proyecto?: Proyecto
 }
