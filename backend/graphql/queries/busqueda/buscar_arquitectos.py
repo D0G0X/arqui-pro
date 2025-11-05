@@ -26,8 +26,12 @@ async def resolver_buscar_arquitectos(
         # Obtener todos los arquitectos
         arquitectos_data = await rest_client.get_arquitectos()
         print(f"🔍 Total arquitectos obtenidos: {len(arquitectos_data)}")
-        print(f"🔍 Primer arquitecto completo: {arquitectos_data[0] if arquitectos_data else 'N/A'}")
         print(f"🔍 Filtros aplicados - verificado: {verificado}, especialidad: {especialidad}, valoracion_minima: {valoracion_minima}, limite: {limite}")
+        
+        # 🚀 OPTIMIZACIÓN: Obtener TODOS los proyectos de una sola vez en lugar de por arquitecto
+        print(f"📊 Obteniendo todos los proyectos (batch)...")
+        todos_proyectos_data = await rest_client.get_proyectos()
+        print(f"📊 Total proyectos: {len(todos_proyectos_data)}")
         
         resultados = []
         
@@ -63,9 +67,10 @@ async def resolver_buscar_arquitectos(
                 print(f"  ❌ Rechazado por valoración mínima: {val_prom} < {valoracion_minima}")
                 continue
             
-            # Obtener proyectos solo para la lista (no para calcular)
-            proyectos_data = await rest_client.get_proyectos(params={"arquitecto_id": str(arq.get("id"))})
-            proyectos = [p for p in proyectos_data if str(p.get("arquitecto_id")) == str(arq.get("id"))]
+            # 🚀 OPTIMIZACIÓN: Usar proyectos ya cargados (batch) en lugar de query por arquitecto
+            arquitecto_id = str(arq.get("id"))
+            proyectos = [p for p in todos_proyectos_data if str(p.get("arquitecto_id")) == arquitecto_id]
+            print(f"  📦 Proyectos del arquitecto {arquitecto_id}: {len(proyectos)}")
             
             # Construir usuario simple
             usuario = UsuarioSimple(
