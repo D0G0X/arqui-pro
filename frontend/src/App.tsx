@@ -7,6 +7,9 @@ import ProtectedRoute from './components/auth/ProtectedRoute'
 import Home from './pages/Home'
 import FindArchitects from './pages/FindArchitects'
 import AboutUs from './pages/AboutUs'
+import LoginPage from './pages/auth/LoginPage'
+import RegistroClientePage from './pages/auth/RegistroCliente'
+
 import { ModeratorDashboard, Verificaciones, Incidencias } from './pages/Moderator'
 import './App.css'
 
@@ -21,6 +24,8 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/architects" element={<FindArchitects />} />
               <Route path="/about" element={<AboutUs />} />
+              <Route path="/login" element={<LoginPage/>}/>
+              <Route path="/registro-cliente" element={<RegistroClientePage/>}/>
               
               {/* Rutas Protegidas - Moderador */}
               <Route 

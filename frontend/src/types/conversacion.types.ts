@@ -7,8 +7,6 @@ export interface Conversacion {
   cliente_id: string
   arquitecto_id: string
   fecha: string
-  created_at: string
-  updated_at: string
   cliente?: Cliente
   arquitecto?: Arquitecto
 }
