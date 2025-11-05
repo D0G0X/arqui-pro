@@ -111,7 +111,6 @@ export const Verificaciones = () => {
             <option value="todos">Todos</option>
             <option value="pendiente">Pendientes</option>
             <option value="verificado">Verificados</option>
-            <option value="rechazado">Rechazados</option>
           </select>
         </div>
 
