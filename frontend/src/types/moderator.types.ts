@@ -41,7 +41,7 @@ export interface Reporte {
 export interface Incidencia {
   id: number
   descripcion: string
-  estado: 'pendiente' | 'en_revision' | 'resuelto' | 'rechazado'
+  estado: 'pendiente' | 'en revision' | 'resuelto' | 'rechazado'
   fechaCreacion: string
   fechaResolucion?: string
   emisorId: number

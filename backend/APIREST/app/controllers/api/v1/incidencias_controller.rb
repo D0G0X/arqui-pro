@@ -1,5 +1,5 @@
 class Api::V1::IncidenciasController < ApplicationController
-  before_action :set_incidencia, only: %i[update show destroy resolver rechazar]
+  before_action :set_incidencia, only: %i[update show destroy resolver reabrir]
 
   # Solo usuarios autenticados pueden crear/actualizar/eliminar
   before_action :authenticate_usuario!, only: %i[create update destroy]
@@ -130,8 +130,8 @@ class Api::V1::IncidenciasController < ApplicationController
     }, status: :not_found
   end
 
-  # Rechazar incidencia
-  def rechazar
+  # Reabrir incidencia (cambiar estado a "en_revision")
+  def reabrir
     # Buscar el moderador por usuario_id
     moderador = Moderador.find_by(usuario_id: params[:moderador_id])
     
@@ -142,13 +142,21 @@ class Api::V1::IncidenciasController < ApplicationController
       }, status: :not_found
     end
     
+    # Solo se pueden reabrir incidencias resueltas
+    unless @incidencia.estado == 'resuelto'
+      return render json: { 
+        status: 'error', 
+        message: 'Solo se pueden reabrir incidencias resueltas' 
+      }, status: :unprocessable_entity
+    end
+    
     if @incidencia.update(
-      estado: 'rechazado',
+      estado: 'en_revision',
       moderador_id: moderador.id
     )
       render json: { 
         status: 'success', 
-        message: 'Incidencia rechazada',
+        message: 'Incidencia reabierta para revisión',
         incidencia: @incidencia 
       }, status: :ok
     else

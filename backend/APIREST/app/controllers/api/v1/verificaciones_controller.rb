@@ -93,8 +93,7 @@ class Api::V1::VerificacionesController < ApplicationController
     render json: { 
       status: 'error', 
       errors: e.record.errors.full_messages 
-      }, status: :unprocessable_entity
-    end
+    }, status: :unprocessable_entity
   rescue ActiveRecord::RecordNotFound
     render json: { 
       status: 'error', 

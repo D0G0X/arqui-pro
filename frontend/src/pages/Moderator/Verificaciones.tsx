@@ -7,7 +7,7 @@ import '../../styles/Moderator/Verificaciones.css';
 interface Verificacion {
   id: number;
   arquitecto_id: number;
-  estado: 'pendiente' | 'aprobado' | 'rechazado';
+  estado: 'pendiente' | 'verificado' | 'rechazado';
   fecha_verificacion: string;
   moderador_id?: number;
   comentarios?: string;
@@ -42,11 +42,14 @@ export const Verificaciones = () => {
   const cargarVerificaciones = async () => {
     try {
       setLoading(true);
+      console.log('Cargando verificaciones con filtro:', filtroEstado);
       const response = await moderadorService.getVerificaciones({
         estado: filtroEstado === 'todos' ? undefined : (filtroEstado as any),
         page,
         per_page: perPage
       });
+      console.log('Respuesta verificaciones:', response);
+      console.log('Verificaciones data:', response.data);
       setVerificaciones(response.data as any || []);
       setTotalPages(Math.ceil(response.total / perPage) || 1);
     } catch (error) {
@@ -74,28 +77,11 @@ export const Verificaciones = () => {
     }
   };
 
-  const handleRechazar = async (id: number) => {
-    const comentarios = prompt('Motivo del rechazo:');
-    if (!comentarios) return;
-
-    try {
-      await moderadorService.rechazarVerificacion(id, {
-        moderador_id: user?.id || '',
-        comentarios
-      });
-      cargarVerificaciones();
-      alert('✅ Verificación rechazada');
-    } catch (error) {
-      console.error('Error al rechazar:', error);
-      alert('Error al rechazar la verificación');
-    }
-  };
-
   const getEstadoBadgeClass = (estado: string) => {
     switch (estado) {
       case 'pendiente':
         return 'badge-warning';
-      case 'aprobado':
+      case 'verificado':
         return 'badge-success';
       case 'rechazado':
         return 'badge-danger';
@@ -124,7 +110,7 @@ export const Verificaciones = () => {
           >
             <option value="todos">Todos</option>
             <option value="pendiente">Pendientes</option>
-            <option value="aprobado">Aprobados</option>
+            <option value="verificado">Verificados</option>
             <option value="rechazado">Rechazados</option>
           </select>
         </div>
@@ -136,7 +122,7 @@ export const Verificaciones = () => {
                 <th>ESTADO</th>
                 <th>FECHA DE VERIFICACIÓN</th>
                 <th>ARQUITECTO</th>
-                <th>MODERADOR</th>
+                <th>CÉDULA</th>
                 <th>ACCIONES</th>
               </tr>
             </thead>
@@ -153,7 +139,7 @@ export const Verificaciones = () => {
                     <td>
                       <span className={`badge ${getEstadoBadgeClass(verificacion.estado)}`}>
                         {verificacion.estado === 'pendiente' && '⏱ Pendiente'}
-                        {verificacion.estado === 'aprobado' && '✓ Aprobado'}
+                        {verificacion.estado === 'verificado' && '✓ Verificado'}
                         {verificacion.estado === 'rechazado' && '✗ Rechazado'}
                       </span>
                     </td>
@@ -162,28 +148,16 @@ export const Verificaciones = () => {
                       Arq. {verificacion.arquitecto?.usuario?.nombre || 'N/A'} {verificacion.arquitecto?.usuario?.apellido || ''}
                     </td>
                     <td>
-                      {verificacion.moderador
-                        ? `${verificacion.moderador.nombre} ${verificacion.moderador.apellido}`
-                        : '-'}
+                      {verificacion.arquitecto?.cedula || 'N/A'}
                     </td>
                     <td>
-                      {verificacion.estado === 'pendiente' ? (
-                        <div className="action-buttons">
-                          <button
-                            onClick={() => handleAprobar(verificacion.id)}
-                            className="btn-aprobar"
-                          >
-                            Aprobar
-                          </button>
-                          <button
-                            onClick={() => handleRechazar(verificacion.id)}
-                            className="btn-rechazar"
-                          >
-                            Rechazar
-                          </button>
-                        </div>
-                      ) : (
-                        <button className="btn-ver">Ver</button>
+                      {verificacion.estado === 'pendiente' && (
+                        <button
+                          onClick={() => handleAprobar(verificacion.id)}
+                          className="btn-aprobar"
+                        >
+                          Aprobar
+                        </button>
                       )}
                     </td>
                   </tr>

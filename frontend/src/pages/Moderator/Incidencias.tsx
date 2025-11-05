@@ -7,7 +7,7 @@ import '../../styles/Moderator/Incidencias.css';
 interface Incidencia {
   id: number;
   descripcion: string;
-  estado: 'pendiente' | 'en_revision' | 'resuelto';
+  estado: 'pendiente' | 'en revision' | 'resuelto';
   emisor_id?: number;
   infractor_id?: number;
   moderador_id: number | null;
@@ -38,6 +38,7 @@ export const Incidencias = () => {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [modalDescripcion, setModalDescripcion] = useState<string | null>(null);
 
   useEffect(() => {
     cargarIncidencias();
@@ -73,20 +74,22 @@ export const Incidencias = () => {
     }
   };
 
-  const handleRechazar = async (id: number) => {
-    const resolucion = prompt('Motivo del rechazo:');
-    if (!resolucion) return;
+  const toggleDescripcion = (descripcion: string) => {
+    setModalDescripcion(descripcion);
+  };
+
+  const handleReabrir = async (id: number) => {
+    if (!confirm('¿Seguro que deseas reabrir esta incidencia para revisión?')) return;
 
     try {
-      await moderadorService.rechazarIncidencia(id, {
-        moderador_id: user?.id || '',
-        resolucion
+      await moderadorService.reabrirIncidencia(id, {
+        moderador_id: user?.id || ''
       });
-      alert('✅ Incidencia rechazada');
+      alert('✅ Incidencia reabierta para revisión');
       cargarIncidencias();
     } catch (error) {
-      console.error('Error al rechazar:', error);
-      alert('Error al rechazar la incidencia');
+      console.error('Error al reabrir:', error);
+      alert('Error al reabrir la incidencia');
     }
   };
 
@@ -94,7 +97,7 @@ export const Incidencias = () => {
     switch (estado) {
       case 'pendiente':
         return 'badge-danger';
-      case 'en_revision':
+      case 'en revision':
         return 'badge-warning';
       case 'resuelto':
         return 'badge-success';
@@ -132,11 +135,20 @@ export const Incidencias = () => {
             <tbody>
               {incidencias.map((incidencia: any) => (
                 <tr key={incidencia.id}>
-                  <td className="descripcion-cell">{incidencia.descripcion}</td>
+                  <td 
+                    className="descripcion-cell clickeable" 
+                    onClick={() => toggleDescripcion(incidencia.descripcion)}
+                    title="Click para ver completa"
+                  >
+                    {incidencia.descripcion.length > 50 
+                      ? `${incidencia.descripcion.substring(0, 50)}...` 
+                      : incidencia.descripcion
+                    }
+                  </td>
                   <td>
                     <span className={`badge ${getEstadoBadgeClass(incidencia.estado)}`}>
                       {incidencia.estado === 'pendiente' && 'Pendiente'}
-                      {incidencia.estado === 'en_revision' && 'En Revisión'}
+                      {incidencia.estado === 'en revision' && 'En Revisión'}
                       {incidencia.estado === 'resuelto' && 'Resuelto'}
                     </span>
                   </td>
@@ -160,24 +172,21 @@ export const Incidencias = () => {
                     }
                   </td>
                   <td>
-                    {incidencia.estado === 'pendiente' ? (
-                      <div className="action-buttons">
-                        <button
-                          onClick={() => handleResolver(incidencia.id)}
-                          className="btn-resolver"
-                        >
-                          Resolver
-                        </button>
-                        <button
-                          onClick={() => handleRechazar(incidencia.id)}
-                          className="btn-rechazar"
-                        >
-                          Rechazar
-                        </button>
-                      </div>
-                    ) : (
-                      <button className="btn-more">⋮</button>
-                    )}
+                    {(incidencia.estado === 'pendiente' || incidencia.estado === 'en revision') ? (
+                      <button
+                        onClick={() => handleResolver(incidencia.id)}
+                        className="btn-resolver"
+                      >
+                        Resolver
+                      </button>
+                    ) : incidencia.estado === 'resuelto' ? (
+                      <button
+                        onClick={() => handleReabrir(incidencia.id)}
+                        className="btn-reabrir"
+                      >
+                        Reabrir
+                      </button>
+                    ) : null}
                   </td>
                 </tr>
               ))}
@@ -204,6 +213,21 @@ export const Incidencias = () => {
             Siguiente →
           </button>
         </div>
+
+        {/* Modal para descripción completa */}
+        {modalDescripcion && (
+          <div className="modal-overlay" onClick={() => setModalDescripcion(null)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3>Descripción Completa</h3>
+                <button className="modal-close" onClick={() => setModalDescripcion(null)}>×</button>
+              </div>
+              <div className="modal-body">
+                <p>{modalDescripcion}</p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </ModeratorLayout>
   );
