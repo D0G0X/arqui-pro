@@ -34,6 +34,7 @@ Rails.application.routes.draw do
         member do
           post :resolver
           post :rechazar
+          post :reabrir
         end
       end
       resources :valoraciones

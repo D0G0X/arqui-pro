@@ -150,10 +150,7 @@ class Api::V1::IncidenciasController < ApplicationController
       }, status: :unprocessable_entity
     end
     
-    if @incidencia.update(
-      estado: 'pendiente',
-      moderador_id: nil
-    )
+    if @incidencia.update(estado: 'pendiente')
       render json: { 
         status: 'success', 
         message: 'Incidencia reabierta y marcada como pendiente',
