@@ -79,13 +79,13 @@ export const Incidencias = () => {
   };
 
   const handleReabrir = async (id: number) => {
-    if (!confirm('¿Seguro que deseas reabrir esta incidencia para revisión?')) return;
+    if (!confirm('¿Seguro que deseas reabrir esta incidencia?')) return;
 
     try {
       await moderadorService.reabrirIncidencia(id, {
         moderador_id: user?.id || ''
       });
-      alert('✅ Incidencia reabierta para revisión');
+      alert('✅ Incidencia reabierta y marcada como pendiente');
       cargarIncidencias();
     } catch (error) {
       console.error('Error al reabrir:', error);
@@ -136,9 +136,9 @@ export const Incidencias = () => {
               {incidencias.map((incidencia: any) => (
                 <tr key={incidencia.id}>
                   <td 
-                    className="descripcion-cell clickeable" 
+                    className="descripcion-cell clickeable"
                     onClick={() => toggleDescripcion(incidencia.descripcion)}
-                    title="Click para ver completa"
+                    title="Click para ver descripción completa"
                   >
                     {incidencia.descripcion.length > 50 
                       ? `${incidencia.descripcion.substring(0, 50)}...` 

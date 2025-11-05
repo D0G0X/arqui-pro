@@ -130,7 +130,7 @@ class Api::V1::IncidenciasController < ApplicationController
     }, status: :not_found
   end
 
-  # Reabrir incidencia (cambiar estado a "en_revision")
+  # Reabrir incidencia (cambiar estado a "pendiente")
   def reabrir
     # Buscar el moderador por usuario_id
     moderador = Moderador.find_by(usuario_id: params[:moderador_id])
@@ -151,12 +151,12 @@ class Api::V1::IncidenciasController < ApplicationController
     end
     
     if @incidencia.update(
-      estado: 'en_revision',
-      moderador_id: moderador.id
+      estado: 'pendiente',
+      moderador_id: nil
     )
       render json: { 
         status: 'success', 
-        message: 'Incidencia reabierta para revisión',
+        message: 'Incidencia reabierta y marcada como pendiente',
         incidencia: @incidencia 
       }, status: :ok
     else

@@ -155,6 +155,30 @@ export const moderadorService = {
   },
 
   /**
+   * Reabrir una incidencia (cambiar a estado "pendiente")
+   */
+  async reabrirIncidencia(
+    incidenciaId: number,
+    data: {
+      moderador_id: string
+    }
+  ): Promise<AccionModeracion> {
+    try {
+      logger.info('Reabriendo incidencia', { incidenciaId, ...data })
+      
+      const response = await axiosInstance.post(
+        `${MODERADOR_BASE_URL}/incidencias/${incidenciaId}/reabrir`,
+        data
+      )
+
+      return response.data
+    } catch (error) {
+      logger.error('Error al reabrir incidencia', error)
+      throw error
+    }
+  },
+
+  /**
    * Rechazar una incidencia
    */
   async rechazarIncidencia(
