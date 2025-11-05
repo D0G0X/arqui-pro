@@ -11,6 +11,11 @@ function Header() {
     return location.pathname === path ? 'active' : ''
   }
 
+  const handleLogout = async () => {
+    await logout()
+    navigate('/')
+  }
+
   return (
     <header className="header">
       <div className="header-container">
@@ -23,13 +28,18 @@ function Header() {
           <Link to="/" className={`nav-link ${isActive('/')}`}>Home</Link>
           <Link to="/architects" className={`nav-link ${isActive('/architects')}`}>Find Architects</Link>
           <Link to="/about" className={`nav-link ${isActive('/about')}`}>About Us</Link>
+          {isAuthenticated && user?.rol === 'moderador' && (
+            <Link to="/moderador/dashboard" className={`nav-link ${isActive('/moderador/dashboard')}`}>
+              Moderador
+            </Link>
+          )}
         </nav>
 
         <div className="auth-buttons">
           {isAuthenticated ? (
             <>
               <span className="user-greeting">Hi, {user?.nombre}!</span>
-              <button onClick={logout} className="login-btn">
+              <button onClick={handleLogout} className="login-btn">
                 LOG OUT
               </button>
             </>

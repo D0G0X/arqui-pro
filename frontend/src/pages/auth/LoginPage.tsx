@@ -1,12 +1,13 @@
 import { useState } from "react";
-import FormularioLogin from "../../components/auth/formularioLogin";
-import { loginUsuario } from "../../services/api/auth/authService";
+import FormularioLogin from "../../components/auth/FormularioLogin";
+import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import "../../styles/auth/LoginPage.css";
 import imagenLogin from "../../assets/login.webp"
 
 export default function LoginPage(){
     const navigate = useNavigate();
+    const { login } = useAuth();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -15,15 +16,25 @@ export default function LoginPage(){
         setLoading(true);
 
         try{
-            const data = await loginUsuario({ email, password });
-            if(data.usuario){
-                navigate("/dashboard"); // Esto hay que cambiarlo a la ruta verdadera
-            } else{
-                setError("No se pudo iniciar sesión. Revisa tus credenciales.");
+            await login(email, password);
+            
+            // Login exitoso, redirigir a la página principal
+            // El AuthContext ya guardó el usuario y token
+            navigate("/");
+            
+        } catch(error: any){
+            console.error('Error en login:', error);
+            
+            // Mensajes de error más específicos
+            if (error.response?.status === 401) {
+                setError("Email o contraseña incorrectos");
+            } else if (error.response?.status === 404) {
+                setError("Usuario no encontrado");
+            } else if (error.response?.data?.error) {
+                setError(error.response.data.error);
+            } else {
+                setError("Ocurrió un error inesperado al intentar iniciar sesión");
             }
-        } catch(error){
-            setError("Ocurrió un error inesperado al intentar iniciar sesión.");
-            console.error(error);
         } finally{
             setLoading(false);
         }
