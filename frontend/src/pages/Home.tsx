@@ -25,18 +25,18 @@ function Home() {
             </p>
             <div className="hero-buttons">
               <button 
-                onClick={() => navigate(ROUTES.ARCHITECTS)} 
+                onClick={() => navigate(ROUTES.REGISTER_CLIENTE)} 
                 className="btn-primary"
-                aria-label="Comenzar búsqueda de arquitectos"
+                aria-label="Comenzar - Registrarse como cliente"
               >
                 Get Started
               </button>
               <button 
                 onClick={() => navigate(ROUTES.ARCHITECTS)} 
                 className="btn-secondary"
-                aria-label="Únete como arquitecto"
+                aria-label="Ver arquitectos disponibles"
               >
-                Join as an Architect
+                Find Architects
               </button>
             </div>
           </div>

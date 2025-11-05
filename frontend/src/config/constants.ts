@@ -119,6 +119,7 @@ export const ROUTES = {
   ABOUT: '/about',
   LOGIN: '/login',
   REGISTER: '/register',
+  REGISTER_CLIENTE: '/registro-cliente',
   MODERATOR: {
     DASHBOARD: '/moderador/dashboard',
     VERIFICACIONES: '/moderador/verificaciones',

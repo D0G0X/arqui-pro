@@ -1,8 +1,8 @@
 # 📋 Estado del Módulo Moderador - Análisis Completo
 
 **Fecha de análisis**: 4 de Noviembre, 2025  
-**Última actualización**: 4 de Noviembre, 2025 - 15:30  
-**Estado general**: 75% Completado ✅ (Rutas y Protección Implementadas)
+**Última actualización**: 5 de Noviembre, 2025 - 10:00  
+**Estado general**: 85% Completado ✅ (Frontend Conectado con REST APIs)
 
 ---
 
@@ -137,11 +137,79 @@ export const ProtectedRoute = ({
 
 ---
 
-### 3. **Backend REST API - Acciones** ❌ ALTA PRIORIDAD
+### 3. **Frontend Conectado con REST APIs** ✅ COMPLETADO
 
-**Problema**: Botones de acción no funcionan (Aprobar, Rechazar, Resolver).
+**Estado**: ✅ Servicio REST creado y páginas conectadas
 
-**Endpoints necesarios en Rails**:
+**Implementación realizada**:
+
+#### Servicio REST Moderador
+Archivo: `services/api/moderador/moderadorService.ts`
+
+**Endpoints implementados**:
+
+```typescript
+// Verificaciones
+moderadorService.getVerificaciones(params?) // GET /api/v1/verificaciones
+moderadorService.aprobarVerificacion(id, data) // POST /api/v1/verificaciones/:id/aprobar
+moderadorService.rechazarVerificacion(id, data) // POST /api/v1/verificaciones/:id/rechazar
+
+// Incidencias
+moderadorService.getIncidencias(params?) // GET /api/v1/incidencias
+moderadorService.resolverIncidencia(id, data) // POST /api/v1/incidencias/:id/resolver
+moderadorService.rechazarIncidencia(id, data) // POST /api/v1/incidencias/:id/rechazar
+
+// Usuarios
+moderadorService.getUsuarios(params?) // GET /api/v1/usuarios
+moderadorService.suspenderUsuario(id, data) // POST /api/v1/usuarios/:id/suspender
+moderadorService.activarUsuario(id, data) // POST /api/v1/usuarios/:id/activar
+
+// Estadísticas
+moderadorService.getEstadisticas() // GET /api/v1/moderadores/estadisticas
+```
+
+#### Páginas Actualizadas
+
+**1. Verificaciones.tsx** ✅
+- Conectado a `moderadorService.aprobarVerificacion()`
+- Conectado a `moderadorService.rechazarVerificacion()`
+- Usa `user.id` del AuthContext para identificar moderador
+- Estados de carga (procesando)
+- Prompts para comentarios/razones
+- Feedback con alerts (✅/❌)
+- Refetch automático después de acciones
+
+**2. Incidencias.tsx** ✅
+- Conectado a `moderadorService.resolverIncidencia()`
+- Conectado a `moderadorService.rechazarIncidencia()`
+- Usa `user.id` del AuthContext
+- Estados de carga (procesando)
+- Prompts para resolución/razón
+- Feedback con alerts
+- Refetch automático
+
+**3. Dashboard.tsx** ✅
+- Sigue usando GraphQL (useModeratorData hook)
+- Muestra estadísticas del KPI
+
+**Características implementadas**:
+- ✅ Integración con AuthContext para obtener user.id
+- ✅ Validación de usuario autenticado
+- ✅ Estados de carga (disabled buttons con "Procesando...")
+- ✅ Manejo de errores con try/catch
+- ✅ Logging de todas las acciones
+- ✅ Refetch automático después de acciones exitosas
+- ✅ Feedback visual al usuario
+
+**Impacto**: ✅ Funcionalidad principal del módulo lista en frontend (pendiente backend)
+
+---
+
+### 4. **Backend REST API Controllers** ❌ PENDIENTE - BACKEND
+
+**Problema**: Endpoints REST no están implementados en Rails
+
+**Archivos a crear en Backend**:
 
 #### Verificaciones
 ```ruby

@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useQuery } from '@apollo/client'
 import { GET_VERIFICACIONES } from '../../services/graphql/queries'
+import moderadorService from '../../services/api/moderador/moderadorService'
+import { useAuth } from '../../contexts/AuthContext'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import ErrorMessage from '../../components/common/ErrorMessage'
 import { usePagination } from '../../hooks/usePagination'
@@ -15,7 +17,9 @@ interface VerificacionesResponse {
 }
 
 export const Verificaciones = () => {
+  const { user } = useAuth()
   const [filtroEstado, setFiltroEstado] = useState<string>('todos')
+  const [procesando, setProcesando] = useState<number | null>(null)
   const { currentPage, limit, offset, nextPage, previousPage, canGoPrevious, canGoNext } =
     usePagination()
 
@@ -32,15 +36,62 @@ export const Verificaciones = () => {
   )
 
   const handleAprobar = async (id: number) => {
-    // TODO: Implement REST API call to approve verification
-    logger.info('Aprobar verificación', { id })
-    alert('Función de aprobar en desarrollo')
+    if (!user?.id) {
+      alert('Error: No se pudo identificar al usuario')
+      return
+    }
+
+    const comentarios = prompt('Comentarios (opcional):')
+    
+    try {
+      setProcesando(id)
+      logger.info('Aprobando verificación', { id, moderador_id: user.id })
+      
+      await moderadorService.aprobarVerificacion(id, {
+        moderador_id: parseInt(user.id),
+        comentarios: comentarios || undefined
+      })
+      
+      alert('✅ Verificación aprobada exitosamente')
+      await refetch()
+    } catch (error) {
+      logger.error('Error al aprobar verificación', error)
+      alert('❌ Error al aprobar la verificación. Intenta nuevamente.')
+    } finally {
+      setProcesando(null)
+    }
   }
 
   const handleRechazar = async (id: number) => {
-    // TODO: Implement REST API call to reject verification
-    logger.info('Rechazar verificación', { id })
-    alert('Función de rechazar en desarrollo')
+    if (!user?.id) {
+      alert('Error: No se pudo identificar al usuario')
+      return
+    }
+
+    const comentarios = prompt('Razón del rechazo (obligatorio):')
+    
+    if (!comentarios || comentarios.trim() === '') {
+      alert('Debes proporcionar una razón para el rechazo')
+      return
+    }
+    
+    try {
+      setProcesando(id)
+      logger.info('Rechazando verificación', { id, moderador_id: user.id })
+      
+      await moderadorService.rechazarVerificacion(id, {
+        moderador_id: parseInt(user.id),
+        comentarios: comentarios.trim()
+      })
+      
+      alert('✅ Verificación rechazada')
+      await refetch()
+    } catch (error) {
+      logger.error('Error al rechazar verificación', error)
+      alert('❌ Error al rechazar la verificación. Intenta nuevamente.')
+    } finally {
+      setProcesando(null)
+    }
   }
 
   if (loading) {
@@ -159,39 +210,53 @@ export const Verificaciones = () => {
                               className="btn btn--success btn--sm"
                               title="Aprobar"
                               aria-label={`Aprobar verificación ${verificacion.id}`}
+                              disabled={procesando === verificacion.id}
                             >
-                              <svg
-                                width="14"
-                                height="14"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                aria-hidden="true"
-                              >
-                                <polyline points="20 6 9 17 4 12" />
-                              </svg>
-                              Aprobar
+                              {procesando === verificacion.id ? (
+                                <span>Procesando...</span>
+                              ) : (
+                                <>
+                                  <svg
+                                    width="14"
+                                    height="14"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    aria-hidden="true"
+                                  >
+                                    <polyline points="20 6 9 17 4 12" />
+                                  </svg>
+                                  Aprobar
+                                </>
+                              )}
                             </button>
                             <button
                               onClick={() => handleRechazar(verificacion.id)}
                               className="btn btn--danger btn--sm"
                               title="Rechazar"
                               aria-label={`Rechazar verificación ${verificacion.id}`}
+                              disabled={procesando === verificacion.id}
                             >
-                              <svg
-                                width="14"
-                                height="14"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                aria-hidden="true"
-                              >
-                                <line x1="18" y1="6" x2="6" y2="18" />
-                                <line x1="6" y1="6" x2="18" y2="18" />
-                              </svg>
-                              Rechazar
+                              {procesando === verificacion.id ? (
+                                <span>Procesando...</span>
+                              ) : (
+                                <>
+                                  <svg
+                                    width="14"
+                                    height="14"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    aria-hidden="true"
+                                  >
+                                    <line x1="18" y1="6" x2="6" y2="18" />
+                                    <line x1="6" y1="6" x2="18" y2="18" />
+                                  </svg>
+                                  Rechazar
+                                </>
+                              )}
                             </button>
                           </>
                         )}

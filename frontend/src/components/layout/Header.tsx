@@ -1,9 +1,10 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import '../../styles/Header.css'
 
 function Header() {
   const location = useLocation()
+  const navigate = useNavigate()
   const { user, isAuthenticated, logout } = useAuth()
 
   const isActive = (path: string) => {
@@ -34,8 +35,20 @@ function Header() {
             </>
           ) : (
             <>
-              <button className="signin-btn">SIGN IN</button>
-              <button className="login-btn">LOG IN</button>
+              <button 
+                onClick={() => navigate('/registro-cliente')} 
+                className="signin-btn"
+                aria-label="Registrarse como cliente"
+              >
+                SIGN IN
+              </button>
+              <button 
+                onClick={() => navigate('/login')} 
+                className="login-btn"
+                aria-label="Iniciar sesión"
+              >
+                LOG IN
+              </button>
             </>
           )}
         </div>

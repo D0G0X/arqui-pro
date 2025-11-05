@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useQuery } from '@apollo/client'
 import { GET_INCIDENCIAS } from '../../services/graphql/queries'
+import moderadorService from '../../services/api/moderador/moderadorService'
+import { useAuth } from '../../contexts/AuthContext'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import ErrorMessage from '../../components/common/ErrorMessage'
 import type { Incidencia } from '../../types/moderator.types'
@@ -15,8 +17,10 @@ interface IncidenciasResponse {
 }
 
 export const Incidencias = () => {
+  const { user } = useAuth()
   const [filtroEstado, setFiltroEstado] = useState<string>('todos')
   const [verDetalles, setVerDetalles] = useState<number | null>(null)
+  const [procesando, setProcesando] = useState<number | null>(null)
   
   const { currentPage, limit, offset, nextPage, previousPage, canGoPrevious, canGoNext } = usePagination({
     limit: 10
@@ -35,15 +39,67 @@ export const Incidencias = () => {
   )
 
   const handleResolver = async (id: number) => {
-    // TODO: Implement REST API call to resolve incident
-    logger.info('Resolver incidencia', { id })
-    alert('Función de resolver en desarrollo')
+    if (!user?.id) {
+      alert('Error: No se pudo identificar al usuario')
+      return
+    }
+
+    const resolucion = prompt('Escribe la resolución de la incidencia:')
+    
+    if (!resolucion || resolucion.trim() === '') {
+      alert('Debes proporcionar una resolución')
+      return
+    }
+    
+    try {
+      setProcesando(id)
+      logger.info('Resolviendo incidencia', { id, moderador_id: user.id })
+      
+      await moderadorService.resolverIncidencia(id, {
+        moderador_id: parseInt(user.id),
+        resolucion: resolucion.trim()
+      })
+      
+      alert('✅ Incidencia resuelta exitosamente')
+      await refetch()
+    } catch (error) {
+      logger.error('Error al resolver incidencia', error)
+      alert('❌ Error al resolver la incidencia. Intenta nuevamente.')
+    } finally {
+      setProcesando(null)
+    }
   }
 
   const handleRechazar = async (id: number) => {
-    // TODO: Implement REST API call to reject incident
-    logger.info('Rechazar incidencia', { id })
-    alert('Función de rechazar en desarrollo')
+    if (!user?.id) {
+      alert('Error: No se pudo identificar al usuario')
+      return
+    }
+
+    const resolucion = prompt('Razón del rechazo:')
+    
+    if (!resolucion || resolucion.trim() === '') {
+      alert('Debes proporcionar una razón para el rechazo')
+      return
+    }
+    
+    try {
+      setProcesando(id)
+      logger.info('Rechazando incidencia', { id, moderador_id: user.id })
+      
+      await moderadorService.rechazarIncidencia(id, {
+        moderador_id: parseInt(user.id),
+        resolucion: resolucion.trim()
+      })
+      
+      alert('✅ Incidencia rechazada')
+      await refetch()
+    } catch (error) {
+      logger.error('Error al rechazar incidencia', error)
+      alert('❌ Error al rechazar la incidencia. Intenta nuevamente.')
+    } finally {
+      setProcesando(null)
+    }
   }
 
   if (loading) {
@@ -203,39 +259,53 @@ export const Incidencias = () => {
                               className="btn btn--success btn--sm"
                               title="Resolver"
                               aria-label={`Resolver incidencia de ${incidencia.emisor?.nombre}`}
+                              disabled={procesando === incidencia.id}
                             >
-                              <svg
-                                width="14"
-                                height="14"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                aria-hidden="true"
-                              >
-                                <polyline points="20 6 9 17 4 12" />
-                              </svg>
-                              Resolver
+                              {procesando === incidencia.id ? (
+                                <span>Procesando...</span>
+                              ) : (
+                                <>
+                                  <svg
+                                    width="14"
+                                    height="14"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    aria-hidden="true"
+                                  >
+                                    <polyline points="20 6 9 17 4 12" />
+                                  </svg>
+                                  Resolver
+                                </>
+                              )}
                             </button>
                             <button
                               onClick={() => handleRechazar(incidencia.id)}
                               className="btn btn--danger btn--sm"
                               title="Rechazar"
                               aria-label={`Rechazar incidencia de ${incidencia.emisor?.nombre}`}
+                              disabled={procesando === incidencia.id}
                             >
-                              <svg
-                                width="14"
-                                height="14"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                aria-hidden="true"
-                              >
-                                <line x1="18" y1="6" x2="6" y2="18" />
-                                <line x1="6" y1="6" x2="18" y2="18" />
-                              </svg>
-                              Rechazar
+                              {procesando === incidencia.id ? (
+                                <span>Procesando...</span>
+                              ) : (
+                                <>
+                                  <svg
+                                    width="14"
+                                    height="14"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    aria-hidden="true"
+                                  >
+                                    <line x1="18" y1="6" x2="6" y2="18" />
+                                    <line x1="6" y1="6" x2="18" y2="18" />
+                                  </svg>
+                                  Rechazar
+                                </>
+                              )}
                             </button>
                           </>
                         )}
