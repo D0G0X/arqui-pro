@@ -63,7 +63,7 @@ export const Verificaciones = () => {
     
     try {
       await moderadorService.aprobarVerificacion(id, {
-        moderador_id: Number(user?.id) || 1,
+        moderador_id: user?.id || '',
         comentarios
       });
       cargarVerificaciones();
@@ -80,7 +80,7 @@ export const Verificaciones = () => {
 
     try {
       await moderadorService.rechazarVerificacion(id, {
-        moderador_id: Number(user?.id) || 1,
+        moderador_id: user?.id || '',
         comentarios
       });
       cargarVerificaciones();

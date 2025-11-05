@@ -92,23 +92,37 @@ class Api::V1::IncidenciasController < ApplicationController
 
   # Resolver incidencia
   def resolver
-    if @incidencia.update(
-      estado: 'resuelto',
-      moderador_id: params[:moderador_id],
-      resolucion: params[:resolucion],
-      fecha_resolucion: DateTime.now
-    )
-      render json: { 
-        status: 'success', 
-        message: 'Incidencia resuelta correctamente',
-        incidencia: @incidencia 
-      }, status: :ok
-    else
-      render json: { 
+    # Buscar el moderador por usuario_id
+    moderador = Moderador.find_by(usuario_id: params[:moderador_id])
+    
+    unless moderador
+      return render json: { 
         status: 'error', 
-        errors: @incidencia.errors.full_messages 
-      }, status: :unprocessable_entity
+        message: 'Moderador no encontrado' 
+      }, status: :not_found
     end
+    
+    ActiveRecord::Base.transaction do
+      # Actualizar la incidencia
+      @incidencia.update!(
+        estado: 'resuelto',
+        moderador_id: moderador.id
+      )
+      
+      # Incrementar contador del moderador
+      moderador.increment!(:num_incidencias_resueltas)
+    end
+    
+    render json: { 
+      status: 'success', 
+      message: 'Incidencia resuelta correctamente',
+      incidencia: @incidencia 
+    }, status: :ok
+  rescue ActiveRecord::RecordInvalid => e
+    render json: { 
+      status: 'error', 
+      errors: e.record.errors.full_messages 
+    }, status: :unprocessable_entity
   rescue ActiveRecord::RecordNotFound
     render json: { 
       status: 'error', 
@@ -118,11 +132,19 @@ class Api::V1::IncidenciasController < ApplicationController
 
   # Rechazar incidencia
   def rechazar
+    # Buscar el moderador por usuario_id
+    moderador = Moderador.find_by(usuario_id: params[:moderador_id])
+    
+    unless moderador
+      return render json: { 
+        status: 'error', 
+        message: 'Moderador no encontrado' 
+      }, status: :not_found
+    end
+    
     if @incidencia.update(
       estado: 'rechazado',
-      moderador_id: params[:moderador_id],
-      resolucion: params[:resolucion],
-      fecha_resolucion: DateTime.now
+      moderador_id: moderador.id
     )
       render json: { 
         status: 'success', 
@@ -145,7 +167,7 @@ class Api::V1::IncidenciasController < ApplicationController
   private
 
   def incidencia_params
-    params.permit(:descripcion, :estado, :fecha, :usuario_emisor_id, :usuario_infractor_id, :moderador_id, :resolucion, :fecha_resolucion)
+    params.permit(:descripcion, :estado, :fecha, :usuario_emisor_id, :usuario_infractor_id, :moderador_id)
   end
 
   def set_incidencia

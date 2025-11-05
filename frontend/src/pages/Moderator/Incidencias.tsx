@@ -62,7 +62,7 @@ export const Incidencias = () => {
 
     try {
       await moderadorService.resolverIncidencia(id, {
-        moderador_id: Number(user?.id) || 1,
+        moderador_id: user?.id || '',
         resolucion
       });
       alert('✅ Incidencia resuelta exitosamente');
@@ -79,7 +79,7 @@ export const Incidencias = () => {
 
     try {
       await moderadorService.rechazarIncidencia(id, {
-        moderador_id: Number(user?.id) || 1,
+        moderador_id: user?.id || '',
         resolucion
       });
       alert('✅ Incidencia rechazada');

@@ -1,9 +1,6 @@
 class Api::V1::VerificacionesController < ApplicationController
   before_action :set_verificacion, only: %i[update show destroy aprobar rechazar]
 
-  # Solo usuarios moderador pueden actualizar/eliminar
-  before_action :require_moderador!, only: %i[update destroy aprobar rechazar]
-
   def index
     @verificaciones = Verificacion.includes(arquitecto: :usuario, moderador: :usuario).all
     
@@ -62,21 +59,40 @@ class Api::V1::VerificacionesController < ApplicationController
 
   # Aprobar verificación
   def aprobar
-    if @verificacion.update(
-      estado: 'aprobado',
-      moderador_id: params[:moderador_id],
-      comentarios: params[:comentarios],
-      fecha_verificacion: DateTime.now
-    )
-      render json: { 
-        status: 'success', 
-        message: 'Verificación aprobada correctamente',
-        verificacion: @verificacion 
-      }, status: :ok
-    else
-      render json: { 
+    # Buscar el moderador por usuario_id
+    moderador = Moderador.find_by(usuario_id: params[:moderador_id])
+    
+    unless moderador
+      return render json: { 
         status: 'error', 
-        errors: @verificacion.errors.full_messages 
+        message: 'Moderador no encontrado' 
+      }, status: :not_found
+    end
+    
+    ActiveRecord::Base.transaction do
+      # Actualizar la verificación
+      @verificacion.update!(
+        estado: 'verificado',
+        moderador_id: moderador.id,
+        fecha_verificacion: DateTime.now
+      )
+      
+      # Actualizar el campo verificado en arquitectos
+      @verificacion.arquitecto.update!(verificado: true)
+      
+      # Incrementar contador del moderador
+      moderador.increment!(:num_arquitectos_verificados)
+    end
+    
+    render json: { 
+      status: 'success', 
+      message: 'Verificación aprobada correctamente',
+      verificacion: @verificacion 
+    }, status: :ok
+  rescue ActiveRecord::RecordInvalid => e
+    render json: { 
+      status: 'error', 
+      errors: e.record.errors.full_messages 
       }, status: :unprocessable_entity
     end
   rescue ActiveRecord::RecordNotFound
@@ -88,23 +104,38 @@ class Api::V1::VerificacionesController < ApplicationController
 
   # Rechazar verificación
   def rechazar
-    if @verificacion.update(
-      estado: 'rechazado',
-      moderador_id: params[:moderador_id],
-      comentarios: params[:comentarios],
-      fecha_verificacion: DateTime.now
-    )
-      render json: { 
-        status: 'success', 
-        message: 'Verificación rechazada',
-        verificacion: @verificacion 
-      }, status: :ok
-    else
-      render json: { 
+    # Buscar el moderador por usuario_id
+    moderador = Moderador.find_by(usuario_id: params[:moderador_id])
+    
+    unless moderador
+      return render json: { 
         status: 'error', 
-        errors: @verificacion.errors.full_messages 
-      }, status: :unprocessable_entity
+        message: 'Moderador no encontrado' 
+      }, status: :not_found
     end
+    
+    ActiveRecord::Base.transaction do
+      # Actualizar la verificación
+      @verificacion.update!(
+        estado: 'rechazado',
+        moderador_id: moderador.id,
+        fecha_verificacion: DateTime.now
+      )
+      
+      # Asegurar que el campo verificado sea false en arquitectos
+      @verificacion.arquitecto.update!(verificado: false)
+    end
+    
+    render json: { 
+      status: 'success', 
+      message: 'Verificación rechazada',
+      verificacion: @verificacion 
+    }, status: :ok
+  rescue ActiveRecord::RecordInvalid => e
+    render json: { 
+      status: 'error', 
+      errors: e.record.errors.full_messages 
+    }, status: :unprocessable_entity
   rescue ActiveRecord::RecordNotFound
     render json: { 
       status: 'error', 

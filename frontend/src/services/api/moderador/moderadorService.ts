@@ -52,7 +52,7 @@ export const moderadorService = {
   async aprobarVerificacion(
     verificacionId: number,
     data: {
-      moderador_id: number
+      moderador_id: string
       comentarios?: string
     }
   ): Promise<AccionModeracion> {
@@ -77,7 +77,7 @@ export const moderadorService = {
   async rechazarVerificacion(
     verificacionId: number,
     data: {
-      moderador_id: number
+      moderador_id: string
       comentarios: string // Obligatorio al rechazar
     }
   ): Promise<AccionModeracion> {
@@ -135,7 +135,7 @@ export const moderadorService = {
   async resolverIncidencia(
     incidenciaId: number,
     data: {
-      moderador_id: number
+      moderador_id: string
       resolucion: string
     }
   ): Promise<AccionModeracion> {
@@ -160,7 +160,7 @@ export const moderadorService = {
   async rechazarIncidencia(
     incidenciaId: number,
     data: {
-      moderador_id: number
+      moderador_id: string
       resolucion: string // Razón del rechazo
     }
   ): Promise<AccionModeracion> {
