@@ -1,172 +1,102 @@
-/* Incidencias Styles */
-
-.incidencias {
-  padding: 2rem;
-  max-width: 1400px;
-  margin: 0 auto;
+/* Incidencias Page */
+.incidencias-page {
+  width: 100%;
 }
 
-.incidencias__header {
-  margin-bottom: 2rem;
-}
-
-.incidencias__title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--color-text-primary, #1a1a1a);
-  margin-bottom: 0.5rem;
-}
-
-.incidencias__subtitle {
-  font-size: 1rem;
-  color: var(--color-text-secondary, #666);
-}
-
-/* Filters */
-.incidencias__filters {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
+/* Table Container */
+.table-container {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 24px;
 }
 
 /* Table */
-.incidencias__table-container {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  overflow-x: auto;
-}
-
-.incidencias__table {
+.incidencias-table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.incidencias__table thead {
-  background: #f8f9fa;
+.incidencias-table thead {
+  background-color: #f8f9fa;
 }
 
-.incidencias__table th {
-  padding: 1rem;
+.incidencias-table th {
+  padding: 16px 20px;
   text-align: left;
-  font-size: 0.875rem;
+  font-size: 11px;
   font-weight: 600;
-  color: var(--color-text-primary, #1a1a1a);
-  border-bottom: 2px solid #dee2e6;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #e9ecef;
 }
 
-.incidencias__table td {
-  padding: 1rem;
-  font-size: 0.875rem;
-  color: var(--color-text-secondary, #666);
-  border-bottom: 1px solid #dee2e6;
+.incidencias-table tbody tr {
+  border-bottom: 1px solid #e9ecef;
+  transition: background-color 0.2s ease;
 }
 
-.incidencias__table tbody tr:hover {
-  background: #f8f9fa;
+.incidencias-table tbody tr:hover {
+  background-color: #f8f9fa;
 }
 
-.incidencias__table tbody tr:last-child td {
+.incidencias-table tbody tr:last-child {
   border-bottom: none;
 }
 
-/* Description Cell */
+.incidencias-table td {
+  padding: 16px 20px;
+  font-size: 14px;
+  color: #212529;
+}
+
 .descripcion-cell {
   max-width: 300px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.descripcion-truncated,
-.descripcion-full {
-  margin: 0 0 0.25rem 0;
-  line-height: 1.4;
-}
-
-.descripcion-truncated {
-  color: var(--color-text-secondary, #666);
-}
-
-.descripcion-full {
-  color: var(--color-text-primary, #1a1a1a);
-  white-space: pre-wrap;
-}
-
-.btn-link {
-  background: none;
+/* Action Buttons */
+.btn-resolver {
+  padding: 6px 16px;
   border: none;
-  color: #ff6b35;
-  font-size: 0.75rem;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
-  padding: 0;
-  text-decoration: underline;
-  transition: color 0.2s;
+  transition: all 0.2s ease;
+  background-color: #28a745;
+  color: #fff;
 }
 
-.btn-link:hover {
-  color: #f7931e;
+.btn-resolver:hover {
+  background-color: #218838;
 }
 
-/* Badges */
-.badge--info {
-  background: #d1ecf1;
-  color: #0c5460;
+.btn-more {
+  padding: 4px 12px;
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  color: #6c757d;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
 }
 
-/* Empty State */
-.incidencias__empty {
-  background: white;
-  border-radius: 12px;
-  padding: 3rem;
-  text-align: center;
-  color: var(--color-text-secondary, #666);
+.btn-more:hover {
+  background-color: #f8f9fa;
 }
 
-/* Pagination */
-.incidencias__pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1rem;
-  margin-top: 2rem;
-}
-
-/* Loading and Error */
-.incidencias-loading,
-.incidencias-error {
+/* Loading */
+.incidencias-loading {
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 400px;
-  padding: 2rem;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .incidencias {
-    padding: 1rem;
-  }
-
-  .incidencias__title {
-    font-size: 1.5rem;
-  }
-
-  .incidencias__filters {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .incidencias__table-container {
-    overflow-x: scroll;
-  }
-
-  .incidencias__table {
-    min-width: 900px;
-  }
-
-  .descripcion-cell {
-    max-width: 200px;
-  }
+  font-size: 16px;
+  color: #6c757d;
 }

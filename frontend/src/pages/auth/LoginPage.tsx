@@ -18,9 +18,19 @@ export default function LoginPage(){
         try{
             await login(email, password);
             
-            // Login exitoso, redirigir a la página principal
-            // El AuthContext ya guardó el usuario y token
-            navigate("/");
+            // Login exitoso, redirigir según el rol del usuario
+            // Obtener el usuario del localStorage ya que el estado puede no haberse actualizado
+            const userData = localStorage.getItem('user_data');
+            if (userData) {
+                const parsedUser = JSON.parse(userData);
+                if (parsedUser.rol === 'moderador') {
+                    navigate("/moderador/dashboard");
+                } else {
+                    navigate("/");
+                }
+            } else {
+                navigate("/");
+            }
             
         } catch(error: any){
             console.error('Error en login:', error);
