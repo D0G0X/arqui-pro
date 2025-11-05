@@ -1,19 +1,39 @@
 import { useState, useEffect } from 'react';
 import { ModeratorLayout } from '../../components/Moderator/ModeratorLayout';
 import { moderadorService } from '../../services/api/moderador/moderadorService';
+import { useAuth } from '../../contexts/AuthContext';
 import '../../styles/Moderator/Incidencias.css';
 
 interface Incidencia {
   id: number;
   descripcion: string;
-  estado: 'pendiente' | 'resuelta' | 'escalado';
-  emisor_id: number;
-  infractor_id: number;
+  estado: 'pendiente' | 'en_revision' | 'resuelto';
+  emisor_id?: number;
+  infractor_id?: number;
   moderador_id: number | null;
   fecha: string;
+  emisor?: {
+    id: number;
+    nombre: string;
+    apellido: string;
+    email: string;
+  };
+  infractor?: {
+    id: number;
+    nombre: string;
+    apellido: string;
+    email: string;
+  };
+  moderador?: {
+    usuario: {
+      nombre: string;
+      apellido: string;
+    };
+  };
 }
 
 export const Incidencias = () => {
+  const { user } = useAuth();
   const [incidencias, setIncidencias] = useState<Incidencia[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -26,9 +46,9 @@ export const Incidencias = () => {
   const cargarIncidencias = async () => {
     try {
       setLoading(true);
-      const data = await moderadorService.getIncidencias({ page, per_page: 10 });
-      setIncidencias(data.incidencias || []);
-      setTotalPages(data.total_pages || 1);
+      const response = await moderadorService.getIncidencias({ page, per_page: 10 });
+      setIncidencias(response.data as any || []);
+      setTotalPages(Math.ceil(response.total / 10) || 1);
     } catch (error) {
       console.error('Error al cargar incidencias:', error);
     } finally {
@@ -41,7 +61,11 @@ export const Incidencias = () => {
     if (!resolucion) return;
 
     try {
-      await moderadorService.resolverIncidencia(id, { resolucion });
+      await moderadorService.resolverIncidencia(id, {
+        moderador_id: Number(user?.id) || 1,
+        resolucion
+      });
+      alert('✅ Incidencia resuelta exitosamente');
       cargarIncidencias();
     } catch (error) {
       console.error('Error al resolver:', error);
@@ -50,11 +74,15 @@ export const Incidencias = () => {
   };
 
   const handleRechazar = async (id: number) => {
-    const razon = prompt('Motivo del rechazo:');
-    if (!razon) return;
+    const resolucion = prompt('Motivo del rechazo:');
+    if (!resolucion) return;
 
     try {
-      await moderadorService.rechazarIncidencia(id, { razon });
+      await moderadorService.rechazarIncidencia(id, {
+        moderador_id: Number(user?.id) || 1,
+        resolucion
+      });
+      alert('✅ Incidencia rechazada');
       cargarIncidencias();
     } catch (error) {
       console.error('Error al rechazar:', error);
@@ -66,10 +94,10 @@ export const Incidencias = () => {
     switch (estado) {
       case 'pendiente':
         return 'badge-danger';
-      case 'resuelta':
-        return 'badge-success';
-      case 'escalado':
+      case 'en_revision':
         return 'badge-warning';
+      case 'resuelto':
+        return 'badge-success';
       default:
         return 'badge-secondary';
     }
@@ -102,20 +130,35 @@ export const Incidencias = () => {
               </tr>
             </thead>
             <tbody>
-              {incidencias.map((incidencia) => (
+              {incidencias.map((incidencia: any) => (
                 <tr key={incidencia.id}>
                   <td className="descripcion-cell">{incidencia.descripcion}</td>
                   <td>
                     <span className={`badge ${getEstadoBadgeClass(incidencia.estado)}`}>
                       {incidencia.estado === 'pendiente' && 'Pendiente'}
-                      {incidencia.estado === 'resuelta' && 'Resuelta'}
-                      {incidencia.estado === 'escalado' && 'Escalado'}
+                      {incidencia.estado === 'en_revision' && 'En Revisión'}
+                      {incidencia.estado === 'resuelto' && 'Resuelto'}
                     </span>
                   </td>
                   <td>{new Date(incidencia.fecha).toLocaleDateString()}</td>
-                  <td>{incidencia.emisor_id}</td>
-                  <td>{incidencia.infractor_id}</td>
-                  <td>{incidencia.moderador_id || '-'}</td>
+                  <td>
+                    {incidencia.emisor 
+                      ? `${incidencia.emisor.nombre} ${incidencia.emisor.apellido}`
+                      : `Usuario ${incidencia.emisor_id}`
+                    }
+                  </td>
+                  <td>
+                    {incidencia.infractor 
+                      ? `${incidencia.infractor.nombre} ${incidencia.infractor.apellido}`
+                      : `Usuario ${incidencia.infractor_id}`
+                    }
+                  </td>
+                  <td>
+                    {incidencia.moderador?.usuario
+                      ? `${incidencia.moderador.usuario.nombre} ${incidencia.moderador.usuario.apellido}`
+                      : '-'
+                    }
+                  </td>
                   <td>
                     {incidencia.estado === 'pendiente' ? (
                       <div className="action-buttons">

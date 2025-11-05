@@ -1,5 +1,5 @@
 class Api::V1::IncidenciasController < ApplicationController
-  before_action :set_incidencia, only: %i[update show destroy]
+  before_action :set_incidencia, only: %i[update show destroy resolver rechazar]
 
   # Solo usuarios autenticados pueden crear/actualizar/eliminar
   before_action :authenticate_usuario!, only: %i[create update destroy]
@@ -7,8 +7,57 @@ class Api::V1::IncidenciasController < ApplicationController
   before_action :require_incidencia_ownership!, only: %i[update destroy]
 
   def index
-    @incidencias = Incidencia.all
-    render json: @incidencias
+    @incidencias = Incidencia.includes(:usuario_emisor, :usuario_infractor, moderador: :usuario).all
+    
+    # Filtrar por estado si se proporciona
+    if params[:estado].present? && params[:estado] != 'todos'
+      @incidencias = @incidencias.where(estado: params[:estado])
+    end
+    
+    # Paginación
+    page = params[:page]&.to_i || 1
+    per_page = params[:per_page]&.to_i || 10
+    
+    total = @incidencias.count
+    @incidencias = @incidencias.offset((page - 1) * per_page).limit(per_page)
+    
+    # Serializar manualmente para incluir emisor e infractor
+    incidencias_json = @incidencias.map do |incidencia|
+      {
+        id: incidencia.id,
+        descripcion: incidencia.descripcion,
+        estado: incidencia.estado,
+        fecha: incidencia.fecha,
+        emisor_id: incidencia.usuario_emisor_id,
+        infractor_id: incidencia.usuario_infractor_id,
+        moderador_id: incidencia.moderador_id,
+        emisor: incidencia.usuario_emisor ? {
+          id: incidencia.usuario_emisor.id,
+          nombre: incidencia.usuario_emisor.nombre,
+          apellido: incidencia.usuario_emisor.apellido,
+          email: incidencia.usuario_emisor.email
+        } : nil,
+        infractor: incidencia.usuario_infractor ? {
+          id: incidencia.usuario_infractor.id,
+          nombre: incidencia.usuario_infractor.nombre,
+          apellido: incidencia.usuario_infractor.apellido,
+          email: incidencia.usuario_infractor.email
+        } : nil,
+        moderador: incidencia.moderador ? {
+          usuario: {
+            nombre: incidencia.moderador.usuario.nombre,
+            apellido: incidencia.moderador.usuario.apellido
+          }
+        } : nil
+      }
+    end
+    
+    render json: {
+      incidencias: incidencias_json,
+      total: total,
+      page: page,
+      per_page: per_page
+    }
   end
 
   def create
@@ -41,10 +90,62 @@ class Api::V1::IncidenciasController < ApplicationController
     end
   end
 
+  # Resolver incidencia
+  def resolver
+    if @incidencia.update(
+      estado: 'resuelto',
+      moderador_id: params[:moderador_id],
+      resolucion: params[:resolucion],
+      fecha_resolucion: DateTime.now
+    )
+      render json: { 
+        status: 'success', 
+        message: 'Incidencia resuelta correctamente',
+        incidencia: @incidencia 
+      }, status: :ok
+    else
+      render json: { 
+        status: 'error', 
+        errors: @incidencia.errors.full_messages 
+      }, status: :unprocessable_entity
+    end
+  rescue ActiveRecord::RecordNotFound
+    render json: { 
+      status: 'error', 
+      message: 'Incidencia no encontrada' 
+    }, status: :not_found
+  end
+
+  # Rechazar incidencia
+  def rechazar
+    if @incidencia.update(
+      estado: 'rechazado',
+      moderador_id: params[:moderador_id],
+      resolucion: params[:resolucion],
+      fecha_resolucion: DateTime.now
+    )
+      render json: { 
+        status: 'success', 
+        message: 'Incidencia rechazada',
+        incidencia: @incidencia 
+      }, status: :ok
+    else
+      render json: { 
+        status: 'error', 
+        errors: @incidencia.errors.full_messages 
+      }, status: :unprocessable_entity
+    end
+  rescue ActiveRecord::RecordNotFound
+    render json: { 
+      status: 'error', 
+      message: 'Incidencia no encontrada' 
+    }, status: :not_found
+  end
+
   private
 
   def incidencia_params
-    params.require(:incidencia).permit(:descripcion, :estado, :fecha, :usuario_emisor_id, :usuario_infractor_id, :moderador_id)
+    params.permit(:descripcion, :estado, :fecha, :usuario_emisor_id, :usuario_infractor_id, :moderador_id, :resolucion, :fecha_resolucion)
   end
 
   def set_incidencia

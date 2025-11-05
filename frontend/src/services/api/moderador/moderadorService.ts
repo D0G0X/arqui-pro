@@ -6,8 +6,8 @@ import type {
   AccionModeracion 
 } from '../../../types/moderator.types'
 
-// Base URL para endpoints de moderador
-const MODERADOR_BASE_URL = '/api/v1'
+// Base URL para endpoints de moderador (axiosInstance ya incluye /api/v1)
+const MODERADOR_BASE_URL = ''
 
 /**
  * Servicio para gestionar operaciones de Moderador
