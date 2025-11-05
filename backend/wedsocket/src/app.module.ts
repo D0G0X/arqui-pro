@@ -1,9 +1,13 @@
 import { Module } from '@nestjs/common';
+import { HttpModule } from '@nestjs/axios';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { ChatModule } from '../chat/chat.module';
+import { NotificacionModule } from '../notificacion/notificacion.module';
+import { MensajeModule } from '../mensaje/mensaje.module';
 
 @Module({
-  imports: [],
+  imports: [ChatModule, NotificacionModule, MensajeModule],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -23,4 +23,21 @@ export class NotificacionService {
 			throw err;
 		}
 	}
+
+	async markAsRead(notificacion_id: string, authorization?: string) {
+		const apiUrl = process.env.APIREST_URL || 'http://localhost:3000';
+		const url = `${apiUrl}/api/v1/notificaciones/${notificacion_id}`;
+		const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+		if (authorization) headers['Authorization'] = authorization;
+
+		const body = { notificacion: { leido: true } };
+		try {
+			const resp$ = this.http.patch(url, body, { headers });
+			const resp = (await lastValueFrom(resp$)) as any;
+			return resp?.data ?? resp;
+		} catch (err: any) {
+			this.logger.error('Error marking notification as read in APIREST', err?.message ?? err);
+			throw err;
+		}
+	}
 }

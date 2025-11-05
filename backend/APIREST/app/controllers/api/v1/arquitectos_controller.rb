@@ -7,8 +7,8 @@ class Api::V1::ArquitectosController < ApplicationController
   before_action :require_arquitecto_ownership!, only: %i[update destroy]
 
   def index
-    @arquitectos = Arquitecto.all
-    render json: @arquitectos
+    @arquitectos = Arquitecto.includes(:usuario).all
+    render json: @arquitectos, include: :usuario
   end
 
   def create
@@ -21,7 +21,7 @@ class Api::V1::ArquitectosController < ApplicationController
   end
 
   def show
-    render json: @arquitecto
+    render json: @arquitecto, include: :usuario
   end
 
   def update
