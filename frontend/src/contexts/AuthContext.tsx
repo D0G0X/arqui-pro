@@ -1,11 +1,16 @@
-import { createContext, ReactNode, useState, useEffect } from 'react'
+import { createContext, useState, useEffect, useContext } from 'react'
+import type { ReactNode } from 'react'
+import { logger } from '../utils/logger'
+import { USER_ROLES } from '../config/constants'
+
+type UserRole = typeof USER_ROLES[keyof typeof USER_ROLES]
 
 interface User {
   id: string
   email: string
   nombre: string
   apellido: string
-  rol: 'cliente' | 'arquitecto' | 'moderador'
+  rol: UserRole
   foto_perfil?: string
 }
 
@@ -36,8 +41,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (token && userData) {
       try {
         setUser(JSON.parse(userData))
+        logger.info('Sesión restaurada desde localStorage')
       } catch (error) {
-        console.error('Error parsing user data:', error)
+        logger.error('Error al parsear datos de usuario', error)
         localStorage.removeItem('auth_token')
         localStorage.removeItem('user_data')
       }
@@ -56,8 +62,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // localStorage.setItem('auth_token', response.token)
       // localStorage.setItem('user_data', JSON.stringify(response.user))
       
-      // Simulación por ahora
-      console.log('Login attempt:', { email, password })
+      // Simulación por ahora (password se usará en implementación real)
+      logger.info('Intento de login', { email })
+      void password // Evitar warning de variable no usada
       
       // Mock user
       const mockUser: User = {
@@ -65,15 +72,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
         email,
         nombre: 'Usuario',
         apellido: 'Demo',
-        rol: 'cliente'
+        rol: USER_ROLES.CLIENTE
       }
       
       setUser(mockUser)
       localStorage.setItem('auth_token', 'mock-token')
       localStorage.setItem('user_data', JSON.stringify(mockUser))
       
+      logger.info('Login exitoso', { userId: mockUser.id, rol: mockUser.rol })
+      
     } catch (error) {
-      console.error('Login error:', error)
+      logger.error('Error en login', error)
       throw error
     } finally {
       setIsLoading(false)
@@ -81,6 +90,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   const logout = () => {
+    logger.info('Cerrando sesión', { userId: user?.id })
     setUser(null)
     localStorage.removeItem('auth_token')
     localStorage.removeItem('user_data')
@@ -96,10 +106,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // localStorage.setItem('auth_token', response.token)
       // localStorage.setItem('user_data', JSON.stringify(response.user))
       
-      console.log('Register attempt:', userData)
+      logger.info('Intento de registro', { email: userData.email })
       
     } catch (error) {
-      console.error('Register error:', error)
+      logger.error('Error en registro', error)
       throw error
     } finally {
       setIsLoading(false)
@@ -120,4 +130,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       {children}
     </AuthContext.Provider>
   )
+}
+
+// Hook personalizado para usar el contexto
+export function useAuth() {
+  const context = useContext(AuthContext)
+  if (context === undefined) {
+    throw new Error('useAuth debe ser usado dentro de un AuthProvider')
+  }
+  return context
 }

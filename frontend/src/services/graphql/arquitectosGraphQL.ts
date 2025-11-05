@@ -2,6 +2,8 @@ import { useQuery } from '@apollo/client'
 import { useEffect, useState } from 'react'
 import { BUSCAR_ARQUITECTOS } from './queries'
 import { CacheService } from '../../utils/cacheService'
+import { logger } from '../../utils/logger'
+import { CACHE } from '../../config/constants'
 
 export interface ArquitectoGraphQL {
   id: number
@@ -35,12 +37,9 @@ export interface BuscarArquitectosVariables {
   limite?: number
 }
 
-const CACHE_KEY = 'arquitectos_graphql_cache'
-const CACHE_DURATION = 5 * 60 * 1000 // 5 minutos en milisegundos
-
 export const useBuscarArquitectos = (variables?: BuscarArquitectosVariables) => {
   const [cachedArquitectos, setCachedArquitectos] = useState<ArquitectoGraphQL[] | null>(() => 
-    CacheService.get<ArquitectoGraphQL[]>(CACHE_KEY, variables, CACHE_DURATION)
+    CacheService.get<ArquitectoGraphQL[]>(CACHE.KEYS.ARQUITECTOS, variables, CACHE.DURATION)
   )
 
   const { data, loading, error, refetch } = useQuery<BuscarArquitectosData, BuscarArquitectosVariables>(
@@ -55,8 +54,8 @@ export const useBuscarArquitectos = (variables?: BuscarArquitectosVariables) => 
   // Guardar datos en caché cuando lleguen del servidor
   useEffect(() => {
     if (data?.buscarArquitectos) {
-      console.log('📦 Guardando arquitectos de GraphQL en caché')
-      CacheService.set(CACHE_KEY, data.buscarArquitectos, variables)
+      logger.cache('set', CACHE.KEYS.ARQUITECTOS, { count: data.buscarArquitectos.length })
+      CacheService.set(CACHE.KEYS.ARQUITECTOS, data.buscarArquitectos, variables)
       setCachedArquitectos(data.buscarArquitectos)
     }
   }, [data, variables])
@@ -64,7 +63,7 @@ export const useBuscarArquitectos = (variables?: BuscarArquitectosVariables) => 
   // Mostrar cuando se usa caché
   useEffect(() => {
     if (cachedArquitectos) {
-      console.log('📦 Usando arquitectos de GraphQL desde caché')
+      logger.cache('hit', CACHE.KEYS.ARQUITECTOS, { count: cachedArquitectos.length })
     }
   }, [])
 
@@ -77,8 +76,8 @@ export const useBuscarArquitectos = (variables?: BuscarArquitectosVariables) => 
     error,
     refetch: async () => {
       // Limpiar caché y forzar nuevo query
-      console.log('🔄 Limpiando caché y refrescando datos de GraphQL')
-      CacheService.remove(CACHE_KEY)
+      logger.cache('clear', CACHE.KEYS.ARQUITECTOS)
+      CacheService.remove(CACHE.KEYS.ARQUITECTOS)
       setCachedArquitectos(null)
       return refetch()
     }

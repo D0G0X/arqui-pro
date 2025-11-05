@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import '../../styles/components.css'
 
 interface ErrorMessageProps {
@@ -7,7 +8,7 @@ interface ErrorMessageProps {
   showIcon?: boolean
 }
 
-function ErrorMessage({ 
+const ErrorMessage = memo(function ErrorMessage({ 
   title = 'Oops! Something went wrong',
   message, 
   onRetry,
@@ -25,6 +26,6 @@ function ErrorMessage({
       )}
     </div>
   )
-}
+})
 
 export default ErrorMessage
