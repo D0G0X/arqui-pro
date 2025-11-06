@@ -1,7 +1,7 @@
 import React, { useState, type FormEvent } from "react";
 import { Eye, EyeOff, Lock, User, Mail, Smartphone, CornerDownRight } from "lucide-react";
 import type { RegistroUsuarioInput } from "../../types/usuario.types";
-import "../../styles/auth/FormularioRegistroCliente.css"; 
+import "../../styles/auth/registro/FormularioRegistroCliente.css"; 
 
 // Definimos los tipos de datos locales para el formulario
 interface ClienteFormData {
@@ -15,9 +15,10 @@ interface ClienteFormData {
 
 interface Props {
     onSubmit: (data: RegistroUsuarioInput) => void;
+    onRegisterAsArquitecto: () => void;
 }
 
-export default function FormularioRegistroClientes({ onSubmit }: Props) {
+export default function FormularioRegistroClientes({ onSubmit, onRegisterAsArquitecto}: Props) {
     const [formData, setFormData] = useState<ClienteFormData>({
         nombre: "",
         apellido: "",
@@ -245,7 +246,9 @@ export default function FormularioRegistroClientes({ onSubmit }: Props) {
             
             {/* Botón de "Register as Architect" */}
             <div className="architect-register-container">
-                <button className="architect-register-button">
+                <button className="architect-register-button"
+                    onClick={onRegisterAsArquitecto}
+                >
                     Register as Architect <CornerDownRight size={20} style={{marginLeft: '8px'}}/>
                 </button>
             </div>

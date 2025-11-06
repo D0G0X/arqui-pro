@@ -2,7 +2,7 @@ import { useState } from "react";
 import FormularioLogin from "../../components/auth/FormularioLogin";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import "../../styles/auth/LoginPage.css";
+import "../../styles/auth/login/LoginPage.css";
 import imagenLogin from "../../assets/login.webp"
 
 export default function LoginPage(){
