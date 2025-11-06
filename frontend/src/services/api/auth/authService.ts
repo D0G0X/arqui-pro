@@ -16,8 +16,16 @@ export async function registroUsuario(usuarioData: RegistroUsuarioInput): Promis
 export async function loginUsuario(loginData: LoginInput): Promise<AuthResponse>{
     try{
         const response = await axiosInstance.post(`${API_CONFIG.REST_API_URL}/usuarios/sign_in`, { usuario: loginData });
-        setAuthToken(response.data.token); // guarda el token en el local storage
-        return response.data; // si todo sale bien retorna el token y datos del usuario
+        
+        // El backend devuelve: { status: {...}, data: {...}, token: "..." }
+        // Transformar a: { usuario: {...}, token: "..." }
+        const authResponse: AuthResponse = {
+            usuario: response.data.data, // Los datos del usuario están en 'data'
+            token: response.data.token
+        };
+        
+        setAuthToken(authResponse.token); // guarda el token en el local storage
+        return authResponse; // si todo sale bien retorna el token y datos del usuario
     }catch(error){
         throw error; // si sale mal lanza este error
     }
