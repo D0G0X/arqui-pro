@@ -7,7 +7,9 @@ import Home from './pages/Home'
 import FindArchitects from './pages/FindArchitects'
 import AboutUs from './pages/AboutUs'
 import LoginPage from './pages/auth/LoginPage'
-import RegistroClientePage from './pages/auth/RegistroCliente'
+import RegistroClientePage from './pages/auth/RegistroClientePage'
+import RegistroArquitectoPage from './pages/auth/RegistroArquitectoPage'
+import RegistroModeradorPage from './pages/auth/RegistroModeradorPage'
 
 import './App.css'
 
@@ -23,6 +25,8 @@ function App() {
               <Route path="/about" element={<AboutUs />} />
               <Route path="/login" element={<LoginPage/>}/>
               <Route path="/registro-cliente" element={<RegistroClientePage/>}/>
+              <Route path="/registro-arquitecto" element={<RegistroArquitectoPage/>}/>
+              <Route path="/registro-moderador" element={<RegistroModeradorPage/>}/>
             </Routes>
           </Router>
         </ApolloProvider>

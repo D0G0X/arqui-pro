@@ -8,3 +8,7 @@ export interface Moderador {
   num_arquitectos_verificados: number
   usuario?: Usuario
 }
+
+export interface RegistroModeradorAttributesInput{
+  
+}
