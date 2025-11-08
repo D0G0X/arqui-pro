@@ -1,5 +1,7 @@
 import type { Arquitecto } from './arquitecto.types'
+import type { Avance } from './avance.types'
 import type { Cliente } from './cliente.types'
+import type { Imagen } from './imagen.types'
 
 // Proyecto Type
 export interface Proyecto {
@@ -12,4 +14,6 @@ export interface Proyecto {
   cliente_id: string | null
   arquitecto?: Arquitecto
   cliente?: Cliente
+  imagenes?: Imagen[]
+  avances?: Avance[]
 }

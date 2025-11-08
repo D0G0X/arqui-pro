@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { RegistroUsuarioInput, Usuario } from "../../types/usuario.types";
 import { registroUsuario } from "../../services/api/auth/authService";
 import FormularioRegistroArquitecto from "../../components/auth/FormularioRegistroArquitecto";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 
 export default function RegistroArquitectoPage(){

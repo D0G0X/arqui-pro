@@ -23,12 +23,20 @@ export default function LoginPage(){
             const userData = localStorage.getItem('user_data');
             if (userData) {
                 const parsedUser = JSON.parse(userData);
+                console.log(parsedUser.rol)
                 if (parsedUser.rol === 'moderador') {
+                    console.log("holaaa")
                     navigate("/moderador/dashboard");
-                } else {
+                }
+                else if(parsedUser.rol === "cliente"){
+                    navigate("/cliente/home")
+                }
+                else {
+                    console.log("chao")
                     navigate("/");
                 }
             } else {
+                console.log("hasta mañana")
                 navigate("/");
             }
             

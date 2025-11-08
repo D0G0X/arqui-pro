@@ -1,4 +1,5 @@
 import { memo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import type { Arquitecto } from '../../types'
 import { AVATAR_COLORS } from '../../config/constants'
 import { getInitials, getAvatarColor } from '../../utils/formatters'
@@ -9,8 +10,11 @@ interface ArquitectoCardProps {
 }
 
 const ArquitectoCard = memo(function ArquitectoCard({ arquitecto }: ArquitectoCardProps) {
+  const navigate = useNavigate()
+  
   // Usamos los campos REALES que devuelve la API de Rails
   const {
+    id,
     usuario,
     cedula,
     valoracion_prom_proyecto,
@@ -18,6 +22,10 @@ const ArquitectoCard = memo(function ArquitectoCard({ arquitecto }: ArquitectoCa
     especialidades,
     ubicacion
   } = arquitecto
+
+  const handleVerPerfil = () => {
+    navigate(`/arquitecto/${id}`)
+  }
   
   // Obtener nombre: desde usuario o usar ubicación como fallback
   const nombreCompleto = usuario 
@@ -63,6 +71,13 @@ const ArquitectoCard = memo(function ArquitectoCard({ arquitecto }: ArquitectoCa
         <span className="rating-value">{rating.toFixed(1)}</span>
         <span className="sr-only">Rating: {rating.toFixed(1)} out of 5</span>
       </div>
+
+      <button
+        onClick={handleVerPerfil}
+        className="arquitecto-button"
+      >
+        View Profile
+      </button>
     </div>
   )
 })

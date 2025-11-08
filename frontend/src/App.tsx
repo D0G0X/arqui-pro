@@ -50,7 +50,6 @@ function App() {
               <Route path="/about" element={<AboutUs />} />
               <Route path="/login" element={<LoginPage/>}/>
               <Route path="/registro-cliente" element={<RegistroClientePage/>}/>
-              
               {/* Rutas Protegidas - Moderador */}
               <Route 
                 path="/moderador/dashboard" 
