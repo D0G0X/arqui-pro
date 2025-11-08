@@ -1,13 +1,14 @@
 import { useNavigate } from 'react-router-dom'
 import Header from '../components/layout/Header'
 import Footer from '../components/layout/Footer'
+import { ROUTES } from '../config/constants'
 import '../styles/Home.css'
 
 function Home() {
   const navigate = useNavigate()
 
   const handleSearch = () => {
-    navigate('/architects')
+    navigate(ROUTES.ARCHITECTS)
   }
 
   return (
@@ -23,11 +24,19 @@ function Home() {
               ArquiPro seamlessly connects clients with professional architects to create extraordinary spaces.
             </p>
             <div className="hero-buttons">
-              <button onClick={() => navigate('/architects')} className="btn-primary">
+              <button 
+                onClick={() => navigate(ROUTES.REGISTER_CLIENTE)} 
+                className="btn-primary"
+                aria-label="Comenzar - Registrarse como cliente"
+              >
                 Get Started
               </button>
-              <button onClick={() => navigate('/architects')} className="btn-secondary">
-                Join as an Architect
+              <button 
+                onClick={() => navigate(ROUTES.ARCHITECTS)} 
+                className="btn-secondary"
+                aria-label="Ver arquitectos disponibles"
+              >
+                Find Architects
               </button>
             </div>
           </div>
@@ -39,7 +48,7 @@ function Home() {
           <p className="search-subtitle">Start your search below to discover talented professionals.</p>
           
           <div className="search-box">
-            <span className="search-icon">🔍</span>
+            <span className="search-icon" aria-hidden="true">🔍</span>
             <input
               type="text"
               placeholder="Search by location, project type, or specialty"
@@ -49,6 +58,7 @@ function Home() {
                   handleSearch()
                 }
               }}
+              aria-label="Buscar arquitectos por ubicación, tipo de proyecto o especialidad"
             />
           </div>
         </section>
@@ -150,10 +160,18 @@ function Home() {
             Find an architect or find your next client.
           </p>
           <div className="cta-buttons">
-            <button onClick={() => navigate('/architects')} className="btn-cta-primary">
+            <button 
+              onClick={() => navigate(ROUTES.ARCHITECTS)} 
+              className="btn-cta-primary"
+              aria-label="Buscar tu arquitecto ideal"
+            >
               Find Your Architect
             </button>
-            <button onClick={() => navigate('/architects')} className="btn-cta-secondary">
+            <button 
+              onClick={() => navigate(ROUTES.ARCHITECTS)} 
+              className="btn-cta-secondary"
+              aria-label="Registrarte como arquitecto"
+            >
               Join as an Architect
             </button>
           </div>

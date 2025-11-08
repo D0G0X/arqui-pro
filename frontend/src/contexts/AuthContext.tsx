@@ -1,11 +1,17 @@
-import { createContext, ReactNode, useState, useEffect } from 'react'
+import { createContext, useState, useEffect, useContext } from 'react'
+import type { ReactNode } from 'react'
+import { logger } from '../utils/logger'
+import { USER_ROLES } from '../config/constants'
+import { loginUsuario, logoutUsuario } from '../services/api/auth/authService'
+
+type UserRole = typeof USER_ROLES[keyof typeof USER_ROLES]
 
 interface User {
   id: string
   email: string
   nombre: string
   apellido: string
-  rol: 'cliente' | 'arquitecto' | 'moderador'
+  rol: UserRole
   foto_perfil?: string
 }
 
@@ -14,7 +20,7 @@ interface AuthContextType {
   isAuthenticated: boolean
   isLoading: boolean
   login: (email: string, password: string) => Promise<void>
-  logout: () => void
+  logout: () => Promise<void>
   register: (userData: Partial<User>) => Promise<void>
 }
 
@@ -36,8 +42,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (token && userData) {
       try {
         setUser(JSON.parse(userData))
+        logger.info('Sesión restaurada desde localStorage')
       } catch (error) {
-        console.error('Error parsing user data:', error)
+        logger.error('Error al parsear datos de usuario', error)
         localStorage.removeItem('auth_token')
         localStorage.removeItem('user_data')
       }
@@ -50,40 +57,58 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       setIsLoading(true)
       
-      // TODO: Implementar llamada real a API
-      // const response = await authService.login(email, password)
-      // setUser(response.user)
-      // localStorage.setItem('auth_token', response.token)
-      // localStorage.setItem('user_data', JSON.stringify(response.user))
+      logger.info('Intento de login', { email })
       
-      // Simulación por ahora
-      console.log('Login attempt:', { email, password })
+      // Llamada real a la API
+      const response = await loginUsuario({ email, password })
       
-      // Mock user
-      const mockUser: User = {
-        id: '123',
-        email,
-        nombre: 'Usuario',
-        apellido: 'Demo',
-        rol: 'cliente'
+      if (response.usuario && response.token) {
+        const userData: User = {
+          id: response.usuario.id,
+          email: response.usuario.email,
+          nombre: response.usuario.nombre,
+          apellido: response.usuario.apellido,
+          rol: response.usuario.rol,
+          foto_perfil: response.usuario.foto_perfil || undefined
+        }
+        
+        setUser(userData)
+        localStorage.setItem('auth_token', response.token)
+        localStorage.setItem('user_data', JSON.stringify(userData))
+        
+        logger.info('Login exitoso', { 
+          userId: userData.id, 
+          rol: userData.rol,
+          nombre: userData.nombre 
+        })
+      } else {
+        throw new Error('Respuesta de login inválida')
       }
       
-      setUser(mockUser)
-      localStorage.setItem('auth_token', 'mock-token')
-      localStorage.setItem('user_data', JSON.stringify(mockUser))
-      
     } catch (error) {
-      console.error('Login error:', error)
+      logger.error('Error en login', error)
       throw error
     } finally {
       setIsLoading(false)
     }
   }
 
-  const logout = () => {
-    setUser(null)
-    localStorage.removeItem('auth_token')
-    localStorage.removeItem('user_data')
+  const logout = async () => {
+    try {
+      logger.info('Cerrando sesión', { userId: user?.id })
+      
+      // Intentar cerrar sesión en el servidor
+      await logoutUsuario()
+      
+    } catch (error) {
+      logger.error('Error al cerrar sesión en servidor', error)
+      // Continuar con el logout local aunque falle en servidor
+    } finally {
+      // Limpiar estado local
+      setUser(null)
+      localStorage.removeItem('auth_token')
+      localStorage.removeItem('user_data')
+    }
   }
 
   const register = async (userData: Partial<User>) => {
@@ -96,10 +121,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // localStorage.setItem('auth_token', response.token)
       // localStorage.setItem('user_data', JSON.stringify(response.user))
       
-      console.log('Register attempt:', userData)
+      logger.info('Intento de registro', { email: userData.email })
       
     } catch (error) {
-      console.error('Register error:', error)
+      logger.error('Error en registro', error)
       throw error
     } finally {
       setIsLoading(false)
@@ -120,4 +145,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       {children}
     </AuthContext.Provider>
   )
+}
+
+// Hook personalizado para usar el contexto
+export function useAuth() {
+  const context = useContext(AuthContext)
+  if (context === undefined) {
+    throw new Error('useAuth debe ser usado dentro de un AuthProvider')
+  }
+  return context
 }

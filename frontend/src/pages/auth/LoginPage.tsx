@@ -1,12 +1,13 @@
 import { useState } from "react";
-import FormularioLogin from "../../components/auth/formularioLogin";
-import { loginUsuario } from "../../services/api/auth/authService";
+import FormularioLogin from "../../components/auth/FormularioLogin";
+import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import "../../styles/auth/LoginPage.css";
+import "../../styles/auth/login/LoginPage.css";
 import imagenLogin from "../../assets/login.webp"
 
 export default function LoginPage(){
     const navigate = useNavigate();
+    const { login } = useAuth();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -15,15 +16,43 @@ export default function LoginPage(){
         setLoading(true);
 
         try{
-            const data = await loginUsuario({ email, password });
-            if(data.usuario){
-                navigate("/dashboard"); // Esto hay que cambiarlo a la ruta verdadera
-            } else{
-                setError("No se pudo iniciar sesión. Revisa tus credenciales.");
+            await login(email, password);
+            
+            // Login exitoso, redirigir según el rol del usuario
+            // Obtener el usuario del localStorage ya que el estado puede no haberse actualizado
+            const userData = localStorage.getItem('user_data');
+            if (userData) {
+                const parsedUser = JSON.parse(userData);
+                console.log(parsedUser.rol)
+                if (parsedUser.rol === 'moderador') {
+                    console.log("holaaa")
+                    navigate("/moderador/dashboard");
+                }
+                else if(parsedUser.rol === "cliente"){
+                    navigate("/cliente/home")
+                }
+                else {
+                    console.log("chao")
+                    navigate("/");
+                }
+            } else {
+                console.log("hasta mañana")
+                navigate("/");
             }
-        } catch(error){
-            setError("Ocurrió un error inesperado al intentar iniciar sesión.");
-            console.error(error);
+            
+        } catch(error: any){
+            console.error('Error en login:', error);
+            
+            // Mensajes de error más específicos
+            if (error.response?.status === 401) {
+                setError("Email o contraseña incorrectos");
+            } else if (error.response?.status === 404) {
+                setError("Usuario no encontrado");
+            } else if (error.response?.data?.error) {
+                setError(error.response.data.error);
+            } else {
+                setError("Ocurrió un error inesperado al intentar iniciar sesión");
+            }
         } finally{
             setLoading(false);
         }

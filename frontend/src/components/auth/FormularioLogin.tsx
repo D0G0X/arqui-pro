@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { User, Lock, Eye, EyeOff } from "lucide-react";
-import "../../styles/auth/formularioLogin.css";
+import "../../styles/auth/login/formularioLogin.css";
 
 interface Props {
     onSubmit: (email: string, password: string) => void;
@@ -101,7 +101,7 @@ export default function FormularioLogin({onSubmit}: Props){
             
             {/* Sección de Sign Up */}
             <p className="signup-text">
-                Don't have an account? <a href="/signup" className="signup-link">Sign Up</a>
+                Don't have an account? <a href="/registro-cliente" className="signup-link">Sign Up</a>
             </p>
         </div>
     );

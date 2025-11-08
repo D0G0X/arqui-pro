@@ -21,11 +21,22 @@ Rails.application.routes.draw do
       resources :moderadores
       resources :conversaciones
       resources :notificaciones
-      resources :verificaciones
+      resources :verificaciones do
+        member do
+          post :aprobar
+          post :rechazar
+        end
+      end
       resources :solicitudes_proyecto
       resources :proyectos
       resources :avances
-      resources :incidencias
+      resources :incidencias do
+        member do
+          post :resolver
+          post :rechazar
+          post :reabrir
+        end
+      end
       resources :valoraciones
       resources :mensajes
       resources :imagenes
