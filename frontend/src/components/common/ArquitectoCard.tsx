@@ -24,7 +24,7 @@ const ArquitectoCard = memo(function ArquitectoCard({ arquitecto }: ArquitectoCa
   } = arquitecto
 
   const handleVerPerfil = () => {
-    navigate(`/arquitecto/${id}`)
+    navigate(`/cliente/arquitecto/${id}`)
   }
   
   // Obtener nombre: desde usuario o usar ubicación como fallback

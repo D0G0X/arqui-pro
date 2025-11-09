@@ -1,6 +1,7 @@
 import axiosInstance from './axiosInstance'
-import type { Arquitecto } from '../../types'
+
 import { CacheService } from '../../utils/cacheService'
+import type { Arquitecto, UpdateArquitectoDto } from '../../types/arquitecto.types'
 
 export interface ArquitectosList {
   arquitectos: Arquitecto[]
@@ -74,6 +75,24 @@ class ArquitectosService {
     
     return response.data
   }
+
+  async update(id: string, arquitecto: UpdateArquitectoDto): Promise<Arquitecto>{
+    try{
+      const response = await axiosInstance.put(`/arquitectos/${id}`, arquitecto)
+
+      // Actualizar el caché del arquitecto individual para que refleje los cambios
+      const cacheKey = `arquitecto_${id}_cache`
+      CacheService.set(cacheKey, response.data)
+
+      // Limpiar cachés de listas para evitar inconsistencias en listados
+      this.clearCache()
+
+      return response.data
+    }catch(error){
+      throw error;
+    }
+  }
+
 
   async getVerificados(): Promise<ArquitectosList> {
     // Intentar obtener del caché

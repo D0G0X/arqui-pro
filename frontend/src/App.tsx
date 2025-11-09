@@ -17,6 +17,7 @@ import RegistroModeradorPage from './pages/auth/RegistroModeradorPage'
 import { ModeratorDashboard, Verificaciones, Incidencias } from './pages/Moderator'
 import ClienteLayout from './components/layout/Cliente/ClienteLayout'
 import ClienteHome from './pages/Cliente/ClienteHomePage'
+import ArquitectoProfile from './pages/ArquitectoProfile'
 import './App.css'
 import MainLayout from './components/layout/MainLayout'
 // Componente interno para manejar WebSocket
@@ -50,6 +51,7 @@ function App() {
               <Route path="/" element={<MainLayout children={<Home/>} />} />
               <Route path="/architects" element={<MainLayout children={<FindArchitects />}/>} />
               <Route path="/about" element={<MainLayout children={<AboutUs />}/>} />
+              <Route path="/architects/:id" element={<MainLayout children={<ArquitectoProfile />}/>} />
 
               <Route path="/login" element={<LoginPage/>}/>
               <Route path="/registro-cliente" element={<RegistroClientePage/>}/>
@@ -67,7 +69,7 @@ function App() {
               >
                 <Route path="/cliente/home" element={<ClienteHome />} />
                 <Route path="/cliente/find-arquitectos" element={<FindArchitects />} />
-                
+                <Route path="/cliente/arquitecto/:id" element={<ArquitectoProfile />} />
               </Route>
 
               {/* Rutas Protegidas - Moderador */}

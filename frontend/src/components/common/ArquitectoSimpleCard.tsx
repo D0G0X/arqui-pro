@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import '../../styles/ArquitectoCard.css'
 
 interface ArquitectoSimpleCardProps {
@@ -28,6 +28,7 @@ function ArquitectoSimpleCard({
   const nombreCompleto = `${nombre} ${apellido}`
   const iniciales = `${nombre[0]}${apellido[0]}`
   const navigate = useNavigate();
+  const location = useLocation();
   // Generar color basado en el nombre
   const getAvatarColor = (name: string) => {
     const index = name.charCodeAt(0) % AVATAR_COLORS.length
@@ -42,7 +43,12 @@ function ArquitectoSimpleCard({
     : 'Arquitecto'
 
   const handleVerPerfil = () => {
-    navigate(`/arquitecto/${id}`)
+    if(location.pathname === "/architects"){
+      navigate(`/architects/${id}`);
+    }else{
+      navigate(`/cliente/arquitecto/${id}`);
+    }
+    
   }
   return (
     <div className="arquitecto-card arquitecto-card-simple">

@@ -21,7 +21,7 @@ const ClienteLayout = () => {
   const menuItems = [
     { path: '/cliente/home', icon: Home, label: 'Inicio' },
     { path: '/cliente/mis-proyectos', icon: Folder, label: 'Mis Proyectos' },
-    { path: '/cliente/mensajes', icon: MessageSquare, label: 'Mensajes' },
+    { path: '/cliente/conversaciones', icon: MessageSquare, label: 'Conversaciones' },
     { path: '/cliente/find-arquitectos', icon: Search, label: 'Buscar Arquitecto' }
   ]
 
