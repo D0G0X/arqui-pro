@@ -76,7 +76,7 @@ const ArquitectoCard = memo(function ArquitectoCard({ arquitecto }: ArquitectoCa
         onClick={handleVerPerfil}
         className="arquitecto-button"
       >
-        View Profile
+        Ver Perfil
       </button>
     </div>
   )

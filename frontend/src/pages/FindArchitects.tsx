@@ -1,5 +1,3 @@
-import Header from '../components/layout/Header'
-import Footer from '../components/layout/Footer'
 import ArquitectoSimpleCard from '../components/common/ArquitectoSimpleCard'
 import SearchBar from '../components/common/SearchBar'
 import LoadingSpinner from '../components/common/LoadingSpinner'
@@ -36,8 +34,6 @@ function FindArchitects() {
 
   return (
     <div className="find-architects-container">
-      <Header />
-      
       <main className="main-content">
         <section className="hero-section">
           <h1 className="hero-title">Find Your Perfect Architect</h1>
@@ -106,8 +102,6 @@ function FindArchitects() {
           </>
         )}
       </main>
-
-      <Footer />
     </div>
   )
 }

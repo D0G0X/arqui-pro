@@ -18,7 +18,7 @@ import { ModeratorDashboard, Verificaciones, Incidencias } from './pages/Moderat
 import ClienteLayout from './components/layout/Cliente/ClienteLayout'
 import ClienteHome from './pages/Cliente/ClienteHomePage'
 import './App.css'
-
+import MainLayout from './components/layout/MainLayout'
 // Componente interno para manejar WebSocket
 function WebSocketManager() {
   const { user } = useAuth()
@@ -47,11 +47,14 @@ function App() {
             <WebSocketManager />
             <Routes>
               {/* Rutas Públicas */}
-              <Route path="/" element={<Home />} />
-              <Route path="/architects" element={<FindArchitects />} />
-              <Route path="/about" element={<AboutUs />} />
+              <Route path="/" element={<MainLayout children={<Home/>} />} />
+              <Route path="/architects" element={<MainLayout children={<FindArchitects />}/>} />
+              <Route path="/about" element={<MainLayout children={<AboutUs />}/>} />
+
               <Route path="/login" element={<LoginPage/>}/>
               <Route path="/registro-cliente" element={<RegistroClientePage/>}/>
+              <Route path="/registro-arquitecto" element={<RegistroArquitectoPage/>}/>
+              <Route path="/registro-moderador" element={<RegistroModeradorPage/>}/>
               
               {/* Rutas Protegidas - Cliente */}
               <Route 
@@ -63,6 +66,8 @@ function App() {
                 }
               >
                 <Route path="/cliente/home" element={<ClienteHome />} />
+                <Route path="/cliente/find-arquitectos" element={<FindArchitects />} />
+                
               </Route>
 
               {/* Rutas Protegidas - Moderador */}
@@ -90,8 +95,6 @@ function App() {
                   </ProtectedRoute>
                 } 
               />
-              <Route path="/registro-arquitecto" element={<RegistroArquitectoPage/>}/>
-              <Route path="/registro-moderador" element={<RegistroModeradorPage/>}/>
             </Routes>
           </Router>
         </ApolloProvider>

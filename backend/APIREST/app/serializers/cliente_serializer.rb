@@ -1,3 +1,5 @@
 class ClienteSerializer < ActiveModel::Serializer
-  attributes :id, :cedula,:usuario
+  attributes :id, :cedula
+
+  belongs_to :usuario
 end
