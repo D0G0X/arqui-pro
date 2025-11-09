@@ -1,25 +1,26 @@
 import axiosInstance from './axiosInstance'
-import type { SolicitudProyecto } from '../../types'
+import type { Cliente, SolicitudProyecto } from '../../types'
 import { CacheService } from '../../utils/cacheService'
+import clienteService from './clienteService'
 
 const CACHE_DURATION = 2 * 60 * 1000 // 2 minutos (datos más dinámicos)
 
 class SolicitudesService {
-  async getByCliente(clienteId: string): Promise<SolicitudProyecto[]> {
-    const cacheKey = `solicitudes_cliente_${clienteId}_cache`
-    const cached = CacheService.get<SolicitudProyecto[]>(cacheKey, undefined, CACHE_DURATION)
-    if (cached) {
-      console.log(`Usando solicitudes del cliente ${clienteId} desde caché`)
-      return cached
-    }
+  async getAll(): Promise<SolicitudProyecto[]> {
+    const response = await axiosInstance.get('/solicitudes_proyecto')
+    return Array.isArray(response.data) ? response.data : response.data.proyectos || []
+  }
 
-    console.log(`Obteniendo solicitudes del cliente ${clienteId} desde API REST`)
-    const response = await axiosInstance.get(`/solicitudes_proyectos?cliente_id=${clienteId}`)
-    
-    const result = Array.isArray(response.data) ? response.data : response.data.solicitudes_proyectos || [];
+  async getByUsuarioCliente(usuarioId: string): Promise<SolicitudProyecto[]> {
 
-    CacheService.set(cacheKey, result)
-    return result
+    const clientes: Cliente[] = await clienteService.getAll();
+    const clienteUsuario = clientes.find((cliente)=> cliente.usuario?.id===usuarioId);
+    console.log(`Obteniendo solicitudes_proyecto del cliente ${clienteUsuario?.id} desde API REST`);
+    const solicitudes = await this.getAll();
+
+    const solicitudesClienteUsuario = solicitudes.filter((solicitudes)=>solicitudes.cliente_id===clienteUsuario?.id);
+    return solicitudesClienteUsuario;
+
   }
 
   async getById(id: string): Promise<SolicitudProyecto> {

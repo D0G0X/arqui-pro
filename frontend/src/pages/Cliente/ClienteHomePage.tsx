@@ -24,7 +24,7 @@ const ClienteHome = () => {
         
         // TODO: Obtener cliente_id desde el usuario autenticado
         // Por ahora usamos un valor temporal o del localStorage
-        const tempClienteId = localStorage.getItem('cliente_id') || user?.id
+        const tempUsuarioClienteId = localStorage.getItem('cliente_id') || user?.id
 
         // Cargar arquitectos recomendados (ordenados por valoración)
         const arquitectosData = await arquitectosService.getAll({
@@ -39,15 +39,16 @@ const ClienteHome = () => {
         
         setArquitectosRecomendados(arquitectosOrdenados)
 
-        if (tempClienteId) {
+        if (tempUsuarioClienteId) {
           // Cargar proyectos del cliente
-          const proyectos = await proyectosService.getByCliente(tempClienteId)
-          setProyectosRecientes(proyectos.slice(0, 2))
+          const proyectos = await proyectosService.getByUsuarioCliente(tempUsuarioClienteId)
+          setProyectosRecientes(proyectos.slice(0, 4))
 
           // Cargar solicitudes del cliente
-          const solicitudes = await solicitudesService.getByCliente(tempClienteId)
+          const solicitudes = await solicitudesService.getByUsuarioCliente(tempUsuarioClienteId)
+
           // Ordenar por más recientes primero
-          const solicitudesOrdenadas = [...(solicitudes.solicitudes_proyecto || [])]
+          const solicitudesOrdenadas = [...(solicitudes || [])]
             .sort((a, b) => new Date(b.id).getTime() - new Date(a.id).getTime())
             .slice(0, 3)
           setSolicitudesRecientes(solicitudesOrdenadas)

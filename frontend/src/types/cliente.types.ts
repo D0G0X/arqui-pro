@@ -8,6 +8,10 @@ export interface Cliente {
   usuario?: Usuario
 }
 
+export interface UpdateClienteDto{
+  cedula?: string
+}
+
 export interface RegistroClienteAttributesInput {
   cedula: string
 }

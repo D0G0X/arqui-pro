@@ -9,8 +9,8 @@ class Api::V1::ProyectosController < ApplicationController
   before_action :require_proyecto_ownership!, only: %i[update destroy]
 
   def index
-    @proyecto = Proyecto.all
-    render json: @proyecto
+    @proyectos = Proyecto.all
+    render json: @proyectos
   end
 
   def create

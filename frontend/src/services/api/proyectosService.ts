@@ -1,6 +1,8 @@
 import axiosInstance from "./axiosInstance"
 import type { Proyecto, CreateProyectoDto, UpdateProyectoDto } from "../../types/proyecto.types"
 import { CacheService } from '../../utils/cacheService'
+import type { Cliente } from "../../types"
+import clienteService from "./clienteService"
 
 const CACHE_DURATION = 3 * 60 * 1000 // 3 minutos
 
@@ -39,6 +41,16 @@ class ProyectosService {
     const result = Array.isArray(response.data) ? response.data : response.data.proyectos || []
     CacheService.set(cacheKey, result)
     return result
+  }
+
+  async getByUsuarioCliente(usuarioId: string): Promise<Proyecto[]> {
+    const clientes: Cliente[] = await clienteService.getAll();
+    const clienteUsuario = clientes.find((cliente)=> cliente.usuario?.id===usuarioId);
+    console.log(`Obteniendo proyectos del cliente ${clienteUsuario?.id} desde API REST`);
+    const responseProyectos = await this.getAll();
+
+    const proyectosClienteUsuario = responseProyectos.filter((proyecto)=> proyecto.cliente_id===clienteUsuario?.id);
+    return proyectosClienteUsuario;
   }
 
   async create(proyecto: CreateProyectoDto): Promise<Proyecto> {
