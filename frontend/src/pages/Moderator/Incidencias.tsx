@@ -23,6 +23,7 @@ interface Incidencia {
     nombre: string;
     apellido: string;
     email: string;
+    estado_cuenta?: 'activo' | 'suspendido';
   };
   moderador?: {
     usuario: {
@@ -58,13 +59,12 @@ export const Incidencias = () => {
   };
 
   const handleResolver = async (id: number) => {
-    const resolucion = prompt('Describe la resolución:');
-    if (!resolucion) return;
+    if (!confirm('¿Seguro que deseas resolver esta incidencia?')) return;
 
     try {
       await moderadorService.resolverIncidencia(id, {
         moderador_id: user?.id || '',
-        resolucion
+        resolucion: 'Incidencia resuelta por moderador'
       });
       alert('✅ Incidencia resuelta exitosamente');
       cargarIncidencias();
@@ -90,6 +90,31 @@ export const Incidencias = () => {
     } catch (error) {
       console.error('Error al reabrir:', error);
       alert('Error al reabrir la incidencia');
+    }
+  };
+
+  const handleCambiarEstadoUsuario = async (usuarioId: number, estadoActual: 'activo' | 'suspendido' | undefined) => {
+    const nuevoEstado = estadoActual === 'activo' ? 'suspendido' : 'activo';
+    const accion = nuevoEstado === 'suspendido' ? 'suspender' : 'activar';
+    
+    if (!confirm(`¿Seguro que deseas ${accion} a este usuario?`)) return;
+
+    try {
+      if (nuevoEstado === 'suspendido') {
+        await moderadorService.suspenderUsuario(usuarioId, {
+          moderador_id: Number(user?.id) || 0,
+          razon: 'Suspensión por incidencia'
+        });
+      } else {
+        await moderadorService.activarUsuario(usuarioId, {
+          moderador_id: Number(user?.id) || 0
+        });
+      }
+      alert(`✅ Usuario ${nuevoEstado === 'suspendido' ? 'suspendido' : 'activado'} exitosamente`);
+      cargarIncidencias();
+    } catch (error) {
+      console.error(`Error al ${accion} usuario:`, error);
+      alert(`Error al ${accion} el usuario`);
     }
   };
 
@@ -128,8 +153,9 @@ export const Incidencias = () => {
                 <th>FECHA</th>
                 <th>EMISOR</th>
                 <th>INFRACTOR</th>
+                <th>ESTADO INFRACTOR</th>
                 <th>MODERADOR</th>
-                <th></th>
+                <th>ACCIONES</th>
               </tr>
             </thead>
             <tbody>
@@ -166,27 +192,50 @@ export const Incidencias = () => {
                     }
                   </td>
                   <td>
+                    {incidencia.infractor?.estado_cuenta ? (
+                      <span className={`badge ${incidencia.infractor.estado_cuenta === 'activo' ? 'badge-success' : 'badge-danger'}`}>
+                        {incidencia.infractor.estado_cuenta === 'activo' ? 'Activo' : 'Suspendido'}
+                      </span>
+                    ) : (
+                      <span className="badge badge-secondary">-</span>
+                    )}
+                  </td>
+                  <td>
                     {incidencia.moderador?.usuario
                       ? `${incidencia.moderador.usuario.nombre} ${incidencia.moderador.usuario.apellido}`
                       : '-'
                     }
                   </td>
                   <td>
-                    {(incidencia.estado === 'pendiente' || incidencia.estado === 'en revision') ? (
-                      <button
-                        onClick={() => handleResolver(incidencia.id)}
-                        className="btn-resolver"
-                      >
-                        Resolver
-                      </button>
-                    ) : incidencia.estado === 'resuelto' ? (
-                      <button
-                        onClick={() => handleReabrir(incidencia.id)}
-                        className="btn-reabrir"
-                      >
-                        Reabrir
-                      </button>
-                    ) : null}
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      {incidencia.infractor_id && incidencia.infractor && (
+                        <button
+                          onClick={() => handleCambiarEstadoUsuario(
+                            incidencia.infractor_id!,
+                            incidencia.infractor?.estado_cuenta
+                          )}
+                          className={incidencia.infractor.estado_cuenta === 'activo' ? 'btn-suspender' : 'btn-activar'}
+                          title={incidencia.infractor.estado_cuenta === 'activo' ? 'Suspender usuario' : 'Activar usuario'}
+                        >
+                          {incidencia.infractor.estado_cuenta === 'activo' ? 'Suspender' : 'Activar'}
+                        </button>
+                      )}
+                      {(incidencia.estado === 'pendiente' || incidencia.estado === 'en revision') ? (
+                        <button
+                          onClick={() => handleResolver(incidencia.id)}
+                          className="btn-resolver"
+                        >
+                          Resolver
+                        </button>
+                      ) : incidencia.estado === 'resuelto' ? (
+                        <button
+                          onClick={() => handleReabrir(incidencia.id)}
+                          className="btn-reabrir"
+                        >
+                          Reabrir
+                        </button>
+                      ) : null}
+                    </div>
                   </td>
                 </tr>
               ))}

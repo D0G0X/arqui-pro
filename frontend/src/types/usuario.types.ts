@@ -1,6 +1,5 @@
 import type { RegistroArquitectoAttributesInput } from "./arquitecto.types"
 import type { RegistroClienteAttributesInput } from "./cliente.types"
-import type { RegistroModeradorAttributesInput } from "./moderador.types"
 
 // Usuario Base Type
 export interface Usuario {
@@ -29,7 +28,6 @@ export interface RegistroUsuarioInput {
   rol: 'arquitecto' | 'cliente' | 'moderador'
   arquitecto_attributes?: RegistroArquitectoAttributesInput
   cliente_attributes?: RegistroClienteAttributesInput
-  moderador_attributes?: RegistroModeradorAttributesInput
 }
 
 export interface AuthResponse {

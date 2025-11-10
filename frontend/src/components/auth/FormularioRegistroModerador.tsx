@@ -110,8 +110,7 @@ export default function FormularioRegistroModerador({ onSubmit, onApiError }: Pr
             email,
             password,
             password_confirmation: passwordConfirmation,
-            rol: 'moderador',
-            moderador_attributes: {} // Atributos vacíos, como se solicitó
+            rol: 'moderador'
         };
         onSubmit(dataToSend);    
     };

@@ -13,14 +13,11 @@ import LoginPage from './pages/auth/LoginPage'
 import RegistroClientePage from './pages/auth/RegistroClientePage'
 import RegistroArquitectoPage from './pages/auth/RegistroArquitectoPage'
 import RegistroModeradorPage from './pages/auth/RegistroModeradorPage'
-import ChatExample from './pages/ChatExample'
-import ClientDashboard from './pages/ClientDashboard'
 import ArchitectProfile from './pages/Arquitecto/ArchitectProfile'
-import ClientChat from './pages/ClientChat'
-import ClientProjectRating from './pages/ClientProjectRating'
+import ClientChat from './pages/Cliente/ClientChat'
 import ArchitectDashboard from './pages/Arquitecto/ArchitectDashboard'
 import ArchitectChat from './pages/Arquitecto/ArchitectChat'
-import CreateProject from './pages/CreateProject'
+import CreateProject from './pages/Arquitecto/CreateProject'
 import ArchitectProjectDetail from './pages/Arquitecto/ArchitectProjectDetail'
 
 import { ModeratorDashboard, Verificaciones, Incidencias } from './pages/Moderator'
@@ -28,7 +25,6 @@ import ClienteLayout from './components/layout/Cliente/ClienteLayout'
 import MainLayout from './components/layout/MainLayout'
 import ClienteHome from './pages/Cliente/ClienteHomePage'
 import MisProyectos from './pages/Cliente/MisProyectos'
-import ArquitectoProfile from './pages/Arquitecto/ArchitectProfile'
 import ProyectoDetail from './pages/Arquitecto/ProyectoDetail'
 import './App.css'
 
@@ -69,40 +65,13 @@ function App() {
               <Route path="/" element={<MainLayout children={<Home/>} />} />
               <Route path="/architects" element={<MainLayout children={<FindArchitects />}/>} />
               <Route path="/about" element={<MainLayout children={<AboutUs />}/>} />
-              <Route path="/architect/:id" element={<MainLayout children={<ArquitectoProfile />}/>} />
+              <Route path="/architect/:id" element={<MainLayout children={<ArchitectProfile />}/>} />
               <Route path="/proyecto/:id" element={<MainLayout children={<ProyectoDetail />}/>} />
 
               <Route path="/login" element={<LoginPage/>}/>
               <Route path="/registro-cliente" element={<RegistroClientePage/>}/>
-              
-              {/* Ruta de Ejemplo - Chat y Notificaciones */}
-              <Route path="/chat-example" element={<ChatExample />} />
-              
-              {/* Rutas Protegidas - Cliente */}
-              <Route 
-                path="/client/dashboard" 
-                element={
-                  <ProtectedRoute requiredRole="cliente">
-                    <ClientDashboard />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/client/chat" 
-                element={
-                  <ProtectedRoute requiredRole="cliente">
-                    <ClientChat />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/client/project/:projectId/rate" 
-                element={
-                  <ProtectedRoute requiredRole="cliente">
-                    <ClientProjectRating />
-                  </ProtectedRoute>
-                } 
-              />
+              <Route path="/registro-arquitecto" element={<RegistroArquitectoPage/>}/>
+              <Route path="/registro-moderador" element={<RegistroModeradorPage/>}/>
               
               {/* Rutas Públicas - Perfil de Arquitecto */}
               <Route path="/arquitecto/:id" element={<ArchitectProfile />} />
@@ -141,9 +110,6 @@ function App() {
                 } 
               />
               
-              <Route path="/registro-arquitecto" element={<RegistroArquitectoPage/>}/>
-              <Route path="/registro-moderador" element={<RegistroModeradorPage/>}/>
-              
               {/* Rutas Protegidas - Cliente */}
               <Route 
                 path="/cliente" 
@@ -156,8 +122,9 @@ function App() {
                 <Route path="/cliente/home" element={<ClienteHome />} />
                 <Route path="/cliente/mis-proyectos" element={<MisProyectos />} />
                 <Route path="/cliente/find-arquitectos" element={<FindArchitects />} />
-                <Route path="/cliente/arquitecto/:id" element={<ArquitectoProfile />} />
+                <Route path="/cliente/arquitecto/:id" element={<ArchitectProfile />} />
                 <Route path="/cliente/proyecto/:id" element={<ProyectoDetail />} />
+                <Route path='/cliente/conversaciones' element={<ClientChat />} />
               </Route>
 
               {/* Rutas Protegidas - Moderador */}

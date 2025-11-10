@@ -1,336 +1,228 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { MessageCircle, LogOut, Plus, Clock, CheckCircle, AlertCircle } from 'lucide-react';
-import { NotificationInbox } from '../../components/NotificationInbox';
+import { logger } from '../../utils/logger';
 import arquitectosService from '../../services/api/arquitectosService';
 import proyectosService from '../../services/api/proyectosService';
 import type { Arquitecto, Proyecto } from '../../types';
-import { getInitials, getAvatarColor } from '../../utils/formatters';
-import { AVATAR_COLORS } from '../../config/constants';
 import '../../styles/ArchitectDashboard.css';
 
-export default function ArchitectDashboard() {
-  const { user, isAuthenticated, logout } = useAuth();
+const ArchitectDashboard = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [arquitecto, setArquitecto] = useState<Arquitecto | null>(null);
-  const [proyectos, setProyectos] = useState<Proyecto[]>([]);
+  const [proyectosRecientes, setProyectosRecientes] = useState<Proyecto[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadingProyectos, setLoadingProyectos] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'in_progress' | 'completed'>('all');
 
   useEffect(() => {
-    if (!isAuthenticated || !user) {
-      navigate('/login');
-      return;
-    }
-
-    if (user.rol !== 'arquitecto') {
-      navigate('/');
-      return;
-    }
-
-    const fetchArquitecto = async () => {
+    const cargarDatos = async () => {
       try {
         setLoading(true);
+        
+        // Obtener el arquitecto actual
         const response = await arquitectosService.getAll();
         const arquitectoEncontrado = response.arquitectos.find(
-          (arq) => arq.usuario_id === user.id || arq.usuario?.id === user.id
+          (arq) => arq.usuario_id === user?.id || arq.usuario?.id === user?.id
         );
 
         if (arquitectoEncontrado) {
           setArquitecto(arquitectoEncontrado);
-          
+
           // Cargar proyectos del arquitecto
-          fetchProyectos(arquitectoEncontrado.id);
-        } else {
-          setError('No se encontró el perfil de arquitecto asociado');
+          const allProyectos = await proyectosService.getAll();
+          const proyectosArquitecto = allProyectos.filter(
+            p => String(p.arquitecto_id) === String(arquitectoEncontrado.id)
+          );
+          setProyectosRecientes(proyectosArquitecto.slice(0, 4));
         }
-      } catch (err: any) {
-        setError(err.message || 'Error al cargar el perfil');
+
+        logger.info('Datos del dashboard del arquitecto cargados exitosamente');
+      } catch (error) {
+        logger.error('Error al cargar datos del dashboard del arquitecto:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchArquitecto();
-  }, [isAuthenticated, user, navigate]);
-
-  const fetchProyectos = async (arquitectoId: string) => {
-    try {
-      setLoadingProyectos(true);
-      const allProyectos = await proyectosService.getAll();
-      // Filtrar proyectos del arquitecto actual
-      const proyectosArquitecto = allProyectos.filter(
-        p => String(p.arquitecto_id) === String(arquitectoId)
-      );
-      setProyectos(proyectosArquitecto);
-    } catch (err) {
-      console.error('Error al cargar proyectos:', err);
-    } finally {
-      setLoadingProyectos(false);
-    }
-  };
+    cargarDatos();
+  }, [user]);
 
   if (loading) {
     return (
-      <div className="dashboard-loading">
+      <div className="arquitecto-dashboard-loading">
         <div className="loading-spinner"></div>
-        <p>Cargando dashboard...</p>
+        <p>Cargando...</p>
       </div>
     );
   }
 
-  if (error || !arquitecto) {
-    return (
-      <div className="dashboard-error">
-        <AlertCircle size={48} />
-        <p>{error || 'Perfil no encontrado'}</p>
-        <button onClick={() => navigate('/')} className="btn-primary">Volver al inicio</button>
-      </div>
-    );
-  }
-
-  const nombreCompleto = arquitecto.usuario
-    ? `${arquitecto.usuario.nombre} ${arquitecto.usuario.apellido}`
-    : user?.nombre || 'Arquitecto';
-  const iniciales = arquitecto.usuario
-    ? getInitials(arquitecto.usuario.nombre || '', arquitecto.usuario.apellido || '')
-    : getInitials(user?.nombre || '', user?.apellido || '');
-  const avatarColor = getAvatarColor(nombreCompleto, AVATAR_COLORS);
-
-  // Calcular estado de cada proyecto basado en valoración
-  const proyectosConEstado = proyectos.map(p => ({
-    ...p,
-    estado: p.valoracion_promedio && p.valoracion_promedio > 0 ? 'completado' : 'en_progreso'
-  }));
-
-  const stats = {
-    total: proyectosConEstado.length,
-    enProgreso: proyectosConEstado.filter(p => p.estado === 'en_progreso').length,
-    completados: proyectosConEstado.filter(p => p.estado === 'completado').length,
-  };
-
-  // Filtrar proyectos según el filtro activo
-  const filteredProjects = proyectosConEstado.filter(project => {
-    if (activeFilter === 'all') return true;
-    if (activeFilter === 'in_progress') return project.estado === 'en_progreso';
-    if (activeFilter === 'completed') return project.estado === 'completado';
-    return true;
-  });
-
-  const getStatusIcon = (estado: string) => {
-    switch (estado) {
-      case 'en_progreso':
-        return <Clock size={16} className="status-icon in-progress" />;
-      case 'completado':
-        return <CheckCircle size={16} className="status-icon completed" />;
-      default:
-        return <AlertCircle size={16} className="status-icon pending" />;
-    }
-  };
-
-  const getStatusText = (estado: string) => {
-    switch (estado) {
-      case 'en_progreso':
-        return 'In Progress';
-      case 'completado':
-        return 'Completed';
-      default:
-        return 'Pending';
-    }
-  };
+  // Separar proyectos en progreso y completados
+  const proyectosEnProgreso = proyectosRecientes.filter(
+    p => !p.valoracion_promedio || p.valoracion_promedio === 0
+  );
+  const proyectosCompletados = proyectosRecientes.filter(
+    p => p.valoracion_promedio && p.valoracion_promedio > 0
+  );
 
   return (
-    <div className="architect-dashboard">
-      {/* Bandeja de notificaciones global */}
-      <NotificationInbox />
-      
-      {/* Top Navigation Bar */}
-      <nav className="dashboard-navbar">
-        <div className="navbar-container">
-          <div className="navbar-logo">
-            <span className="logo-icon">🏛️</span>
-            <span className="logo-text">ArquiPro</span>
-          </div>
-          
-          <div className="navbar-actions">
-            <button 
-              onClick={() => navigate('/arquitecto/chat')} 
-              className="nav-btn"
-              title="Messages"
-            >
-              <MessageCircle size={20} />
-            </button>
-            <div className="navbar-user">
-              <div className="user-avatar" style={{ backgroundColor: avatarColor }}>
-                {iniciales}
-              </div>
-              <span className="user-name">{nombreCompleto}</span>
+    <div className="arquitecto-dashboard">
+      {/* Bienvenida */}
+      <header className="arquitecto-dashboard-header">
+        <h1 className="arquitecto-dashboard-titulo">
+          Bienvenido de Nuevo, <span className="nombre-usuario">{user?.nombre}!</span>
+        </h1>
+      </header>
+
+      <div className="arquitecto-dashboard-grid">
+        {/* Columna Principal */}
+        <div className="arquitecto-dashboard-main">
+          {/* Proyectos Recientes */}
+          <section className="seccion-proyectos">
+            <div className="seccion-header">
+              <h2 className="seccion-titulo">Mis Proyectos</h2>
+              <button 
+                onClick={() => navigate('/arquitecto/create-project')} 
+                className="btn-crear-proyecto"
+              >
+                + Crear Proyecto
+              </button>
             </div>
-            <button 
-              onClick={async () => {
-                await logout();
-                navigate('/');
-              }} 
-              className="nav-btn logout-btn"
-              title="Logout"
-            >
-              <LogOut size={20} />
-            </button>
-          </div>
+            <div className="proyectos-grid">
+              {proyectosRecientes.length > 0 ? (
+                proyectosRecientes.map((proyecto) => (
+                  <div 
+                    key={proyecto.id} 
+                    className="proyecto-card"
+                    onClick={() => navigate(`/arquitecto/project/${proyecto.id}`)}
+                  >
+                    <div className="proyecto-imagen">
+                      <img 
+                        src={proyecto.imagenes?.[0]?.imagen_url || 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400'} 
+                        alt={proyecto.titulo_proyecto} 
+                      />
+                    </div>
+                    <div className="proyecto-contenido">
+                      <h3 className="proyecto-titulo">{proyecto.titulo_proyecto}</h3>
+                      <p className="proyecto-descripcion">
+                        {proyecto.descripcion.substring(0, 100)}
+                        {proyecto.descripcion.length > 100 ? '...' : ''}
+                      </p>
+                      <div className="proyecto-footer">
+                        <span className="proyecto-tipo">
+                          {proyecto.tipo_proyecto === 'portafolio' ? '📁 Portafolio' : '📋 Contratado'}
+                        </span>
+                        <span className="proyecto-valoracion">
+                          {proyecto.valoracion_promedio && proyecto.valoracion_promedio > 0 
+                            ? `⭐ ${proyecto.valoracion_promedio.toFixed(1)}` 
+                            : '⏳ En progreso'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="sin-proyectos">
+                  <p className="sin-datos-mensaje">Aún no tienes proyectos.</p>
+                  <p className="sin-datos-ayuda">
+                    Comienza creando tu primer proyecto para mostrar tu trabajo.
+                  </p>
+                </div>
+              )}
+            </div>
+          </section>
         </div>
-      </nav>
 
-      {/* Main Content with Sidebar */}
-      <div className="dashboard-layout">
-        {/* Left Sidebar - Orange Panel */}
-        <aside className="dashboard-sidebar">
-          <div className="sidebar-content">
-            <div className="sidebar-header">
-              <h2>My Projects</h2>
-              <p>Manage and track all your architectural projects</p>
-            </div>
-
-            {/* Stats Summary in Sidebar */}
-            <div className="sidebar-stats">
-              <div className="sidebar-stat-item">
-                <div className="stat-icon-wrapper total">
+        {/* Sidebar Derecho - Estadísticas */}
+        <aside className="arquitecto-dashboard-sidebar">
+          <section className="seccion-estadisticas">
+            <h2 className="seccion-titulo">Estadísticas</h2>
+            <div className="estadisticas-lista">
+              <div className="estadistica-item">
+                <div className="estadistica-icono total">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                   </svg>
                 </div>
-                <div className="stat-info">
-                  <span className="stat-number">{stats.total}</span>
-                  <span className="stat-text">Total Projects</span>
+                <div className="estadistica-info">
+                  <span className="estadistica-numero">{proyectosRecientes.length}</span>
+                  <span className="estadistica-texto">Total Proyectos</span>
                 </div>
               </div>
 
-              <div className="sidebar-stat-item">
-                <div className="stat-icon-wrapper in-progress">
-                  <Clock size={28} />
+              <div className="estadistica-item">
+                <div className="estadistica-icono en-progreso">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
                 </div>
-                <div className="stat-info">
-                  <span className="stat-number">{stats.enProgreso}</span>
-                  <span className="stat-text">In Progress</span>
+                <div className="estadistica-info">
+                  <span className="estadistica-numero">{proyectosEnProgreso.length}</span>
+                  <span className="estadistica-texto">En Progreso</span>
                 </div>
               </div>
 
-              <div className="sidebar-stat-item">
-                <div className="stat-icon-wrapper completed">
-                  <CheckCircle size={28} />
+              <div className="estadistica-item">
+                <div className="estadistica-icono completado">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                  </svg>
                 </div>
-                <div className="stat-info">
-                  <span className="stat-number">{stats.completados}</span>
-                  <span className="stat-text">Completed</span>
+                <div className="estadistica-info">
+                  <span className="estadistica-numero">{proyectosCompletados.length}</span>
+                  <span className="estadistica-texto">Completados</span>
+                </div>
+              </div>
+
+              <div className="estadistica-item">
+                <div className="estadistica-icono valoracion">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg>
+                </div>
+                <div className="estadistica-info">
+                  <span className="estadistica-numero">
+                    {arquitecto?.valoracion_prom_proyecto 
+                      ? arquitecto.valoracion_prom_proyecto.toFixed(1) 
+                      : '0.0'}
+                  </span>
+                  <span className="estadistica-texto">Valoración Promedio</span>
                 </div>
               </div>
             </div>
+          </section>
 
-            <button 
-              onClick={() => navigate('/arquitecto/create-project')} 
-              className="sidebar-new-project-btn"
-            >
-              <Plus size={20} />
-              <span>New Project</span>
-            </button>
-          </div>
+          {/* Acciones Rápidas */}
+          <section className="seccion-acciones">
+            <h2 className="seccion-titulo">Acciones Rápidas</h2>
+            <div className="acciones-lista">
+              <button 
+                onClick={() => navigate('/arquitecto/chat')}
+                className="accion-btn"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+                Ver Mensajes
+              </button>
+              <button 
+                onClick={() => navigate('/arquitecto/profile')}
+                className="accion-btn"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+                Ver Mi Perfil
+              </button>
+            </div>
+          </section>
         </aside>
-
-        {/* Main Content Area */}
-        <main className="dashboard-main-content">
-          <div className="dashboard-content-wrapper">
-            {/* Header with tabs */}
-            <div className="content-header">
-              <h1 className="content-title">Active Projects</h1>
-              <div className="content-tabs">
-                <button 
-                  className={`tab-btn ${activeFilter === 'all' ? 'active' : ''}`}
-                  onClick={() => setActiveFilter('all')}
-                >
-                  All
-                </button>
-                <button 
-                  className={`tab-btn ${activeFilter === 'in_progress' ? 'active' : ''}`}
-                  onClick={() => setActiveFilter('in_progress')}
-                >
-                  In Progress
-                </button>
-                <button 
-                  className={`tab-btn ${activeFilter === 'completed' ? 'active' : ''}`}
-                  onClick={() => setActiveFilter('completed')}
-                >
-                  Completed
-                </button>
-              </div>
-            </div>
-
-            {/* Projects Grid */}
-            <div className="projects-grid">
-              {loadingProyectos ? (
-                <div className="loading-message">Cargando proyectos...</div>
-              ) : filteredProjects.length === 0 ? (
-                <div className="empty-message">
-                  No hay proyectos {activeFilter === 'in_progress' ? 'en progreso' : activeFilter === 'completed' ? 'completados' : ''} aún
-                </div>
-              ) : (
-                filteredProjects.map(project => (
-                <div 
-                  key={project.id} 
-                  className="project-card"
-                  onClick={() => navigate(`/arquitecto/project/${project.id}`)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <div className="project-image">
-                    <img 
-                      src={project.imagenes?.[0]?.imagen_url || 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400'} 
-                      alt={project.titulo_proyecto} 
-                    />
-                    <div className="project-overlay">
-                      <button className="btn-view-details">Ver Detalles</button>
-                    </div>
-                  </div>
-                  <div className="project-content">
-                    <div className="project-header">
-                      <h3 className="project-title">{project.titulo_proyecto}</h3>
-                      <div className="project-status">
-                        {getStatusIcon(project.estado)}
-                        <span className="status-text">{getStatusText(project.estado)}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="project-info">
-                      <div className="info-row">
-                        <span className="info-label">Tipo:</span>
-                        <span className="info-value">{project.tipo_proyecto === 'portafolio' ? 'Portafolio' : 'Contratado'}</span>
-                      </div>
-                      <div className="info-row">
-                        <span className="info-label">Fecha:</span>
-                        <span className="info-value">
-                          {project.fecha_publicacion ? new Date(project.fecha_publicacion).toLocaleDateString() : 'N/A'}
-                        </span>
-                      </div>
-                      <div className="info-row">
-                        <span className="info-label">Valoración:</span>
-                        <span className="info-value">
-                          {project.valoracion_promedio && project.valoracion_promedio > 0 ? `⭐ ${project.valoracion_promedio.toFixed(1)}` : 'Sin valorar'}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="project-description" style={{ marginTop: '1rem', color: '#64748b', fontSize: '0.875rem' }}>
-                      <p>{project.descripcion.substring(0, 100)}{project.descripcion.length > 100 ? '...' : ''}</p>
-                    </div>
-                  </div>
-                </div>
-              ))
-              )}
-            </div>
-          </div>
-        </main>
       </div>
-      <NotificationInbox />
     </div>
   );
-}
+};
+
+export default ArchitectDashboard;
+

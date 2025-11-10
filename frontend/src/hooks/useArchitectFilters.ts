@@ -45,6 +45,7 @@ export const useArchitectFilters = (): UseArchitectFiltersReturn => {
   const variables = useMemo((): ArchitectFiltersVariables => {
     const vars: ArchitectFiltersVariables = {
       limite: DEFAULT_LIMIT,
+      verificado: true, // Solo mostrar arquitectos verificados
     }
 
     if (especialidad) {

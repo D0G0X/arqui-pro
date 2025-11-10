@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../../hooks/useAuth';
 import { ArrowLeft, FolderPlus } from 'lucide-react';
-import proyectosService from '../services/api/proyectosService';
-import arquitectosService from '../services/api/arquitectosService';
-import type { CreateProyectoDto } from '../types';
-import { NotificationInbox } from '../components/NotificationInbox';
-import '../styles/CreateProject.css';
+import proyectosService from '../../services/api/proyectosService';
+import arquitectosService from '../../services/api/arquitectosService';
+import type { CreateProyectoDto } from '../../types';
+import { NotificationInbox } from '../../components/NotificationInbox';
+import '../../styles/CreateProject.css';
 
 export default function CreateProject() {
   const { user } = useAuth();

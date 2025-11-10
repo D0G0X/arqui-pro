@@ -189,11 +189,11 @@ export default function ArchitectChat() {
       {/* Navigation Bar */}
       <div className="architect-nav-bar">
         <button
-          onClick={() => navigate('/arquitecto/profile')}
+          onClick={() => navigate('/arquitecto/dashboard')}
           className="nav-back-btn"
         >
           <ArrowLeft size={20} />
-          Volver a Mi Perfil
+          Volver al Dashboard
         </button>
         <h1 className="nav-title">Mis Conversaciones</h1>
         <div className="nav-spacer"></div>

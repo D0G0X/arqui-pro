@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../../contexts/AuthContext';
 import { Chat } from '../components/Chat';
 import { NotificationInbox } from '../components/NotificationInbox';
 import { Search, Settings, MessageCircle, ArrowLeft } from 'lucide-react';
