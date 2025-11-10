@@ -44,11 +44,10 @@ function ArquitectoSimpleCard({
 
   const handleVerPerfil = () => {
     if(location.pathname === "/architects"){
-      navigate(`/architects/${id}`);
+      navigate(`/architect/${id}`);
     }else{
       navigate(`/cliente/arquitecto/${id}`);
     }
-    
   }
   return (
     <div className="arquitecto-card arquitecto-card-simple">

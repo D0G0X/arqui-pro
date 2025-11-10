@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { Star, FolderKanban, Eye, MapPin, MessageCircle, CheckCircle } from 'lucide-react'
 import arquitectosService from '../services/api/arquitectosService'
 import proyectosService from '../services/api/proyectosService'
@@ -17,7 +17,8 @@ const AVATAR_COLORS = [
 function ArquitectoProfile() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  
+  const location = useLocation();
+
   const [arquitecto, setArquitecto] = useState<Arquitecto | null>(null)
   const [proyectos, setProyectos] = useState<Proyecto[]>([])
   const [loading, setLoading] = useState(true)
@@ -86,7 +87,11 @@ function ArquitectoProfile() {
   }
 
   const handleProyectoClick = (proyectoId: string) => {
-    navigate(`/proyecto/${proyectoId}`)
+    if(location.pathname === `/architect/${id}`){
+        navigate(`/proyecto/${proyectoId}`)
+    }else{
+        navigate(`/cliente/proyecto/${proyectoId}`)
+    }
   }
 
   if (loading) {
