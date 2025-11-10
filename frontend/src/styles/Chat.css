@@ -216,6 +216,11 @@
   max-width: 300px;
 }
 
+/* Si solo hay imágenes (sin contenido), quitar margen superior */
+.message-content-wrapper > .message-images:first-child {
+  margin-top: 0;
+}
+
 .message-image {
   width: 100%;
   height: auto;
@@ -224,10 +229,12 @@
   border-radius: 8px;
   cursor: pointer;
   transition: transform 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .message-image:hover {
   transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .message-time {

@@ -12,7 +12,7 @@ class Mensaje < ApplicationRecord
   before_create :set_fecha_y_hora
   
   # Validaciones
-  validates :contenido, presence: true
+  # Permitir contenido vacío (puede ser solo imágenes)
   validates :leido, inclusion: { in: [ true, false ] }
   
   private

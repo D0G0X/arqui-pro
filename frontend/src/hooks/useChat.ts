@@ -236,6 +236,7 @@ export function useChat({
 
   // Enviar mensaje
   const sendMessage = useCallback((contenido: string, imagenes?: string[]) => {
+    // Permitir envío si hay contenido O imágenes
     if (!contenido.trim() && (!imagenes || imagenes.length === 0)) return;
 
     // Optimistic update: agregar el mensaje inmediatamente

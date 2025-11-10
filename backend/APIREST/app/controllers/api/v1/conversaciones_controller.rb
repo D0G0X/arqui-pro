@@ -94,10 +94,15 @@ class Api::V1::ConversacionesController < ApplicationController
     
     if @conversacion
       Rails.logger.info "✅ Conversación encontrada, devolviendo mensajes (validación deshabilitada temporalmente)"
-      @mensajes = @conversacion.mensajes.includes(:remitente).order(fecha_envio: :asc)
+      @mensajes = @conversacion.mensajes.includes(:remitente, :imagenes).order(fecha_envio: :asc)
       
-      # Incluir datos del remitente (usuario) en la respuesta
-      render json: @mensajes.as_json(include: :remitente)
+      # Incluir datos del remitente (usuario) y las imágenes en la respuesta
+      render json: @mensajes.as_json(
+        include: {
+          remitente: { only: [:id, :nombre, :email] },
+          imagenes: { only: [:id, :imagen_url, :fecha] }
+        }
+      )
     else
       Rails.logger.error "❌ Conversación #{params[:id]} no encontrada"
       render json: { error: "Conversación no encontrada" }, status: :not_found

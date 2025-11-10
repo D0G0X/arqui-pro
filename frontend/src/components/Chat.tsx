@@ -91,8 +91,8 @@ export function Chat({ conversacionId, usuarioId, onClose, userRole, clienteInfo
       imageUrls = await Promise.all(selectedImages.map(file => uploadImage(file)));
     }
 
-    // Enviar mensaje con imágenes
-    await sendMessage(inputMessage || '📎 Imagen', imageUrls);
+    // Enviar mensaje con imágenes (contenido vacío si solo hay imágenes)
+    await sendMessage(inputMessage.trim() || '', imageUrls);
     setInputMessage('');
     setSelectedImages([]);
     setImagesPreviews([]);
@@ -202,9 +202,12 @@ export function Chat({ conversacionId, usuarioId, onClose, userRole, clienteInfo
 
                 {/* Contenido del mensaje */}
                 <div className="message-content-wrapper">
-                  <div className="message-content">
-                    {mensaje.contenido}
-                  </div>
+                  {/* Solo mostrar el contenido si no está vacío */}
+                  {mensaje.contenido && mensaje.contenido.trim() && (
+                    <div className="message-content">
+                      {mensaje.contenido}
+                    </div>
+                  )}
                   
                   {/* Imágenes del mensaje */}
                   {mensaje.imagenes && mensaje.imagenes.length > 0 && (

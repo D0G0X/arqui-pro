@@ -6,11 +6,22 @@ class Api::V1::MensajesController < ApplicationController
   #before_action :require_mensaje_ownership!, only: %i[update destroy]
 
   def index
-    @mensajes = Mensaje.all
-    render json: @mensajes
+    @mensajes = Mensaje.includes(:imagenes, :remitente).all
+    render json: @mensajes.as_json(
+      include: {
+        remitente: { only: [:id, :nombre, :email] },
+        imagenes: { only: [:id, :imagen_url, :fecha] }
+      }
+    )
   end
 
   def create
+    # Validar que haya contenido o imágenes
+    if mensaje_params[:contenido].blank? && params[:imagenes].blank?
+      render json: { error: "Debe proporcionar contenido o al menos una imagen" }, status: :unprocessable_entity
+      return
+    end
+    
     @mensaje = Mensaje.new(mensaje_params)
     if @mensaje.save
       # Si hay imágenes, crear las asociaciones
@@ -46,7 +57,12 @@ class Api::V1::MensajesController < ApplicationController
   end
 
   def show
-    render json: @mensaje
+    render json: @mensaje.as_json(
+      include: {
+        remitente: { only: [:id, :nombre, :email] },
+        imagenes: { only: [:id, :imagen_url, :fecha] }
+      }
+    )
   end
 
   def update
