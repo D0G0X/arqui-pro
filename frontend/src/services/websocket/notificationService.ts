@@ -1,196 +1,116 @@
-import { io, Socket } from 'socket.io-client';
-import { logger } from '../../utils/logger';
+import { io, Socket } from "socket.io-client";
+import { logger } from "../../utils/logger";
 
-interface NotificacionModerador {
-  id: number;
-  tipo: 'verificacion' | 'incidencia' | 'reporte' | 'sistema';
-  mensaje: string;
-  fecha: string;
-  leida: boolean;
-  metadata?: any;
+const WS_URL = import.meta.env.VITE_WS_URL || "http://localhost:3006";
+
+interface Notification {
+  id: string;
+  type: "nuevaConversacion" | "message:new";
+  data: any;
+  timestamp: Date;
+  read: boolean;
 }
-
-type NotificationCallback = (notification: NotificacionModerador) => void;
 
 class NotificationService {
   private socket: Socket | null = null;
-  private callbacks: Set<NotificationCallback> = new Set();
-  private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
-  private reconnectDelay = 2000;
+  private notifications: Notification[] = [];
+  private notificationHandlers: Set<(notification: Notification) => void> = new Set();
 
-  /**
-   * Conectar al servidor WebSocket
-   */
-  connect(userId: number, userRole: string): void {
+  connect() {
     if (this.socket?.connected) {
-      logger.info('WebSocket ya está conectado');
+      logger.info("Notificaciones ya conectadas");
       return;
     }
 
-    const wsUrl = import.meta.env.VITE_WS_URL || 'http://localhost:3006';
+    // Obtener token de autenticación
     const token = localStorage.getItem('auth_token');
 
-    logger.info('Conectando a WebSocket', { wsUrl, userId, userRole });
-
-    this.socket = io(wsUrl, {
-      auth: { token },
-      transports: ['websocket', 'polling'],
+    this.socket = io(`${WS_URL}/notificacion`, {
+      transports: ["websocket", "polling"],
       reconnection: true,
-      reconnectionDelay: this.reconnectDelay,
-      reconnectionAttempts: this.maxReconnectAttempts
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      extraHeaders: token ? {
+        Authorization: token.startsWith('Bearer ') ? token : `Bearer ${token}`
+      } : {},
     });
 
-    this.setupEventListeners(userId, userRole);
-  }
-
-  /**
-   * Configurar listeners de eventos
-   */
-  private setupEventListeners(userId: number, userRole: string): void {
-    if (!this.socket) return;
-
-    // Evento: Conexión exitosa
-    this.socket.on('connect', () => {
-      logger.info('WebSocket conectado', { socketId: this.socket?.id });
-      this.reconnectAttempts = 0;
-      
-      // Unirse a sala de moderadores si corresponde
-      if (userRole === 'moderador') {
-        this.socket?.emit('joinModeratorRoom', { userId });
-        logger.info('Uniéndose a sala de moderadores', { userId });
-      }
+    this.socket.on("connect", () => {
+      logger.info("✅ Conectado al servidor de notificaciones");
     });
 
-    // Evento: Desconexión
-    this.socket.on('disconnect', (reason) => {
-      logger.warn('WebSocket desconectado', { reason });
+    this.socket.on("disconnect", () => {
+      logger.warn("❌ Desconectado del servidor de notificaciones");
     });
 
-    // Evento: Error de conexión
-    this.socket.on('connect_error', (error) => {
-      logger.error('Error de conexión WebSocket', error);
-      this.reconnectAttempts++;
-      
-      if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-        logger.error('Máximo de intentos de reconexión alcanzado');
-        this.disconnect();
-      }
-    });
-
-    // Evento: Nueva notificación para moderador
-    this.socket.on('moderator:notification', (notification: NotificacionModerador) => {
-      logger.info('Nueva notificación recibida', notification);
-      this.notifyCallbacks(notification);
-    });
-
-    // Evento: Nueva verificación pendiente
-    this.socket.on('moderator:newVerification', (data: any) => {
-      const notification: NotificacionModerador = {
-        id: Date.now(),
-        tipo: 'verificacion',
-        mensaje: `Nueva solicitud de verificación de ${data.arquitecto?.nombre || 'arquitecto'}`,
-        fecha: new Date().toISOString(),
-        leida: false,
-        metadata: data
+    this.socket.on("nuevaConversacion", (data) => {
+      const notification: Notification = {
+        id: `conv-${Date.now()}`,
+        type: "nuevaConversacion",
+        data,
+        timestamp: new Date(),
+        read: false,
       };
-      this.notifyCallbacks(notification);
+      this.addNotification(notification);
     });
 
-    // Evento: Nueva incidencia
-    this.socket.on('moderator:newIncident', (data: any) => {
-      const notification: NotificacionModerador = {
-        id: Date.now(),
-        tipo: 'incidencia',
-        mensaje: `Nueva incidencia reportada: ${data.descripcion?.substring(0, 50)}...`,
-        fecha: new Date().toISOString(),
-        leida: false,
-        metadata: data
+    this.socket.on("message:new", (data) => {
+      const notification: Notification = {
+        id: `msg-${Date.now()}`,
+        type: "message:new",
+        data,
+        timestamp: new Date(),
+        read: false,
       };
-      this.notifyCallbacks(notification);
+      this.addNotification(notification);
     });
 
-    // Evento: Actualización de estado
-    this.socket.on('moderator:statusUpdate', (data: any) => {
-      const notification: NotificacionModerador = {
-        id: Date.now(),
-        tipo: 'sistema',
-        mensaje: data.mensaje || 'Actualización del sistema',
-        fecha: new Date().toISOString(),
-        leida: false,
-        metadata: data
-      };
-      this.notifyCallbacks(notification);
+    this.socket.on("error", (error) => {
+      logger.error("Error en notificaciones socket:", error);
     });
   }
 
-  /**
-   * Notificar a todos los callbacks registrados
-   */
-  private notifyCallbacks(notification: NotificacionModerador): void {
-    this.callbacks.forEach(callback => {
-      try {
-        callback(notification);
-      } catch (error) {
-        logger.error('Error en callback de notificación', error);
-      }
-    });
-  }
-
-  /**
-   * Suscribirse a notificaciones
-   */
-  onNotification(callback: NotificationCallback): () => void {
-    this.callbacks.add(callback);
-    
-    // Retornar función para desuscribirse
-    return () => {
-      this.callbacks.delete(callback);
-    };
-  }
-
-  /**
-   * Marcar notificación como leída
-   */
-  markAsRead(notificationId: number): void {
-    if (this.socket?.connected) {
-      this.socket.emit('notification:markRead', { notificationId });
-      logger.info('Notificación marcada como leída', { notificationId });
-    }
-  }
-
-  /**
-   * Desconectar WebSocket
-   */
-  disconnect(): void {
+  disconnect() {
     if (this.socket) {
-      logger.info('Desconectando WebSocket');
       this.socket.disconnect();
       this.socket = null;
-      this.callbacks.clear();
-      this.reconnectAttempts = 0;
+      logger.info("Desconectado de notificaciones");
     }
   }
 
-  /**
-   * Verificar si está conectado
-   */
-  isConnected(): boolean {
-    return this.socket?.connected ?? false;
+  private addNotification(notification: Notification) {
+    this.notifications.unshift(notification);
+    logger.info("🔔 Nueva notificación:", notification);
+    this.notificationHandlers.forEach((handler) => handler(notification));
   }
 
-  /**
-   * Emitir evento personalizado
-   */
-  emit(event: string, data: any): void {
-    if (this.socket?.connected) {
-      this.socket.emit(event, data);
-      logger.info('Evento emitido', { event, data });
-    } else {
-      logger.warn('No se puede emitir evento, WebSocket no conectado', { event });
+  onNotification(handler: (notification: Notification) => void) {
+    this.notificationHandlers.add(handler);
+    return () => this.notificationHandlers.delete(handler);
+  }
+
+  getNotifications(): Notification[] {
+    return this.notifications;
+  }
+
+  markAsRead(id: string) {
+    const notification = this.notifications.find((n) => n.id === id);
+    if (notification) {
+      notification.read = true;
     }
+  }
+
+  markAllAsRead() {
+    this.notifications.forEach((n) => (n.read = true));
+  }
+
+  clearNotifications() {
+    this.notifications = [];
+  }
+
+  get unreadCount(): number {
+    return this.notifications.filter((n) => !n.read).length;
   }
 }
 
-// Exportar instancia singleton
 export const notificationService = new NotificationService();

@@ -23,6 +23,7 @@ class Proyecto < ApplicationRecord
   has_many :imagenes, through: :imagen_asociaciones
 
   # Validaciones
-  validates :titulo_proyecto, :valoracion_promedio, :descripcion, presence: true
+  validates :titulo_proyecto, :descripcion, presence: true
+  validates :valoracion_promedio, numericality: { greater_than_or_equal_to: 0.0, less_than_or_equal_to: 5.0 }, allow_nil: true
   validates :tipo_proyecto, presence: true, inclusion: { in: [ "portafolio", "contratado" ] }
 end

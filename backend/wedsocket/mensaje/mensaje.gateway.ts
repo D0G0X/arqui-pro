@@ -22,7 +22,7 @@ export class MensajeGateway {
 
   constructor(private readonly mensajeService: MensajeService) {}
 
-  @SubscribeMessage('enviarMensaje')
+  @SubscribeMessage('message:create')
   async handleEnviarMensaje(
     @MessageBody()
     payload: {
@@ -30,81 +30,126 @@ export class MensajeGateway {
       emisor_id: string;
       conversacion_id: string;
       tipo: string;
+      imagenes?: string[];
     },
     @ConnectedSocket() client: Socket,
   ) {
     try {
-      const mensajeCreado = await this.mensajeService.crearMensaje(payload);
+      console.log(`\n📤 [MESSAGE:CREATE] Cliente ${client.id} envía mensaje a conversacion:${payload.conversacion_id}`);
+      
+      // Obtener token de autenticación del cliente
+      const tokenHeader = (client.handshake.headers['authorization'] as string) || 
+                         (client.handshake.auth && (client.handshake.auth as any).token) || 
+                         '';
+      
+      const mensajeCreado = await this.mensajeService.crearMensaje(payload, tokenHeader);
+      
+      console.log(`📨 [MESSAGE:NEW] Emitiendo mensaje ${mensajeCreado.id} a room conversacion:${payload.conversacion_id}`);
       
       // Emitir el mensaje a todos los clientes en la sala de la conversación
       this.server
-        .to(`conversacion_${payload.conversacion_id}`)
-        .emit('nuevoMensaje', mensajeCreado);
+        .to(`conversacion:${payload.conversacion_id}`)
+        .emit('message:new', mensajeCreado);
 
-      return { success: true, mensaje: mensajeCreado };
-    } catch (error) {
-      return { success: false, error: error.message };
+      return { status: 'ok', mensaje: mensajeCreado };
+    } catch (error: any) {
+      client.emit('error', { message: error.message || 'could_not_create_message' });
+      return { status: 'error' };
     }
   }
 
-  @SubscribeMessage('unirseAConversacion')
+  @SubscribeMessage('join_conversation')
   async handleUnirseAConversacion(
-    @MessageBody() conversacionId: string,
+    @MessageBody() data: { conversacion_id: string } | string,
     @ConnectedSocket() client: Socket,
   ) {
     try {
+      // Manejar tanto objeto como string para compatibilidad
+      const conversacionId = typeof data === 'string' ? data : data.conversacion_id;
+      
+      console.log(`\n🔵 [JOIN] Cliente ${client.id} quiere unirse a conversacion:${conversacionId}`);
+      
+      // 🔧 FIX CRÍTICO: Salir de TODAS las conversaciones anteriores
+      const currentRooms = Array.from(client.rooms);
+      console.log(`📋 [JOIN] Rooms actuales del cliente:`, currentRooms);
+      
+      for (const room of currentRooms) {
+        if (room.startsWith('conversacion:') && room !== `conversacion:${conversacionId}`) {
+          await client.leave(room);
+          console.log(`🚪 [LEAVE] Cliente ${client.id} salió de ${room}`);
+        }
+      }
+      
       // Unirse a la sala de la conversación
-      await client.join(`conversacion_${conversacionId}`);
+      await client.join(`conversacion:${conversacionId}`);
+      
+      // Obtener token de autenticación
+      const tokenHeader = (client.handshake.headers['authorization'] as string) || 
+                         (client.handshake.auth && (client.handshake.auth as any).token) || 
+                         '';
       
       // Obtener mensajes anteriores
       const mensajes = await this.mensajeService.obtenerMensajesPorConversacion(
         conversacionId,
+        tokenHeader
       );
       
+      client.emit('conversation:joined', { conversacion_id: conversacionId, mensajes });
       return { success: true, mensajes };
-    } catch (error) {
-      return { success: false, error: error.message };
+    } catch (error: any) {
+      client.emit('error', { message: error.message || 'could_not_join_conversation' });
+      return { status: 'error' };
     }
   }
 
-  @SubscribeMessage('dejarConversacion')
+  @SubscribeMessage('leave_conversation')
   async handleDejarConversacion(
     @MessageBody() conversacionId: string,
     @ConnectedSocket() client: Socket,
   ) {
     try {
-      await client.leave(`conversacion_${conversacionId}`);
+      await client.leave(`conversacion:${conversacionId}`);
+      client.emit('conversation:left', { conversacion_id: conversacionId });
       return { success: true };
     } catch (error) {
-      return { success: false, error: error.message };
+      client.emit('error', { message: error.message || 'could_not_create_message' });
+      return { status: 'error' };
     }
   }
 
-  @SubscribeMessage('marcarComoLeidos')
+  @SubscribeMessage('messages:mark_read')
   async handleMarcarComoLeidos(
     @MessageBody()
     payload: {
       conversacion_id: string;
       usuario_id: string;
     },
+    @ConnectedSocket() client: Socket,
   ) {
     try {
+      // Obtener token de autenticación
+      const tokenHeader = (client.handshake.headers['authorization'] as string) || 
+                         (client.handshake.auth && (client.handshake.auth as any).token) || 
+                         '';
+      
       const resultado = await this.mensajeService.marcarMensajesComoLeidos(
         payload.conversacion_id,
         payload.usuario_id,
+        tokenHeader
       );
       
       // Notificar a todos en la conversación que los mensajes fueron leídos
       this.server
-        .to(`conversacion_${payload.conversacion_id}`)
-        .emit('mensajesLeidos', {
+        .to(`conversacion:${payload.conversacion_id}`)
+        .emit('messages:read', {
           conversacion_id: payload.conversacion_id,
           usuario_id: payload.usuario_id,
         });
 
-      return { success: true, resultado };
-    } catch (error) {
-      return { success: false, error: error.message };
+      return { status: 'ok', resultado };
+    } catch (error: any) {
+      client.emit('error', { message: error.message || 'could_not_mark_read' });
+      return { status: 'error' };
     }
   }
 }

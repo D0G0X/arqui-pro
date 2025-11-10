@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import FormularioLogin from "../../components/auth/FormularioLogin";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -7,9 +7,26 @@ import imagenLogin from "../../assets/login.webp"
 
 export default function LoginPage(){
     const navigate = useNavigate();
-    const { login } = useAuth();
+    const { login, user, isAuthenticated } = useAuth();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Redirección automática si ya está autenticado
+    useEffect(() => {
+        if (isAuthenticated && user) {
+            console.log('👤 Usuario ya autenticado, redirigiendo...', user.rol);
+            
+            if (user.rol === 'moderador') {
+                navigate("/moderador/dashboard", { replace: true });
+            } else if (user.rol === "cliente") {
+                navigate("/client/dashboard", { replace: true });
+            } else if (user.rol === "arquitecto") {
+                navigate("/arquitecto/profile", { replace: true });
+            } else {
+                navigate("/", { replace: true });
+            }
+        }
+    }, [isAuthenticated, user, navigate]);
 
     const handleLogin = async (email: string, password: string)=>{  
         setError(null);
@@ -29,7 +46,10 @@ export default function LoginPage(){
                     navigate("/moderador/dashboard");
                 }
                 else if(parsedUser.rol === "cliente"){
-                    navigate("/cliente/home")
+                    navigate("/client/dashboard")
+                }
+                else if(parsedUser.rol === "arquitecto"){
+                    navigate("/arquitecto/profile")
                 }
                 else {
                     console.log("chao")

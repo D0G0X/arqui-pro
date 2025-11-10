@@ -25,7 +25,8 @@ async function bootstrap() {
     console.log(`HTTP server: http://localhost:${port}`);
     console.log(`WebSocket endpoints:`);
     console.log(`- Chat: ws://localhost:${port}/chat`);
-    console.log(`- Notifications: ws://localhost:${port}/notificacion`);
+    console.log(`- Mensajes: ws://localhost:${port}/mensajes`);
+    console.log(`- Notificaciones: ws://localhost:${port}/notificacion`);
     console.log('=================================');
   } catch (error) {
     console.error('Failed to start server:', error);

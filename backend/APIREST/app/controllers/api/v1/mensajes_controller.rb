@@ -6,13 +6,40 @@ class Api::V1::MensajesController < ApplicationController
   #before_action :require_mensaje_ownership!, only: %i[update destroy]
 
   def index
-    @mensajes = Mensaje.all
-    render json: @mensajes
+    @mensajes = Mensaje.includes(:imagenes, :remitente).all
+    render json: @mensajes.as_json(
+      include: {
+        remitente: { only: [:id, :nombre, :email] },
+        imagenes: { only: [:id, :imagen_url, :fecha] }
+      }
+    )
   end
 
   def create
+    # Validar que haya contenido o imágenes
+    if mensaje_params[:contenido].blank? && params[:imagenes].blank?
+      render json: { error: "Debe proporcionar contenido o al menos una imagen" }, status: :unprocessable_entity
+      return
+    end
+    
     @mensaje = Mensaje.new(mensaje_params)
     if @mensaje.save
+      # Si hay imágenes, crear las asociaciones
+      if params[:imagenes].present?
+        params[:imagenes].each do |imagen_data|
+          imagen = Imagen.create!(
+            imagen_url: imagen_data[:url],
+            fecha: Time.current
+          )
+          ImagenAsociacion.create!(
+            imagen: imagen,
+            asociable: @mensaje
+          )
+        end
+        # Recargar el mensaje con las imágenes
+        @mensaje.reload
+      end
+      
       # Notificar al WebSocket sobre el nuevo mensaje
       begin
         WebSocketNotifier.notify_message_created(@mensaje)
@@ -21,14 +48,21 @@ class Api::V1::MensajesController < ApplicationController
         Rails.logger.error "Failed to notify WebSocket: #{e.message}"
         Rails.logger.error e.backtrace.join("\n")
       end
-      render json: @mensaje, status: :created
+      
+      # Serializar con imágenes
+      render json: @mensaje.as_json(include: { imagenes: { only: [:id, :imagen_url, :fecha] } }), status: :created
     else
       render json: @mensaje.errors, status: :unprocessable_entity
     end
   end
 
   def show
-    render json: @mensaje
+    render json: @mensaje.as_json(
+      include: {
+        remitente: { only: [:id, :nombre, :email] },
+        imagenes: { only: [:id, :imagen_url, :fecha] }
+      }
+    )
   end
 
   def update
