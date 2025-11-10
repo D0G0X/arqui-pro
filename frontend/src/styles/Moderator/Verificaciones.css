@@ -60,7 +60,7 @@
 }
 
 /* Badges */
-.badge {
+.ver-badge {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -70,22 +70,22 @@
   font-weight: 500;
 }
 
-.badge-warning {
+.ver-badge-warning {
   background-color: #fff3cd;
   color: #856404;
 }
 
-.badge-success {
+.ver-badge-success {
   background-color: #d4edda;
   color: #155724;
 }
 
-.badge-danger {
+.ver-badge-danger {
   background-color: #f8d7da;
   color: #721c24;
 }
 
-.badge-secondary {
+.ver-badge-secondary {
   background-color: #e9ecef;
   color: #6c757d;
 }

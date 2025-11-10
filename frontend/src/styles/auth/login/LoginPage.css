@@ -69,14 +69,14 @@
 */
 
 /* --- Estilos para mensajes (opcional) --- */
-.loading-message, .error-message {
+.login-loading-message, .login-error-message {
     padding: 10px;
     margin-top: 15px;
     border-radius: 4px;
     font-weight: bold;
 }
 
-.error-message {
+.login-error-message {
     background-color: #f8d7da;
     color: #721c24;
     border: 1px solid #f5c6cb;

@@ -81,8 +81,8 @@ function MisProyectos() {
         ) : (
           <div className="mp-no-proyectos">
             <FolderKanban size={64} className="mp-empty-icon" />
-            <h3>No tienes proyectos todavía</h3>
-            <p>Comienza creando tu primer proyecto arquitectónico</p>
+            <h3 className="mp-no-proyectos-title">No tienes proyectos todavía</h3>
+            <p className="mp-no-proyectos-text">Comienza creando tu primer proyecto arquitectónico</p>
             <button className="mp-crear-proyecto-btn">
               <Plus size={20} />
               Crear Primer Proyecto

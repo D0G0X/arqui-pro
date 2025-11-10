@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Chat } from '../../components/Chat';
 import { NotificationInbox } from '../../components/NotificationInbox';
-import { Search, Settings, MessageCircle, ArrowLeft } from 'lucide-react';
+import { Search, Settings, MessageCircle } from 'lucide-react';
 import { useConversaciones } from '../../hooks/useApiWithCache';
 import axiosInstance from '../../services/api/axiosInstance';
 import type { Conversacion } from '../../types';
@@ -175,19 +175,6 @@ export default function ClientChat() {
     <div className="client-chat-page">
       {/* Bandeja de notificaciones global */}
       <NotificationInbox />
-      
-      {/* Navigation Bar */}
-      <div className="architect-nav-bar">
-        <button
-          onClick={() => navigate('/client/dashboard')}
-          className="nav-back-btn"
-        >
-          <ArrowLeft size={20} />
-          Volver al Dashboard
-        </button>
-        <h1 className="nav-title">Mis Conversaciones</h1>
-        <div className="nav-spacer"></div>
-      </div>
 
       <div className="chat-container-wrapper">
         {/* Left Panel - Conversations List */}

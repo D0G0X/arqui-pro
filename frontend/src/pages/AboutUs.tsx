@@ -98,10 +98,10 @@ function AboutUs() {
             <h2>Ready to Start Your Project?</h2>
             <p>Join thousands of satisfied clients who found their perfect architect on ArquiPro.</p>
             <div className="cta-buttons">
-              <button className="btn-primary" onClick={() => window.location.href = '/architects'}>
+              <button className="au-btn-primary" onClick={() => window.location.href = '/architects'}>
                 Find Architects
               </button>
-              <button className="btn-secondary" onClick={() => window.location.href = '/register'}>
+              <button className="au-btn-secondary" onClick={() => window.location.href = '/register'}>
                 Register as Architect
               </button>
             </div>

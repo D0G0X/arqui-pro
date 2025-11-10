@@ -80,13 +80,13 @@ export const Verificaciones = () => {
   const getEstadoBadgeClass = (estado: string) => {
     switch (estado) {
       case 'pendiente':
-        return 'badge-warning';
+        return 'ver-badge-warning';
       case 'verificado':
-        return 'badge-success';
+        return 'ver-badge-success';
       case 'rechazado':
-        return 'badge-danger';
+        return 'ver-badge-danger';
       default:
-        return 'badge-secondary';
+        return 'ver-badge-secondary';
     }
   };
 
@@ -136,7 +136,7 @@ export const Verificaciones = () => {
                 verificaciones.map((verificacion: any) => (
                   <tr key={verificacion.id}>
                     <td>
-                      <span className={`badge ${getEstadoBadgeClass(verificacion.estado)}`}>
+                      <span className={`ver-badge ${getEstadoBadgeClass(verificacion.estado)}`}>
                         {verificacion.estado === 'pendiente' && '⏱ Pendiente'}
                         {verificacion.estado === 'verificado' && '✓ Verificado'}
                         {verificacion.estado === 'rechazado' && '✗ Rechazado'}

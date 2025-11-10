@@ -149,13 +149,13 @@ export default function CreateProject() {
         </div>
 
         {error && (
-          <div className="error-message">
+          <div className="cp-error-message">
             {error}
           </div>
         )}
 
         {!arquitectoId && !loadingArquitecto && (
-          <div className="error-message">
+          <div className="cp-error-message">
             No se pudo cargar tu perfil de arquitecto. Verifica la consola para más detalles.
           </div>
         )}

@@ -113,7 +113,7 @@
 }
 
 /* Modal de Descripción */
-.modal-overlay {
+.inc-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -136,7 +136,7 @@
   }
 }
 
-.modal-content {
+.inc-modal-content {
   background: #fff;
   border-radius: 16px;
   width: 90%;
@@ -159,7 +159,7 @@
   }
 }
 
-.modal-header {
+.inc-modal-header {
   padding: 24px 28px;
   border-bottom: 1px solid #e9ecef;
   display: flex;
@@ -169,14 +169,14 @@
   border-radius: 16px 16px 0 0;
 }
 
-.modal-header h3 {
+.inc-modal-header h3 {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
   color: #fff;
 }
 
-.modal-close {
+.inc-modal-close {
   background: rgba(255, 255, 255, 0.2);
   border: none;
   width: 36px;
@@ -193,19 +193,19 @@
   line-height: 1;
 }
 
-.modal-close:hover {
+.inc-modal-close:hover {
   background: rgba(255, 255, 255, 0.3);
   transform: scale(1.1);
 }
 
-.modal-body {
+.inc-modal-body {
   padding: 28px;
   overflow-y: auto;
   flex: 1;
   line-height: 1.6;
 }
 
-.modal-body p {
+.inc-modal-body p {
   margin: 0;
   font-size: 15px;
   color: #495057;
@@ -271,7 +271,7 @@
 }
 
 /* Badges de Estado */
-.badge {
+.inc-badge {
   display: inline-block;
   padding: 4px 12px;
   border-radius: 12px;
@@ -281,22 +281,22 @@
   letter-spacing: 0.5px;
 }
 
-.badge-success {
+.inc-badge-success {
   background-color: #d4edda;
   color: #155724;
 }
 
-.badge-danger {
+.inc-badge-danger {
   background-color: #f8d7da;
   color: #721c24;
 }
 
-.badge-warning {
+.inc-badge-warning {
   background-color: #fff3cd;
   color: #856404;
 }
 
-.badge-secondary {
+.inc-badge-secondary {
   background-color: #e2e3e5;
   color: #383d41;
 }

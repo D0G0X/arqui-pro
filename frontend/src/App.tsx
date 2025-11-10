@@ -22,6 +22,7 @@ import ArchitectProjectDetail from './pages/Arquitecto/ArchitectProjectDetail'
 
 import { ModeratorDashboard, Verificaciones, Incidencias } from './pages/Moderator'
 import ClienteLayout from './components/layout/Cliente/ClienteLayout'
+import ArquitectoLayout from './components/layout/Arquitecto/ArquitectoLayout'
 import MainLayout from './components/layout/MainLayout'
 import ClienteHome from './pages/Cliente/ClienteHomePage'
 import MisProyectos from './pages/Cliente/MisProyectos'
@@ -78,37 +79,20 @@ function App() {
               
               {/* Rutas Protegidas - Arquitecto */}
               <Route 
-                path="/arquitecto/profile" 
+                path="/arquitecto" 
                 element={
                   <ProtectedRoute requiredRole="arquitecto">
-                    <ArchitectDashboard />
+                    <ArquitectoLayout />
                   </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/arquitecto/chat" 
-                element={
-                  <ProtectedRoute requiredRole="arquitecto">
-                    <ArchitectChat />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/arquitecto/create-project" 
-                element={
-                  <ProtectedRoute requiredRole="arquitecto">
-                    <CreateProject />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/arquitecto/project/:id" 
-                element={
-                  <ProtectedRoute requiredRole="arquitecto">
-                    <ArchitectProjectDetail />
-                  </ProtectedRoute>
-                } 
-              />
+                }
+              >
+                <Route path="/arquitecto/dashboard" element={<ArchitectDashboard />} />
+                <Route path="/arquitecto/profile" element={<ArchitectDashboard />} />
+                <Route path="/arquitecto/chat" element={<ArchitectChat />} />
+                <Route path="/arquitecto/create-project" element={<CreateProject />} />
+                <Route path="/arquitecto/project/:id" element={<ArchitectProjectDetail />} />
+                <Route path="/arquitecto/proyectos" element={<ArchitectDashboard />} />
+              </Route>
               
               {/* Rutas Protegidas - Cliente */}
               <Route 

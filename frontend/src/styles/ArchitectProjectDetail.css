@@ -371,7 +371,7 @@
 }
 
 /* Modal */
-.modal-overlay {
+.apd-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -395,7 +395,7 @@
   }
 }
 
-.modal-content {
+.apd-modal-content {
   background: white;
   border-radius: 14px;
   max-width: 560px;
@@ -417,7 +417,7 @@
   }
 }
 
-.modal-header {
+.apd-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -425,7 +425,7 @@
   border-bottom: 1px solid #e2e8f0;
 }
 
-.modal-header h3 {
+.apd-modal-header h3 {
   font-size: 1.25rem;
   font-weight: 700;
   color: #1e293b;
@@ -671,11 +671,11 @@
 }
 
 /* Finish Project Modal */
-.modal-confirm {
+.apd-modal-confirm {
   max-width: 480px;
 }
 
-.modal-body {
+.apd-modal-body {
   padding: 2rem 1.75rem 1.5rem;
   text-align: center;
 }

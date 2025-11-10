@@ -68,7 +68,7 @@ const ClienteHome = () => {
   if (loading) {
     return (
       <div className="cliente-home-loading">
-        <div className="loading-spinner"></div>
+        <div className="ch-loading-spinner"></div>
         <p>Cargando...</p>
       </div>
     )

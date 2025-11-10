@@ -425,9 +425,9 @@ export default function ArchitectProjectDetail() {
 
       {/* Create Avance Modal */}
       {showCreateModal && (
-        <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
+        <div className="apd-modal-overlay" onClick={() => setShowCreateModal(false)}>
+          <div className="apd-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="apd-modal-header">
               <h3>Nuevo Avance</h3>
               <button 
                 onClick={() => setShowCreateModal(false)}
@@ -522,9 +522,9 @@ export default function ArchitectProjectDetail() {
 
       {/* Add Images to Portfolio Modal */}
       {showAddImagesModal && (
-        <div className="modal-overlay" onClick={() => setShowAddImagesModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
+        <div className="apd-modal-overlay" onClick={() => setShowAddImagesModal(false)}>
+          <div className="apd-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="apd-modal-header">
               <h3>Agregar Imágenes a la Galería</h3>
               <button 
                 onClick={() => setShowAddImagesModal(false)}
@@ -534,7 +534,7 @@ export default function ArchitectProjectDetail() {
               </button>
             </div>
 
-            <div className="modal-body">
+            <div className="apd-modal-body">
               <div className="form-group">
                 <label>Imágenes</label>
                 <input
@@ -594,9 +594,9 @@ export default function ArchitectProjectDetail() {
 
       {/* Finish Project Modal */}
       {showFinishModal && (
-        <div className="modal-overlay" onClick={() => setShowFinishModal(false)}>
-          <div className="modal-content modal-confirm" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
+        <div className="apd-modal-overlay" onClick={() => setShowFinishModal(false)}>
+          <div className="apd-modal-content apd-modal-confirm" onClick={(e) => e.stopPropagation()}>
+            <div className="apd-modal-header">
               <h3>Finalizar Proyecto</h3>
               <button 
                 onClick={() => setShowFinishModal(false)}
@@ -606,7 +606,7 @@ export default function ArchitectProjectDetail() {
               </button>
             </div>
 
-            <div className="modal-body">
+            <div className="apd-modal-body">
               <div className="confirm-icon">
                 <CheckCircle size={48} />
               </div>

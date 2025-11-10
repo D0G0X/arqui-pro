@@ -50,7 +50,7 @@ const ArchitectDashboard = () => {
   if (loading) {
     return (
       <div className="arquitecto-dashboard-loading">
-        <div className="loading-spinner"></div>
+        <div className="ad-loading-spinner"></div>
         <p>Cargando...</p>
       </div>
     );

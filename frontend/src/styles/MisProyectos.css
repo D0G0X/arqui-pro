@@ -69,14 +69,15 @@
 .mp-empty-icon {
   color: #cbd5e0;
 }
-.mp-no-proyectos h3 {
+
+.mp-no-proyectos-title {
   font-size: 1.5rem;
   font-weight: 700;
   color: #1a202c;
   margin: 0;
 }
 
-.mp-no-proyectos p {
+.mp-no-proyectos-text {
   font-size: 1rem;
   color: #64748b;
   margin: 0;
@@ -141,7 +142,7 @@
   .mp-page-subtitle {
     font-size: 0.9rem;
   }
-  .mp-no-proyectos h3 {
+  .mp-no-proyectos-title {
     font-size: 1.25rem;
   }
 }

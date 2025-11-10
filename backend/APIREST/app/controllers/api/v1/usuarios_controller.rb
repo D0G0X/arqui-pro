@@ -2,11 +2,10 @@ module Api
     module V1
         class UsuariosController < ApplicationController
             # before_action :authenticate_usuario!, only: [:show, :update, :destroy]
-            before_action :set_usuario, only: %i[update show destroy]
+            before_action :set_usuario, only: %i[update show destroy suspender activar]
             # Solo usuarios autenticados pueden actualizar/eliminar
-            before_action :authenticate_usuario!, only: %i[update destroy]
-            before_action :require_rol_if_usuario!, only: %i[update destroy]
-            before_action -> { require_ownership!(@usuario) }, only: %i[update destroy]
+            before_action :authenticate_usuario!, only: %i[update destroy suspender activar]
+            before_action :require_moderador!, only: %i[suspender activar]
 
             def index
                 @usuarios = Usuario.all
@@ -40,6 +39,46 @@ module Api
                     head :no_content  # responde con 204 No Content si se eliminó correctamente
                 else
                     render json: { error: "Usuario no encontrado" }, status: :not_found
+                end
+            end
+
+            # Suspender un usuario (solo moderadores)
+            def suspender
+                unless @usuario
+                    return render json: { error: "Usuario no encontrado" }, status: :not_found
+                end
+
+                if @usuario.update(estado_cuenta: 'suspendido')
+                    render json: { 
+                        status: 'success', 
+                        message: 'Usuario suspendido exitosamente',
+                        usuario: @usuario 
+                    }, status: :ok
+                else
+                    render json: { 
+                        status: 'error', 
+                        errors: @usuario.errors.full_messages 
+                    }, status: :unprocessable_entity
+                end
+            end
+
+            # Activar un usuario suspendido (solo moderadores)
+            def activar
+                unless @usuario
+                    return render json: { error: "Usuario no encontrado" }, status: :not_found
+                end
+
+                if @usuario.update(estado_cuenta: 'activo')
+                    render json: { 
+                        status: 'success', 
+                        message: 'Usuario activado exitosamente',
+                        usuario: @usuario 
+                    }, status: :ok
+                else
+                    render json: { 
+                        status: 'error', 
+                        errors: @usuario.errors.full_messages 
+                    }, status: :unprocessable_entity
                 end
             end
 

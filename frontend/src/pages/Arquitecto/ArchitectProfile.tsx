@@ -176,7 +176,7 @@ export default function ArchitectProfile() {
     <div className="architect-profile-page">
       {/* Header */}
       <header className="profile-header">
-        <div className="header-container">
+        <div className="ap-header-container">
           <div className="logo-section">
             <span className="logo-icon">🏛️</span>
             <span className="logo-text">ArquiPro</span>

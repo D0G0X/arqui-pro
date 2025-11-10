@@ -85,7 +85,7 @@ export default function ArchitectOwnProfile() {
     <div className="architect-own-profile-page">
       {/* Header */}
       <header className="profile-header">
-        <div className="header-container">
+        <div className="aop-header-container">
           <div className="logo-section">
             <span className="logo-icon">🏛️</span>
             <span className="logo-text">ArquiPro</span>

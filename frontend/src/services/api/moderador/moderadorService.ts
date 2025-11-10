@@ -244,18 +244,17 @@ export const moderadorService = {
    * Suspender un usuario
    */
   async suspenderUsuario(
-    usuarioId: number,
-    data: {
-      moderador_id: number
-      razon: string
+    usuarioId: string | number,
+    data?: {
+      moderador_id?: number
+      razon?: string
     }
   ): Promise<any> {
     try {
       logger.info('Suspendiendo usuario', { usuarioId, ...data })
       
       const response = await axiosInstance.post(
-        `${MODERADOR_BASE_URL}/usuarios/${usuarioId}/suspender`,
-        data
+        `/usuarios/${usuarioId}/suspender`
       )
 
       return response.data
@@ -269,17 +268,16 @@ export const moderadorService = {
    * Activar un usuario suspendido
    */
   async activarUsuario(
-    usuarioId: number,
-    data: {
-      moderador_id: number
+    usuarioId: string | number,
+    data?: {
+      moderador_id?: number
     }
   ): Promise<any> {
     try {
       logger.info('Activando usuario', { usuarioId, ...data })
       
       const response = await axiosInstance.post(
-        `${MODERADOR_BASE_URL}/usuarios/${usuarioId}/activar`,
-        data
+        `/usuarios/${usuarioId}/activar`
       )
 
       return response.data

@@ -81,8 +81,8 @@ export default function LoginPage(){
             <div className="image-side">
                 {/* Puedes colocar una etiqueta <img> o un componente aquí */}
                 <img className="login-illustration" src={imagenLogin} alt="imagen de login" />
-                {loading && <div className="loading-message">Cargando...</div>}
-                {error && <div className="error-message">{error}</div>}
+                {loading && <div className="login-loading-message">Cargando...</div>}
+                {error && <div className="login-error-message">{error}</div>}
             </div>
 
             {/* Lado derecho para el formulario de Login (la "tarjeta" blanca) */}

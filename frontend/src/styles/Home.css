@@ -58,7 +58,7 @@
   justify-content: center;
 }
 
-.btn-primary {
+.home-btn-primary {
   background-color: #ff8c42;
   color: white;
   border: none;
@@ -70,13 +70,13 @@
   transition: all 0.3s;
 }
 
-.btn-primary:hover {
+.home-btn-primary:hover {
   background-color: #e67732;
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(255, 140, 66, 0.4);
 }
 
-.btn-secondary {
+.home-btn-secondary {
   background-color: transparent;
   color: white;
   border: 2px solid white;
@@ -88,7 +88,7 @@
   transition: all 0.3s;
 }
 
-.btn-secondary:hover {
+.home-btn-secondary:hover {
   background-color: white;
   color: #333;
   transform: translateY(-2px);

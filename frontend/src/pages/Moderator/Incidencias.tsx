@@ -93,7 +93,7 @@ export const Incidencias = () => {
     }
   };
 
-  const handleCambiarEstadoUsuario = async (usuarioId: number, estadoActual: 'activo' | 'suspendido' | undefined) => {
+  const handleCambiarEstadoUsuario = async (usuarioId: number | string, estadoActual: 'activo' | 'suspendido' | undefined) => {
     const nuevoEstado = estadoActual === 'activo' ? 'suspendido' : 'activo';
     const accion = nuevoEstado === 'suspendido' ? 'suspender' : 'activar';
     
@@ -101,14 +101,9 @@ export const Incidencias = () => {
 
     try {
       if (nuevoEstado === 'suspendido') {
-        await moderadorService.suspenderUsuario(usuarioId, {
-          moderador_id: Number(user?.id) || 0,
-          razon: 'Suspensión por incidencia'
-        });
+        await moderadorService.suspenderUsuario(usuarioId);
       } else {
-        await moderadorService.activarUsuario(usuarioId, {
-          moderador_id: Number(user?.id) || 0
-        });
+        await moderadorService.activarUsuario(usuarioId);
       }
       alert(`✅ Usuario ${nuevoEstado === 'suspendido' ? 'suspendido' : 'activado'} exitosamente`);
       cargarIncidencias();
@@ -121,13 +116,13 @@ export const Incidencias = () => {
   const getEstadoBadgeClass = (estado: string) => {
     switch (estado) {
       case 'pendiente':
-        return 'badge-danger';
+        return 'inc-badge-danger';
       case 'en revision':
-        return 'badge-warning';
+        return 'inc-badge-warning';
       case 'resuelto':
-        return 'badge-success';
+        return 'inc-badge-success';
       default:
-        return 'badge-secondary';
+        return 'inc-badge-secondary';
     }
   };
 
@@ -172,7 +167,7 @@ export const Incidencias = () => {
                     }
                   </td>
                   <td>
-                    <span className={`badge ${getEstadoBadgeClass(incidencia.estado)}`}>
+                    <span className={`inc-badge ${getEstadoBadgeClass(incidencia.estado)}`}>
                       {incidencia.estado === 'pendiente' && 'Pendiente'}
                       {incidencia.estado === 'en revision' && 'En Revisión'}
                       {incidencia.estado === 'resuelto' && 'Resuelto'}
@@ -193,11 +188,11 @@ export const Incidencias = () => {
                   </td>
                   <td>
                     {incidencia.infractor?.estado_cuenta ? (
-                      <span className={`badge ${incidencia.infractor.estado_cuenta === 'activo' ? 'badge-success' : 'badge-danger'}`}>
+                      <span className={`inc-badge ${incidencia.infractor.estado_cuenta === 'activo' ? 'inc-badge-success' : 'inc-badge-danger'}`}>
                         {incidencia.infractor.estado_cuenta === 'activo' ? 'Activo' : 'Suspendido'}
                       </span>
                     ) : (
-                      <span className="badge badge-secondary">-</span>
+                      <span className="inc-badge inc-badge-secondary">-</span>
                     )}
                   </td>
                   <td>
@@ -208,10 +203,10 @@ export const Incidencias = () => {
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                      {incidencia.infractor_id && incidencia.infractor && (
+                      {(incidencia.infractor_id || incidencia.infractor?.id) && incidencia.infractor && (
                         <button
                           onClick={() => handleCambiarEstadoUsuario(
-                            incidencia.infractor_id!,
+                            incidencia.infractor?.id || incidencia.infractor_id!,
                             incidencia.infractor?.estado_cuenta
                           )}
                           className={incidencia.infractor.estado_cuenta === 'activo' ? 'btn-suspender' : 'btn-activar'}
@@ -265,13 +260,13 @@ export const Incidencias = () => {
 
         {/* Modal para descripción completa */}
         {modalDescripcion && (
-          <div className="modal-overlay" onClick={() => setModalDescripcion(null)}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <div className="modal-header">
+          <div className="inc-modal-overlay" onClick={() => setModalDescripcion(null)}>
+            <div className="inc-modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="inc-modal-header">
                 <h3>Descripción Completa</h3>
-                <button className="modal-close" onClick={() => setModalDescripcion(null)}>×</button>
+                <button className="inc-modal-close" onClick={() => setModalDescripcion(null)}>×</button>
               </div>
-              <div className="modal-body">
+              <div className="inc-modal-body">
                 <p>{modalDescripcion}</p>
               </div>
             </div>

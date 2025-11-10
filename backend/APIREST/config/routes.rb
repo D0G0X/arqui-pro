@@ -15,7 +15,12 @@ Rails.application.routes.draw do
         sessions: 'usuarios/sessions'
       },
       defaults: { format: :json }
-      resources :usuarios
+      resources :usuarios do
+        member do
+          post :suspender
+          post :activar
+        end
+      end
       resources :clientes
       resources :arquitectos
       resources :moderadores
