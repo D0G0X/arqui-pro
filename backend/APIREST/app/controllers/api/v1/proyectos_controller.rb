@@ -9,12 +9,8 @@ class Api::V1::ProyectosController < ApplicationController
   before_action :require_proyecto_ownership!, only: %i[update destroy add_imagenes]
 
   def index
-    @proyecto = Proyecto.includes(:imagenes).all
-    render json: @proyecto.as_json(
-      include: {
-        imagenes: { only: [:id, :imagen_url, :fecha] }
-      }
-    )
+    @proyectos = Proyecto.all
+    render json: @proyectos
   end
 
   def create

@@ -7,8 +7,8 @@ class Api::V1::SolicitudesProyectoController < ApplicationController
   before_action :require_solicitud_ownership!, only: %i[update destroy]
 
   def index
-    @solicitud = SolicitudProyecto.all
-    render json: @solicitud
+    @solicitudes= SolicitudProyecto.all
+    render json: @solicitudes
   end
 
   def create

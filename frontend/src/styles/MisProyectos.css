@@ -1,0 +1,147 @@
+/* Mis Proyectos Page Styles */
+
+.mp-proyectos-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+  padding: 2rem 1rem;
+}
+
+.mp-proyectos-content {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Header Section */
+.mp-proyectos-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.mp-header-title-section {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.mp-header-icon {
+  color: #ff6b35;
+  flex-shrink: 0;
+}
+
+.mp-page-title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.2;
+}
+
+.mp-page-subtitle {
+  font-size: 1rem;
+  color: #64748b;
+  margin: 0;
+}
+.mp-proyectos-grid {
+  display: grid;
+  /* Fuerza una malla de 2 columnas en pantallas de escritorio */
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  align-items: start;
+}
+
+/* Empty State */
+.mp-no-proyectos {
+  background: white;
+  border-radius: 20px;
+  padding: 4rem 2rem;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.mp-empty-icon {
+  color: #cbd5e0;
+}
+.mp-no-proyectos h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0;
+}
+
+.mp-no-proyectos p {
+  font-size: 1rem;
+  color: #64748b;
+  margin: 0;
+  max-width: 400px;
+}
+
+.mp-crear-proyecto-btn {
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+  margin-top: 1rem;
+}
+
+.mp-crear-proyecto-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+}
+
+.mp-crear-proyecto-btn:active {
+  transform: translateY(0);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .mp-proyectos-container {
+    padding: 1rem 0.5rem;
+  }
+  .mp-proyectos-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .mp-header-title-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .mp-page-title {
+    font-size: 1.75rem;
+  }
+  .mp-proyectos-grid {
+    grid-template-columns: 1fr;
+  }
+  .mp-no-proyectos {
+    padding: 3rem 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .mp-page-title {
+    font-size: 1.5rem;
+  }
+  .mp-page-subtitle {
+    font-size: 0.9rem;
+  }
+  .mp-no-proyectos h3 {
+    font-size: 1.25rem;
+  }
+}

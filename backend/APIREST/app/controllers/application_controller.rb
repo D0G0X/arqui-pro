@@ -25,7 +25,7 @@ class ApplicationController < ActionController::API
     
     if token
       begin
-        payload = JWT.decode(token, Rails.application.credentials.devise_jwt_secret_key, true, { algorithm: 'HS256' }).first
+        payload = JWT.decode(token, JWT_SECRET_KEY, true, { algorithm: JWT_ALGORITHM }).first
         @current_usuario = Usuario.find(payload['sub'])
         
         Rails.logger.info "    ✅ Usuario autenticado: #{@current_usuario.email} (#{@current_usuario.rol})"

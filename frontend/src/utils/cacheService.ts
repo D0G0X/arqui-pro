@@ -101,6 +101,22 @@ export class CacheService {
   }
 
   /**
+   * Limpia cachés que coincidan con un patrón
+   */
+  static clearByPattern(pattern: string): void {
+    try {
+      const keys = Object.keys(localStorage)
+      keys.forEach(key => {
+        if (key.includes(pattern) && key.endsWith('_cache')) {
+          localStorage.removeItem(key)
+        }
+      })
+    } catch (error) {
+      console.error(`Error limpiando cachés con patrón [${pattern}]:`, error)
+    }
+  }
+
+  /**
    * Limpia cachés que hayan expirado
    */
   static clearOldCache(): void {

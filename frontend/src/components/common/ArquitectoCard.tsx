@@ -24,7 +24,7 @@ const ArquitectoCard = memo(function ArquitectoCard({ arquitecto }: ArquitectoCa
   } = arquitecto
 
   const handleVerPerfil = () => {
-    navigate(`/arquitecto/${id}`)
+    navigate(`/cliente/arquitecto/${id}`)
   }
   
   // Obtener nombre: desde usuario o usar ubicación como fallback
@@ -68,15 +68,15 @@ const ArquitectoCard = memo(function ArquitectoCard({ arquitecto }: ArquitectoCa
       
       <div className="arquitecto-rating">
         <span className="rating-star" aria-hidden="true">⭐</span>
-        <span className="rating-value">{rating.toFixed(1)}</span>
-        <span className="sr-only">Rating: {rating.toFixed(1)} out of 5</span>
+        <span className="rating-value">{rating.toFixed(1)} puntos</span>
+        {/* <span className="sr-only">Rating: {rating.toFixed(1)} out of 5</span> */}
       </div>
 
       <button
         onClick={handleVerPerfil}
         className="arquitecto-button"
       >
-        View Profile
+        Ver Perfil
       </button>
     </div>
   )
