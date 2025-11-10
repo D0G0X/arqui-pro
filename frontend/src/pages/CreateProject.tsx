@@ -13,7 +13,7 @@ export default function CreateProject() {
   const [searchParams] = useSearchParams();
   const clienteId = searchParams.get('cliente_id');
 
-  const [arquitectoId, setArquitectoId] = useState<number | null>(null);
+  const [arquitectoId, setArquitectoId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     titulo_proyecto: '',
     descripcion: '',
@@ -22,6 +22,7 @@ export default function CreateProject() {
   });
 
   const [loading, setLoading] = useState(false);
+  const [loadingArquitecto, setLoadingArquitecto] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Si no es arquitecto, redirigir
@@ -34,17 +35,27 @@ export default function CreateProject() {
     // Obtener el arquitecto_id del usuario actual
     const fetchArquitecto = async () => {
       try {
+        setLoadingArquitecto(true);
+        console.log('🔍 Buscando arquitecto para usuario:', user.id);
         const response = await arquitectosService.getAll();
+        console.log('📦 Arquitectos obtenidos:', response.arquitectos.length);
+        
         const arquitectoActual = response.arquitectos.find(
-          (arq) => arq.usuario?.id === user.id
+          (arq) => arq.usuario?.id === user.id || arq.usuario_id === user.id
         );
         
         if (arquitectoActual) {
-          setArquitectoId(Number(arquitectoActual.id));
+          console.log('✅ Arquitecto encontrado:', arquitectoActual.id);
+          setArquitectoId(String(arquitectoActual.id));
+        } else {
+          console.error('❌ No se encontró arquitecto para el usuario');
+          setError('No se encontró tu perfil de arquitecto. Por favor, contacta al administrador.');
         }
       } catch (err) {
         console.error('Error al obtener arquitecto:', err);
-        // No mostrar error al usuario, solo log en consola
+        setError('Error al cargar tu perfil de arquitecto');
+      } finally {
+        setLoadingArquitecto(false);
       }
     };
 
@@ -61,21 +72,42 @@ export default function CreateProject() {
         throw new Error('No se encontró el ID del arquitecto');
       }
 
+      console.log('📤 Enviando proyecto:', {
+        titulo_proyecto: formData.titulo_proyecto,
+        descripcion: formData.descripcion,
+        tipo_proyecto: formData.tipo_proyecto,
+        arquitecto_id: arquitectoId,
+      });
+
       const proyecto: Proyecto = {
         titulo_proyecto: formData.titulo_proyecto,
         descripcion: formData.descripcion,
         tipo_proyecto: formData.tipo_proyecto,
         arquitecto_id: arquitectoId,
-        ...(formData.cliente_id && { cliente_id: parseInt(formData.cliente_id) }),
+        ...(formData.cliente_id && { cliente_id: formData.cliente_id }),
       };
 
-      await proyectosService.createProyecto(proyecto);
+      const result = await proyectosService.createProyecto(proyecto);
+      console.log('✅ Proyecto creado exitosamente:', result);
       
       // Redirigir al dashboard del arquitecto
       navigate('/arquitecto/profile');
     } catch (err: any) {
-      console.error('Error al crear proyecto:', err);
-      setError(err.response?.data?.message || 'Error al crear el proyecto');
+      console.error('❌ Error completo:', err);
+      console.error('Response data:', err.response?.data);
+      console.error('Status code:', err.response?.status);
+      
+      // Si es error 401, no hacer nada (el interceptor ya maneja el logout)
+      if (err.response?.status === 401) {
+        setError('Sesión expirada. Por favor, inicia sesión nuevamente.');
+        return;
+      }
+      
+      const errorMessage = err.response?.data?.errors 
+        ? Object.values(err.response.data.errors).flat().join(', ')
+        : err.response?.data?.message || err.message || 'Error al crear el proyecto';
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -91,6 +123,18 @@ export default function CreateProject() {
 
   return (
     <div className="create-project-page">
+      {loadingArquitecto ? (
+        <div className="loading-container" style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          minHeight: '400px',
+          color: 'white',
+          fontSize: '1.2rem'
+        }}>
+          Cargando perfil de arquitecto...
+        </div>
+      ) : (
       <div className="create-project-container">
         <div className="create-project-header">
           <button onClick={() => navigate(-1)} className="back-btn">
@@ -106,6 +150,12 @@ export default function CreateProject() {
         {error && (
           <div className="error-message">
             {error}
+          </div>
+        )}
+
+        {!arquitectoId && !loadingArquitecto && (
+          <div className="error-message">
+            No se pudo cargar tu perfil de arquitecto. Verifica la consola para más detalles.
           </div>
         )}
 
@@ -177,13 +227,14 @@ export default function CreateProject() {
             <button
               type="submit"
               className="btn-submit"
-              disabled={loading}
+              disabled={loading || !arquitectoId}
             >
               {loading ? 'Creando...' : 'Crear Proyecto'}
             </button>
           </div>
         </form>
       </div>
+      )}
       <NotificationInbox />
     </div>
   );

@@ -79,7 +79,7 @@ export default function ArchitectOwnProfile() {
     ? arquitecto.especialidades.split(',').map(s => s.trim())
     : [];
   const rating = arquitecto.valoracion_prom_proyecto || 0;
-  const ubicacion = arquitecto.ubicacion || arquitecto.usuario?.ubicacion || 'Location not specified';
+  const ubicacion = arquitecto.ubicacion || 'Location not specified';
 
   return (
     <div className="architect-own-profile-page">

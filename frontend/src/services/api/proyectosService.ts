@@ -1,16 +1,23 @@
 import axiosInstance from './axiosInstance';
 
+interface Imagen {
+  id: number;
+  imagen_url: string;
+  fecha: string;
+}
+
 export interface Proyecto {
-  id?: number;
+  id?: string | number;
   titulo_proyecto: string;
   descripcion: string;
   tipo_proyecto: 'portafolio' | 'contratado';
   valoracion_promedio?: number;
   fecha_publicacion?: string;
-  arquitecto_id: number;
-  cliente_id?: number;
-  conversacion_id?: number;
-  solicitud_proyecto_id?: number;
+  arquitecto_id: string | number;
+  cliente_id?: string | number;
+  conversacion_id?: string | number;
+  solicitud_proyecto_id?: string | number;
+  imagenes?: Imagen[];
 }
 
 class ProyectosService {

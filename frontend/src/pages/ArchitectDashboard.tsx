@@ -4,7 +4,9 @@ import { useAuth } from '../hooks/useAuth';
 import { MessageCircle, LogOut, Plus, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { NotificationInbox } from '../components/NotificationInbox';
 import arquitectosService from '../services/api/arquitectosService';
+import proyectosService from '../services/api/proyectosService';
 import type { Arquitecto } from '../types';
+import type { Proyecto } from '../services/api/proyectosService';
 import { getInitials, getAvatarColor } from '../utils/formatters';
 import { AVATAR_COLORS } from '../config/constants';
 import '../styles/ArchitectDashboard.css';
@@ -13,7 +15,9 @@ export default function ArchitectDashboard() {
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
   const [arquitecto, setArquitecto] = useState<Arquitecto | null>(null);
+  const [proyectos, setProyectos] = useState<Proyecto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingProyectos, setLoadingProyectos] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<'all' | 'in_progress' | 'completed'>('all');
 
@@ -38,6 +42,9 @@ export default function ArchitectDashboard() {
 
         if (arquitectoEncontrado) {
           setArquitecto(arquitectoEncontrado);
+          
+          // Cargar proyectos del arquitecto
+          fetchProyectos(arquitectoEncontrado.id);
         } else {
           setError('No se encontró el perfil de arquitecto asociado');
         }
@@ -50,6 +57,22 @@ export default function ArchitectDashboard() {
 
     fetchArquitecto();
   }, [isAuthenticated, user, navigate]);
+
+  const fetchProyectos = async (arquitectoId: string) => {
+    try {
+      setLoadingProyectos(true);
+      const allProyectos = await proyectosService.getProyectos();
+      // Filtrar proyectos del arquitecto actual
+      const proyectosArquitecto = allProyectos.filter(
+        p => String(p.arquitecto_id) === String(arquitectoId)
+      );
+      setProyectos(proyectosArquitecto);
+    } catch (err) {
+      console.error('Error al cargar proyectos:', err);
+    } finally {
+      setLoadingProyectos(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -78,63 +101,20 @@ export default function ArchitectDashboard() {
     : getInitials(user?.nombre || '', user?.apellido || '');
   const avatarColor = getAvatarColor(nombreCompleto, AVATAR_COLORS);
 
-  // Mock data for projects (replace with real data from API)
-  const mockProjects = [
-    {
-      id: 1,
-      nombre: 'Modern Villa Renovation',
-      cliente: 'John Smith',
-      ubicacion: 'San Francisco, CA',
-      presupuesto: '$250,000',
-      progreso: 75,
-      estado: 'en_progreso',
-      fecha_inicio: '2024-01-15',
-      imagen: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400'
-    },
-    {
-      id: 2,
-      nombre: 'Commercial Office Space',
-      cliente: 'Tech Corp Inc.',
-      ubicacion: 'Austin, TX',
-      presupuesto: '$450,000',
-      progreso: 45,
-      estado: 'en_progreso',
-      fecha_inicio: '2024-02-01',
-      imagen: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=400'
-    },
-    {
-      id: 3,
-      nombre: 'Residential Complex',
-      cliente: 'Property Developers LLC',
-      ubicacion: 'Miami, FL',
-      presupuesto: '$1,200,000',
-      progreso: 30,
-      estado: 'en_progreso',
-      fecha_inicio: '2024-03-10',
-      imagen: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400'
-    },
-    {
-      id: 4,
-      nombre: 'Boutique Hotel Redesign',
-      cliente: 'Luxury Hotels Group',
-      ubicacion: 'New York, NY',
-      presupuesto: '$850,000',
-      progreso: 100,
-      estado: 'completado',
-      fecha_inicio: '2023-10-01',
-      imagen: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400'
-    }
-  ];
+  // Calcular estado de cada proyecto basado en valoración
+  const proyectosConEstado = proyectos.map(p => ({
+    ...p,
+    estado: p.valoracion_promedio && p.valoracion_promedio > 0 ? 'completado' : 'en_progreso'
+  }));
 
   const stats = {
-    total: mockProjects.length,
-    enProgreso: mockProjects.filter(p => p.estado === 'en_progreso').length,
-    completados: mockProjects.filter(p => p.estado === 'completado').length,
-    pendientes: mockProjects.filter(p => p.estado === 'pendiente').length
+    total: proyectosConEstado.length,
+    enProgreso: proyectosConEstado.filter(p => p.estado === 'en_progreso').length,
+    completados: proyectosConEstado.filter(p => p.estado === 'completado').length,
   };
 
   // Filtrar proyectos según el filtro activo
-  const filteredProjects = mockProjects.filter(project => {
+  const filteredProjects = proyectosConEstado.filter(project => {
     if (activeFilter === 'all') return true;
     if (activeFilter === 'in_progress') return project.estado === 'en_progreso';
     if (activeFilter === 'completed') return project.estado === 'completado';
@@ -289,17 +269,27 @@ export default function ArchitectDashboard() {
 
             {/* Projects Grid */}
             <div className="projects-grid">
-              {filteredProjects.map(project => (
+              {loadingProyectos ? (
+                <div className="loading-message">Cargando proyectos...</div>
+              ) : filteredProjects.length === 0 ? (
+                <div className="empty-message">
+                  No hay proyectos {activeFilter === 'in_progress' ? 'en progreso' : activeFilter === 'completed' ? 'completados' : ''} aún
+                </div>
+              ) : (
+                filteredProjects.map(project => (
                 <div key={project.id} className="project-card">
                   <div className="project-image">
-                    <img src={project.imagen} alt={project.nombre} />
+                    <img 
+                      src={project.imagenes?.[0]?.imagen_url || 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400'} 
+                      alt={project.titulo_proyecto} 
+                    />
                     <div className="project-overlay">
                       <button className="btn-view-details">View Details</button>
                     </div>
                   </div>
                   <div className="project-content">
                     <div className="project-header">
-                      <h3 className="project-title">{project.nombre}</h3>
+                      <h3 className="project-title">{project.titulo_proyecto}</h3>
                       <div className="project-status">
                         {getStatusIcon(project.estado)}
                         <span className="status-text">{getStatusText(project.estado)}</span>
@@ -308,40 +298,35 @@ export default function ArchitectDashboard() {
                     
                     <div className="project-info">
                       <div className="info-row">
-                        <span className="info-label">Client:</span>
-                        <span className="info-value">{project.cliente}</span>
+                        <span className="info-label">Tipo:</span>
+                        <span className="info-value">{project.tipo_proyecto === 'portafolio' ? 'Portafolio' : 'Contratado'}</span>
                       </div>
                       <div className="info-row">
-                        <span className="info-label">Location:</span>
-                        <span className="info-value">{project.ubicacion}</span>
+                        <span className="info-label">Fecha:</span>
+                        <span className="info-value">
+                          {project.fecha_publicacion ? new Date(project.fecha_publicacion).toLocaleDateString() : 'N/A'}
+                        </span>
                       </div>
                       <div className="info-row">
-                        <span className="info-label">Budget:</span>
-                        <span className="info-value">{project.presupuesto}</span>
+                        <span className="info-label">Valoración:</span>
+                        <span className="info-value">
+                          {project.valoracion_promedio && project.valoracion_promedio > 0 ? `⭐ ${project.valoracion_promedio.toFixed(1)}` : 'Sin valorar'}
+                        </span>
                       </div>
                     </div>
 
-                    {project.estado !== 'completado' && (
-                      <div className="project-progress">
-                        <div className="progress-header">
-                          <span className="progress-label">Progress</span>
-                          <span className="progress-percentage">{project.progreso}%</span>
-                        </div>
-                        <div className="progress-bar">
-                          <div 
-                            className="progress-fill" 
-                            style={{ width: `${project.progreso}%` }}
-                          />
-                        </div>
-                      </div>
-                    )}
+                    <div className="project-description" style={{ marginTop: '1rem', color: '#64748b', fontSize: '0.875rem' }}>
+                      <p>{project.descripcion.substring(0, 100)}{project.descripcion.length > 100 ? '...' : ''}</p>
+                    </div>
                   </div>
                 </div>
-              ))}
+              ))
+              )}
             </div>
           </div>
         </main>
       </div>
+      <NotificationInbox />
     </div>
   );
 }
