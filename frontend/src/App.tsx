@@ -25,6 +25,7 @@ import ArchitectProjectDetail from './pages/ArchitectProjectDetail'
 
 import { ModeratorDashboard, Verificaciones, Incidencias } from './pages/Moderator'
 import ClienteLayout from './components/layout/Cliente/ClienteLayout'
+import MainLayout from './components/layout/MainLayout'
 import ClienteHome from './pages/Cliente/ClienteHomePage'
 import MisProyectos from './pages/Cliente/MisProyectos'
 import ArquitectoProfile from './pages/ArquitectoProfile'
