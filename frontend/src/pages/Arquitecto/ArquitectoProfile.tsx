@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { Star, FolderKanban, Eye, MapPin, MessageCircle, CheckCircle } from 'lucide-react'
-import arquitectosService from '../services/api/arquitectosService'
+import arquitectosService from '../../services/api/arquitectosService'
 import { useQuery } from '@apollo/client'
-import { PERFIL_COMPLETO_ARQUITECTO } from '../services/graphql/queries'
-import LoadingSpinner from '../components/common/LoadingSpinner'
-import ErrorMessage from '../components/common/ErrorMessage'
-import type { Arquitecto, Proyecto } from '../types'
-import '../styles/ArquitectoProfile.css'
+import { PERFIL_COMPLETO_ARQUITECTO } from '../../services/graphql/queries'
+import LoadingSpinner from '../../components/common/LoadingSpinner'
+import ErrorMessage from '../../components/common/ErrorMessage'
+import type { Arquitecto, Proyecto } from '../../types'
+import '../../styles/ArquitectoProfile.css'
 
 const AVATAR_COLORS = [
   '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', 

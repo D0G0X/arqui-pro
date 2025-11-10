@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, ImageIcon, Plus, Trash2, X, CheckCircle } from 'lucide-react';
-import proyectosService from '../services/api/proyectosService';
-import avancesService from '../services/api/avancesService';
-import type { Proyecto } from '../types/proyecto.types';
-import type { Avance } from '../types/avance.types';
-import '../styles/ArchitectProjectDetail.css';
+import proyectosService from '../../services/api/proyectosService';
+import avancesService from '../../services/api/avancesService';
+import type { Proyecto } from '../../types/proyecto.types';
+import type { Avance } from '../../types/avance.types';
+import '../../styles/ArchitectProjectDetail.css';
 
 export default function ArchitectProjectDetail() {
   const { id } = useParams<{ id: string }>();

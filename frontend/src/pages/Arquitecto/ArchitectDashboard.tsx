@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../../hooks/useAuth';
 import { MessageCircle, LogOut, Plus, Clock, CheckCircle, AlertCircle } from 'lucide-react';
-import { NotificationInbox } from '../components/NotificationInbox';
-import arquitectosService from '../services/api/arquitectosService';
-import proyectosService from '../services/api/proyectosService';
-import type { Arquitecto, Proyecto } from '../types';
-import { getInitials, getAvatarColor } from '../utils/formatters';
-import { AVATAR_COLORS } from '../config/constants';
-import '../styles/ArchitectDashboard.css';
+import { NotificationInbox } from '../../components/NotificationInbox';
+import arquitectosService from '../../services/api/arquitectosService';
+import proyectosService from '../../services/api/proyectosService';
+import type { Arquitecto, Proyecto } from '../../types';
+import { getInitials, getAvatarColor } from '../../utils/formatters';
+import { AVATAR_COLORS } from '../../config/constants';
+import '../../styles/ArchitectDashboard.css';
 
 export default function ArchitectDashboard() {
   const { user, isAuthenticated, logout } = useAuth();

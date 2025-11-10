@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
-import arquitectosService from '../services/api/arquitectosService';
-import type { Arquitecto } from '../types';
-import type { Proyecto } from '../types';
-import { getInitials, getAvatarColor } from '../utils/formatters';
-import { AVATAR_COLORS } from '../config/constants';
-import '../styles/ArchitectProfile.css';
+import { useAuth } from '../../hooks/useAuth';
+import arquitectosService from '../../services/api/arquitectosService';
+import type { Arquitecto } from '../../types';
+import type { Proyecto } from '../../types';
+import { getInitials, getAvatarColor } from '../../utils/formatters';
+import { AVATAR_COLORS } from '../../config/constants';
+import '../../styles/ArchitectProfile.css';
 
 export default function ArchitectProfile() {
   const { id } = useParams<{ id: string }>();
@@ -37,6 +37,7 @@ export default function ArchitectProfile() {
             titulo_proyecto: 'Modern Villa',
             descripcion: 'Contemporary house with large windows',
             tipo_proyecto: 'portafolio',
+            fecha_publicacion: new Date('2024-01-15'),
             valoracion_promedio: 4.8,
             arquitecto_id: id,
             cliente_id: null
@@ -46,6 +47,7 @@ export default function ArchitectProfile() {
             titulo_proyecto: 'Corporate HQ',
             descripcion: 'Modern glass-fronted office building',
             tipo_proyecto: 'portafolio',
+            fecha_publicacion: new Date('2024-02-20'),
             valoracion_promedio: 4.6,
             arquitecto_id: id,
             cliente_id: null
@@ -55,6 +57,7 @@ export default function ArchitectProfile() {
             titulo_proyecto: 'Urban Loft',
             descripcion: 'Spacious high-ceiling loft interior',
             tipo_proyecto: 'portafolio',
+            fecha_publicacion: new Date('2024-03-10'),
             valoracion_promedio: 4.7,
             arquitecto_id: id,
             cliente_id: null
@@ -64,6 +67,7 @@ export default function ArchitectProfile() {
             titulo_proyecto: 'Community Center',
             descripcion: 'Modern interior with wooden slatted walls',
             tipo_proyecto: 'portafolio',
+            fecha_publicacion: new Date('2024-04-05'),
             valoracion_promedio: 4.9,
             arquitecto_id: id,
             cliente_id: null
@@ -73,6 +77,7 @@ export default function ArchitectProfile() {
             titulo_proyecto: 'Historic Townhouse',
             descripcion: 'Bright minimalist interior with modern staircase',
             tipo_proyecto: 'portafolio',
+            fecha_publicacion: new Date('2024-05-12'),
             valoracion_promedio: 4.5,
             arquitecto_id: id,
             cliente_id: null
@@ -82,6 +87,7 @@ export default function ArchitectProfile() {
             titulo_proyecto: 'Luxury Hotel Lobby',
             descripcion: 'Grand hotel lobby with high ceilings',
             tipo_proyecto: 'portafolio',
+            fecha_publicacion: new Date('2024-06-18'),
             valoracion_promedio: 4.8,
             arquitecto_id: id,
             cliente_id: null
@@ -91,6 +97,7 @@ export default function ArchitectProfile() {
             titulo_proyecto: 'Art Museum Facade',
             descripcion: 'Contemporary museum with angular concrete walls',
             tipo_proyecto: 'portafolio',
+            fecha_publicacion: new Date('2024-07-22'),
             valoracion_promedio: 4.7,
             arquitecto_id: id,
             cliente_id: null
@@ -100,6 +107,7 @@ export default function ArchitectProfile() {
             titulo_proyecto: 'Scandinavian Kitchen',
             descripcion: 'Minimalist kitchen with light wood cabinetry',
             tipo_proyecto: 'portafolio',
+            fecha_publicacion: new Date('2024-08-30'),
             valoracion_promedio: 4.6,
             arquitecto_id: id,
             cliente_id: null
@@ -109,6 +117,7 @@ export default function ArchitectProfile() {
             titulo_proyecto: 'Rooftop Garden',
             descripcion: 'Lush green rooftop garden with seating areas',
             tipo_proyecto: 'portafolio',
+            fecha_publicacion: new Date('2024-09-14'),
             valoracion_promedio: 4.9,
             arquitecto_id: id,
             cliente_id: null

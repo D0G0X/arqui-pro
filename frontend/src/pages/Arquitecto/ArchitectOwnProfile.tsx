@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../../hooks/useAuth';
 import { MessageCircle, User, Settings, LogOut } from 'lucide-react';
-import arquitectosService from '../services/api/arquitectosService';
-import type { Arquitecto } from '../types';
-import { getInitials, getAvatarColor } from '../utils/formatters';
-import { AVATAR_COLORS } from '../config/constants';
-import '../styles/ArchitectOwnProfile.css';
+import arquitectosService from '../../services/api/arquitectosService';
+import type { Arquitecto } from '../../types';
+import { getInitials, getAvatarColor } from '../../utils/formatters';
+import { AVATAR_COLORS } from '../../config/constants';
+import '../../styles/ArchitectOwnProfile.css';
 
 export default function ArchitectOwnProfile() {
   const { user, isAuthenticated, logout } = useAuth();

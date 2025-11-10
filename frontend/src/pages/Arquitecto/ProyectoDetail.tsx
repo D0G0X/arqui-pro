@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { Calendar, Star, User, Building2 } from 'lucide-react'
-import proyectosService from '../services/api/proyectosService'
-import LoadingSpinner from '../components/common/LoadingSpinner'
-import ErrorMessage from '../components/common/ErrorMessage'
-import ImageGallery from '../components/proyecto/ImageGallery'
-import ProjectProgress from '../components/proyecto/ProjectProgress'
-import type { Proyecto } from '../types'
-import '../styles/ProyectoDetail.css'
+import proyectosService from '../../services/api/proyectosService'
+import LoadingSpinner from '../../components/common/LoadingSpinner'
+import ErrorMessage from '../../components/common/ErrorMessage'
+import ImageGallery from '../../components/proyecto/ImageGallery'
+import ProjectProgress from '../../components/proyecto/ProjectProgress'
+import type { Proyecto } from '../../types'
+import '../../styles/ProyectoDetail.css'
 
 function ProyectoDetail() {
   const { id } = useParams<{ id: string }>()

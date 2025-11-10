@@ -19,7 +19,7 @@ export default function LoginPage(){
             if (user.rol === 'moderador') {
                 navigate("/moderador/dashboard", { replace: true });
             } else if (user.rol === "cliente") {
-                navigate("/client/dashboard", { replace: true });
+                navigate("/cliente/home", { replace: true });
             } else if (user.rol === "arquitecto") {
                 navigate("/arquitecto/profile", { replace: true });
             } else {
@@ -42,21 +42,18 @@ export default function LoginPage(){
                 const parsedUser = JSON.parse(userData);
                 console.log(parsedUser.rol)
                 if (parsedUser.rol === 'moderador') {
-                    console.log("holaaa")
                     navigate("/moderador/dashboard");
                 }
                 else if(parsedUser.rol === "cliente"){
-                    navigate("/client/dashboard")
+                    navigate("/cliente/home")
                 }
                 else if(parsedUser.rol === "arquitecto"){
                     navigate("/arquitecto/profile")
                 }
                 else {
-                    console.log("chao")
                     navigate("/");
                 }
             } else {
-                console.log("hasta mañana")
                 navigate("/");
             }
             
