@@ -277,14 +277,19 @@ export default function ArchitectDashboard() {
                 </div>
               ) : (
                 filteredProjects.map(project => (
-                <div key={project.id} className="project-card">
+                <div 
+                  key={project.id} 
+                  className="project-card"
+                  onClick={() => navigate(`/arquitecto/project/${project.id}`)}
+                  style={{ cursor: 'pointer' }}
+                >
                   <div className="project-image">
                     <img 
                       src={project.imagenes?.[0]?.imagen_url || 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400'} 
                       alt={project.titulo_proyecto} 
                     />
                     <div className="project-overlay">
-                      <button className="btn-view-details">View Details</button>
+                      <button className="btn-view-details">Ver Detalles</button>
                     </div>
                   </div>
                   <div className="project-content">

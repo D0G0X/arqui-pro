@@ -1,16 +1,20 @@
 class Api::V1::ProyectosController < ApplicationController
-  before_action :set_proyecto, only: %i[update show destroy]
+  before_action :set_proyecto, only: %i[update show destroy add_imagenes]
 
   # Solo arquitectos autenticados pueden crear/actualizar/eliminar
-  before_action :authenticate_usuario!, only: %i[create update destroy]
+  before_action :authenticate_usuario!, only: %i[create update destroy add_imagenes]
   # Solo arquitectos pueden crear/actualizar/eliminar
-  before_action :require_arquitecto!, only: %i[create update destroy]
+  before_action :require_arquitecto!, only: %i[create update destroy add_imagenes]
   # Solo arquitecto dueño pueden actualizar/eliminar
-  before_action :require_proyecto_ownership!, only: %i[update destroy]
+  before_action :require_proyecto_ownership!, only: %i[update destroy add_imagenes]
 
   def index
-    @proyecto = Proyecto.all
-    render json: @proyecto
+    @proyecto = Proyecto.includes(:imagenes).all
+    render json: @proyecto.as_json(
+      include: {
+        imagenes: { only: [:id, :imagen_url, :fecha] }
+      }
+    )
   end
 
   def create
@@ -23,7 +27,22 @@ class Api::V1::ProyectosController < ApplicationController
   end
 
   def show
-    render json: @proyecto
+    Rails.logger.info "🔍 [SHOW PROYECTO] ID solicitado: #{params[:id]}"
+    Rails.logger.info "   Proyecto encontrado: #{@proyecto.present?}"
+    
+    if @proyecto
+      Rails.logger.info "   ✅ Proyecto: #{@proyecto.titulo_proyecto}"
+      Rails.logger.info "   Imágenes: #{@proyecto.imagenes.count}"
+      
+      render json: @proyecto.as_json(
+        include: {
+          imagenes: { only: [:id, :imagen_url, :fecha] }
+        }
+      )
+    else
+      Rails.logger.error "   ❌ Proyecto no encontrado con ID: #{params[:id]}"
+      render json: { error: "Proyecto no encontrado" }, status: :not_found
+    end
   end
 
   def update
@@ -43,6 +62,39 @@ class Api::V1::ProyectosController < ApplicationController
     end
   end
 
+  def add_imagenes
+    imagenes_params = params[:imagenes]
+    
+    if imagenes_params.blank?
+      render json: { error: "No se proporcionaron imágenes" }, status: :unprocessable_entity
+      return
+    end
+
+    begin
+      imagenes_params.each do |imagen_data|
+        imagen = Imagen.new(imagen_url: imagen_data, fecha: Time.current)
+        if imagen.save
+          ImagenAsociacion.create!(
+            imagen_id: imagen.id,
+            imageable_id: @proyecto.id,
+            imageable_type: 'Proyecto'
+          )
+        end
+      end
+
+      # Recargar el proyecto con las imágenes
+      @proyecto.reload
+      
+      render json: @proyecto.as_json(
+        include: {
+          imagenes: { only: [:id, :imagen_url, :fecha] }
+        }
+      )
+    rescue => e
+      render json: { error: "Error al agregar imágenes: #{e.message}" }, status: :unprocessable_entity
+    end
+  end
+
   private
 
   def proyecto_params
@@ -56,9 +108,15 @@ class Api::V1::ProyectosController < ApplicationController
 
   def require_proyecto_ownership!
     return not_found_response!("proyecto") unless @proyecto
-    unless @proyecto.arquitecto.usuario.id == current_usuario.id
+    
+    Rails.logger.info "🔒 [PROYECTO OWNERSHIP] Proyecto arquitecto_id: #{@proyecto.arquitecto_id}, Current arquitecto_id: #{current_arquitecto&.id}"
+    
+    unless @proyecto.arquitecto_id == current_arquitecto&.id
+      Rails.logger.error "    ❌ No autorizado: IDs no coinciden"
       render json: { error: "No autorizado" }, status: :forbidden and return
     end
+    
+    Rails.logger.info "    ✅ Autorizado: Arquitecto es dueño del proyecto"
   end
 
 end

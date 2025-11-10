@@ -2,7 +2,7 @@ class Api::V1::ConversacionesController < ApplicationController
   before_action :set_conversacion, only: %i[update show destroy]
 
   # Solo usuarios autenticados pueden crear/actualizar/eliminar
-  #before_action :authenticate_usuario!, only: %i[create update destroy]
+  before_action :authenticate_usuario!, only: %i[create update destroy]
 
   def index
     usuario_id = params[:usuario_id] || request.headers['X-User-ID']

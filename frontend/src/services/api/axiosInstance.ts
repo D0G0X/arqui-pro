@@ -46,9 +46,22 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Token expirado o inválido
-      localStorage.removeItem('auth_token')
-      window.location.href = '/login'
+      const errorMessage = error.response?.data?.error || '';
+      console.error('❌ Error 401:', errorMessage, 'URL:', error.config?.url);
+      
+      // Solo desloguear si el token es realmente inválido o expirado
+      if (errorMessage.includes('Token inválido') || 
+          errorMessage.includes('Token expirado') || 
+          errorMessage.includes('Token revocado') ||
+          errorMessage.includes('Token de autorización requerido')) {
+        console.warn('🚪 Token inválido, redirigiendo al login...');
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('user_data');
+        window.location.href = '/login';
+      }
+    } else if (error.response?.status === 403) {
+      // Error de permisos, no desloguear
+      console.error('🚫 Acceso prohibido:', error.response?.data?.error);
     }
     return Promise.reject(error)
   }

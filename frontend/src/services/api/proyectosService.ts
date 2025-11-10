@@ -33,18 +33,23 @@ class ProyectosService {
     return response.data;
   }
 
-  async getProyecto(id: number): Promise<Proyecto> {
+  async getProyecto(id: number | string): Promise<Proyecto> {
     const response = await axiosInstance.get(`${this.BASE_URL}/${id}`);
     return response.data;
   }
 
-  async updateProyecto(id: number, proyecto: Partial<Proyecto>): Promise<Proyecto> {
+  async updateProyecto(id: number | string, proyecto: Partial<Proyecto>): Promise<Proyecto> {
     const response = await axiosInstance.put(`${this.BASE_URL}/${id}`, { proyecto });
     return response.data;
   }
 
-  async deleteProyecto(id: number): Promise<void> {
+  async deleteProyecto(id: number | string): Promise<void> {
     await axiosInstance.delete(`${this.BASE_URL}/${id}`);
+  }
+
+  async addImagenesToProyecto(id: number | string, imagenes: string[]): Promise<Proyecto> {
+    const response = await axiosInstance.post(`${this.BASE_URL}/${id}/imagenes`, { imagenes });
+    return response.data;
   }
 }
 

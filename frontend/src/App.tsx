@@ -21,6 +21,7 @@ import ClientProjectRating from './pages/ClientProjectRating'
 import ArchitectDashboard from './pages/ArchitectDashboard'
 import ArchitectChat from './pages/ArchitectChat'
 import CreateProject from './pages/CreateProject'
+import ArchitectProjectDetail from './pages/ArchitectProjectDetail'
 
 import { ModeratorDashboard, Verificaciones, Incidencias } from './pages/Moderator'
 import './App.css'
@@ -119,6 +120,14 @@ function App() {
                 element={
                   <ProtectedRoute requiredRole="arquitecto">
                     <CreateProject />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/arquitecto/project/:id" 
+                element={
+                  <ProtectedRoute requiredRole="arquitecto">
+                    <ArchitectProjectDetail />
                   </ProtectedRoute>
                 } 
               />

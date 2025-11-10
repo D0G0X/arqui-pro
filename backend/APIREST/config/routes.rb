@@ -33,7 +33,11 @@ Rails.application.routes.draw do
         end
       end
       resources :solicitudes_proyecto
-      resources :proyectos
+      resources :proyectos do
+        member do
+          post :add_imagenes
+        end
+      end
       resources :avances
       resources :incidencias do
         member do

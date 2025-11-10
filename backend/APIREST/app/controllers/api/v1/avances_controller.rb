@@ -6,21 +6,75 @@ class Api::V1::AvancesController < ApplicationController
   before_action :require_avance_ownership!, only: %i[update destroy]
 
   def index
-    @avances = Avance.all
-    render json: @avances
+    if params[:proyecto_id].present?
+      @avances = Avance.where(proyecto_id: params[:proyecto_id])
+                       .includes(:imagenes)
+                       .order(fecha: :desc)
+    else
+      @avances = Avance.includes(:imagenes).all
+    end
+    
+    render json: @avances.as_json(
+      include: {
+        imagenes: { only: [:id, :imagen_url, :fecha] }
+      }
+    )
   end
 
   def create
+    # Verificar que el proyecto existe y pertenece al arquitecto
+    proyecto = Proyecto.find_by(id: avance_params[:proyecto_id])
+    
+    unless proyecto
+      render json: { error: "Proyecto no encontrado" }, status: :not_found
+      return
+    end
+    
+    Rails.logger.info "🔒 [AVANCE CREATE] Proyecto arquitecto_id: #{proyecto.arquitecto_id}, Current arquitecto_id: #{current_arquitecto&.id}"
+    
+    # Verificar que el arquitecto actual es el dueño del proyecto
+    unless proyecto.arquitecto_id == current_arquitecto&.id
+      Rails.logger.error "    ❌ No autorizado: Arquitecto no es dueño del proyecto"
+      render json: { error: "No autorizado para crear avances en este proyecto" }, status: :forbidden
+      return
+    end
+    
+    Rails.logger.info "    ✅ Autorizado: Creando avance para proyecto #{proyecto.id}"
+
     @avance = Avance.new(avance_params)
     if @avance.save
-      render json: @avance, status: :created
+      # Si hay imágenes, crear las asociaciones
+      if params[:imagenes].present?
+        params[:imagenes].each do |imagen_data|
+          imagen = Imagen.create!(
+            imagen_url: imagen_data[:url],
+            fecha: Time.current
+          )
+          ImagenAsociacion.create!(
+            imagen: imagen,
+            asociable: @avance
+          )
+        end
+        # Recargar el avance con las imágenes
+        @avance.reload
+      end
+      
+      render json: @avance.as_json(
+        include: {
+          imagenes: { only: [:id, :imagen_url, :fecha] }
+        }
+      ), status: :created
     else
       render json: @avance.errors, status: :unprocessable_entity
     end
   end
 
   def show
-    render json: @avance
+    render json: @avance.as_json(
+      include: {
+        imagenes: { only: [:id, :imagen_url, :fecha] }
+      }
+    )
   end
 
   def update
@@ -52,9 +106,15 @@ class Api::V1::AvancesController < ApplicationController
 
   def require_avance_ownership!
     return not_found_response!("avance") unless @avance
-    unless @avance.proyecto.arquitecto.usuario.id == current_usuario.id
+    
+    Rails.logger.info "🔒 [AVANCE OWNERSHIP] Proyecto arquitecto_id: #{@avance.proyecto.arquitecto_id}, Current arquitecto_id: #{current_arquitecto&.id}"
+    
+    unless @avance.proyecto.arquitecto_id == current_arquitecto&.id
+      Rails.logger.error "    ❌ No autorizado: IDs no coinciden"
       render json: { error: "No autorizado" }, status: :forbidden and return
     end
+    
+    Rails.logger.info "    ✅ Autorizado: Arquitecto es dueño del avance"
   end
 
 end
