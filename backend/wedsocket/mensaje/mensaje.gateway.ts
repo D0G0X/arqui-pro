@@ -30,6 +30,7 @@ export class MensajeGateway {
       emisor_id: string;
       conversacion_id: string;
       tipo: string;
+      imagenes?: string[];
     },
     @ConnectedSocket() client: Socket,
   ) {

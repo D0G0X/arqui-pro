@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { Chat } from '../components/Chat';
+import { NotificationInbox } from '../components/NotificationInbox';
 import { Search, Settings, MessageCircle, ArrowLeft } from 'lucide-react';
 import { useConversaciones } from '../hooks/useApiWithCache';
 import axiosInstance from '../services/api/axiosInstance';
@@ -172,6 +173,9 @@ export default function ClientChat() {
 
   return (
     <div className="client-chat-page">
+      {/* Bandeja de notificaciones global */}
+      <NotificationInbox />
+      
       {/* Navigation Bar */}
       <div className="architect-nav-bar">
         <button

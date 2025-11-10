@@ -142,7 +142,7 @@ class ChatService {
     logger.info(`👋 Salió de conversación ${conversationId}`);
   }
 
-  sendMessage(contenido: string, usuarioId: string, conversacionId: string) {
+  sendMessage(contenido: string, usuarioId: string, conversacionId: string, imagenes?: string[]) {
     if (!this.socket) {
       logger.error("Socket no inicializado. Llamar connect() primero");
       throw new Error("Socket no inicializado");
@@ -162,9 +162,10 @@ class ChatService {
         if (this.socket?.connected) {
           this.socket.emit("message:create", {
             conversacion_id: conversacionId,
-            emisor_id: usuarioId, // Cambiado de remitente_id a emisor_id
+            emisor_id: usuarioId,
             contenido: contenido,
-            tipo: "texto" // Agregado campo tipo requerido
+            tipo: imagenes && imagenes.length > 0 ? "imagen" : "texto",
+            imagenes: imagenes || []
           }, (response: any) => {
             if (response?.status === 'error') {
               logger.error("Error del servidor al crear mensaje:", response.error);
@@ -179,12 +180,13 @@ class ChatService {
       return;
     }
 
-    logger.info("📤 Enviando mensaje:", { conversacionId, usuarioId, contenido });
+    logger.info("📤 Enviando mensaje:", { conversacionId, usuarioId, contenido, imagenes: imagenes?.length || 0 });
     this.socket.emit("message:create", {
       conversacion_id: conversacionId,
-      emisor_id: usuarioId, // Cambiado de remitente_id a emisor_id
+      emisor_id: usuarioId,
       contenido: contenido,
-      tipo: "texto" // Agregado campo tipo requerido
+      tipo: imagenes && imagenes.length > 0 ? "imagen" : "texto",
+      imagenes: imagenes || []
     }, (response: any) => {
       if (response?.status === 'error') {
         logger.error("❌ Error del servidor al crear mensaje:", response.error);
@@ -194,7 +196,7 @@ class ChatService {
       }
     });
 
-    logger.info("📤 Mensaje emitido al servidor:", { conversacionId, usuarioId, contenido });
+    logger.info("📤 Mensaje emitido al servidor:", { conversacionId, usuarioId, contenido, imagenes: imagenes?.length || 0 });
   }
 
   notifyTyping(conversacionId: string, usuarioId: string, isTyping: boolean) {

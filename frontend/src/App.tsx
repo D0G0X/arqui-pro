@@ -4,7 +4,6 @@ import { useEffect } from 'react'
 import apolloClient from './services/graphql/apolloClient'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { notificationService } from './services/notificationService'
-import { NotificationInbox } from './components/NotificationInbox'
 import ErrorBoundary from './components/common/ErrorBoundary'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import Home from './pages/Home'
@@ -21,6 +20,7 @@ import ClientChat from './pages/ClientChat'
 import ClientProjectRating from './pages/ClientProjectRating'
 import ArchitectDashboard from './pages/ArchitectDashboard'
 import ArchitectChat from './pages/ArchitectChat'
+import CreateProject from './pages/CreateProject'
 
 import { ModeratorDashboard, Verificaciones, Incidencias } from './pages/Moderator'
 import './App.css'
@@ -57,8 +57,6 @@ function App() {
         <ApolloProvider client={apolloClient}>
           <Router>
             <WebSocketManager />
-            {/* Bandeja de notificaciones global - visible en todas las vistas */}
-            <NotificationInbox />
             <Routes>
               {/* Rutas Públicas */}
               <Route path="/" element={<Home />} />
@@ -113,6 +111,14 @@ function App() {
                 element={
                   <ProtectedRoute requiredRole="arquitecto">
                     <ArchitectChat />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/arquitecto/create-project" 
+                element={
+                  <ProtectedRoute requiredRole="arquitecto">
+                    <CreateProject />
                   </ProtectedRoute>
                 } 
               />

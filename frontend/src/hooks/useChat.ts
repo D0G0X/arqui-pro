@@ -15,7 +15,7 @@ interface UseChatReturn {
   mensajes: Mensaje[];
   isConnected: boolean;
   isTyping: boolean;
-  sendMessage: (contenido: string) => void;
+  sendMessage: (contenido: string, imagenes?: string[]) => void;
   notifyTyping: (isTyping: boolean) => void;
   addMensaje: (mensaje: Mensaje) => void;
 }
@@ -28,12 +28,14 @@ export function useChat({
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true); // Bandera para carga inicial
   
   // Limpiar mensajes cuando cambia la conversación
   useEffect(() => {
     logger.info(`🔄 Conversación cambiada a: ${conversacionId} - Limpiando mensajes anteriores`);
     setMensajes([]);
     setIsTyping(false);
+    setIsInitialLoad(true); // Resetear bandera al cambiar conversación
   }, [conversacionId]);
   
   // Cargar mensajes existentes desde la API
@@ -90,10 +92,17 @@ export function useChat({
         return fechaA - fechaB;
       });
       setMensajes(mensajesOrdenados);
+      
+      // Marcar que la carga inicial terminó después de un pequeño delay
+      setTimeout(() => {
+        setIsInitialLoad(false);
+        logger.info('✅ Carga inicial completada, ahora se mostrarán notificaciones para mensajes nuevos');
+      }, 500);
     } else if (mensajesData === null && !loadingMensajes) {
       // Si no hay mensajes y ya terminó de cargar, dejar el array vacío
       logger.info(`📭 No hay mensajes para conversación ${conversacionId}`);
       setMensajes([]);
+      setTimeout(() => setIsInitialLoad(false), 500);
     }
   }, [mensajesData, loadingMensajes, conversacionId]);
 
@@ -143,11 +152,14 @@ export function useChat({
       
       logger.info('Mensaje aceptado - pertenece a esta conversación');
       
-      // 🔔 NOTIFICACIÓN: Si el mensaje NO es del usuario actual, mostrar notificación
-      if (mensaje.remitente_id !== usuarioId) {
+      // 🔔 NOTIFICACIÓN: Solo si NO es carga inicial Y el mensaje NO es del usuario actual
+      if (!isInitialLoad && mensaje.remitente_id !== usuarioId) {
         const senderName = mensaje.remitente?.nombre || 'Usuario';
+        logger.info(`🔔 Mostrando notificación para mensaje de ${senderName}`);
         notificationService.notifyNewMessage(senderName, mensaje.contenido, conversacionId);
         notificationService.showToast(`Nuevo mensaje de ${senderName}`, 'info');
+      } else if (isInitialLoad) {
+        logger.info('🔇 Notificación silenciada (carga inicial de mensajes)');
       }
       
       setMensajes(prev => {
@@ -223,8 +235,8 @@ export function useChat({
   }, [usuarioId]);
 
   // Enviar mensaje
-  const sendMessage = useCallback((contenido: string) => {
-    if (!contenido.trim()) return;
+  const sendMessage = useCallback((contenido: string, imagenes?: string[]) => {
+    if (!contenido.trim() && (!imagenes || imagenes.length === 0)) return;
 
     // Optimistic update: agregar el mensaje inmediatamente
     const mensajeOptimistic: Mensaje = {
@@ -234,6 +246,11 @@ export function useChat({
       leido: false,
       remitente_id: usuarioId,
       conversacion_id: conversacionId,
+      imagenes: imagenes?.map((url, index) => ({
+        id: `temp-img-${index}`,
+        imagen_url: url,
+        fecha: new Date().toISOString()
+      })) || []
     };
     
     logger.info('Agregando mensaje optimista:', mensajeOptimistic);
@@ -250,7 +267,7 @@ export function useChat({
     });
 
     try {
-      chatService.sendMessage(contenido, usuarioId, conversacionId);
+      chatService.sendMessage(contenido, usuarioId, conversacionId, imagenes);
       logger.info('Mensaje enviado exitosamente al servidor');
       
       // El mensaje optimista se mantendrá hasta que llegue el mensaje real del servidor

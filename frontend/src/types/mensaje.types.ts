@@ -1,6 +1,13 @@
 import type { Conversacion } from './conversacion.types'
 import type { Usuario } from './usuario.types'
 
+// Imagen Type
+export interface Imagen {
+  id: string
+  imagen_url: string
+  fecha: string
+}
+
 // Mensaje Type
 export interface Mensaje {
   id: string
@@ -12,4 +19,5 @@ export interface Mensaje {
   conversacion_id: string
   remitente?: Usuario
   conversacion?: Conversacion
+  imagenes?: Imagen[]
 }

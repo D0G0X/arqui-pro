@@ -6,6 +6,7 @@ import arquitectosService from '../services/api/arquitectosService';
 import type { Arquitecto } from '../types';
 import { getInitials, getAvatarColor } from '../utils/formatters';
 import { AVATAR_COLORS } from '../config/constants';
+import { NotificationInbox } from '../components/NotificationInbox';
 import '../styles/ClientDashboard.css';
 
 interface ProjectRequest {
@@ -293,6 +294,7 @@ export default function ClientDashboard() {
           </section>
         </main>
       </div>
+      <NotificationInbox />
     </div>
   );
 }

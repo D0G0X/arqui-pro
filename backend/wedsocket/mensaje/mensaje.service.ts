@@ -13,6 +13,7 @@ export class MensajeService {
     emisor_id: string;
     conversacion_id: string;
     tipo: string;
+    imagenes?: string[];
   }, authorization?: string) {
     try {
       const ahora = new Date();
@@ -24,7 +25,8 @@ export class MensajeService {
           leido: false,
           fecha_envio: ahora.toISOString().split('T')[0], // Solo fecha YYYY-MM-DD
           hora_envio: ahora.toTimeString().split(' ')[0]  // Solo hora HH:MM:SS
-        }
+        },
+        imagenes: datos.imagenes?.map(url => ({ url })) || []
       };
       
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };

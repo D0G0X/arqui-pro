@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { MessageCircle, LogOut, Plus, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { NotificationInbox } from '../components/NotificationInbox';
 import arquitectosService from '../services/api/arquitectosService';
 import type { Arquitecto } from '../types';
 import { getInitials, getAvatarColor } from '../utils/formatters';
@@ -14,6 +15,7 @@ export default function ArchitectDashboard() {
   const [arquitecto, setArquitecto] = useState<Arquitecto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState<'all' | 'in_progress' | 'completed'>('all');
 
   useEffect(() => {
     if (!isAuthenticated || !user) {
@@ -131,6 +133,14 @@ export default function ArchitectDashboard() {
     pendientes: mockProjects.filter(p => p.estado === 'pendiente').length
   };
 
+  // Filtrar proyectos según el filtro activo
+  const filteredProjects = mockProjects.filter(project => {
+    if (activeFilter === 'all') return true;
+    if (activeFilter === 'in_progress') return project.estado === 'en_progreso';
+    if (activeFilter === 'completed') return project.estado === 'completado';
+    return true;
+  });
+
   const getStatusIcon = (estado: string) => {
     switch (estado) {
       case 'en_progreso':
@@ -155,6 +165,9 @@ export default function ArchitectDashboard() {
 
   return (
     <div className="architect-dashboard">
+      {/* Bandeja de notificaciones global */}
+      <NotificationInbox />
+      
       {/* Top Navigation Bar */}
       <nav className="dashboard-navbar">
         <div className="navbar-container">
@@ -253,15 +266,30 @@ export default function ArchitectDashboard() {
             <div className="content-header">
               <h1 className="content-title">Active Projects</h1>
               <div className="content-tabs">
-                <button className="tab-btn active">All</button>
-                <button className="tab-btn">In Progress</button>
-                <button className="tab-btn">Completed</button>
+                <button 
+                  className={`tab-btn ${activeFilter === 'all' ? 'active' : ''}`}
+                  onClick={() => setActiveFilter('all')}
+                >
+                  All
+                </button>
+                <button 
+                  className={`tab-btn ${activeFilter === 'in_progress' ? 'active' : ''}`}
+                  onClick={() => setActiveFilter('in_progress')}
+                >
+                  In Progress
+                </button>
+                <button 
+                  className={`tab-btn ${activeFilter === 'completed' ? 'active' : ''}`}
+                  onClick={() => setActiveFilter('completed')}
+                >
+                  Completed
+                </button>
               </div>
             </div>
 
             {/* Projects Grid */}
             <div className="projects-grid">
-              {mockProjects.map(project => (
+              {filteredProjects.map(project => (
                 <div key={project.id} className="project-card">
                   <div className="project-image">
                     <img src={project.imagen} alt={project.nombre} />

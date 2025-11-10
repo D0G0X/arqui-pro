@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, Loader, FolderPlus } from 'lucide-react';
+import { Send, Loader, FolderPlus, ImageIcon, X } from 'lucide-react';
 import { useChat } from '../hooks/useChat';
 import type { Mensaje } from '../types/mensaje.types';
 import '../styles/Chat.css';
@@ -19,7 +19,10 @@ interface ChatProps {
 export function Chat({ conversacionId, usuarioId, onClose, userRole, clienteInfo, onCreateProject }: ChatProps) {
   const [inputMessage, setInputMessage] = useState('');
   const [isTypingTimeout, setIsTypingTimeout] = useState<number | null>(null);
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [imagesPreviews, setImagesPreviews] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
     mensajes,
@@ -41,14 +44,58 @@ export function Chat({ conversacionId, usuarioId, onClose, userRole, clienteInfo
     scrollToBottom();
   }, [mensajesFiltrados]);
 
+  // Manejar selección de imágenes
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    const newFiles = Array.from(files);
+    setSelectedImages(prev => [...prev, ...newFiles]);
+
+    // Crear previews
+    newFiles.forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagesPreviews(prev => [...prev, reader.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Remover imagen
+  const removeImage = (index: number) => {
+    setSelectedImages(prev => prev.filter((_, i) => i !== index));
+    setImagesPreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Subir imagen a un servicio (por ahora usaremos base64)
+  const uploadImage = async (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        resolve(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
   // Manejar envío de mensaje
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!inputMessage.trim()) return;
+    if (!inputMessage.trim() && selectedImages.length === 0) return;
 
-    await sendMessage(inputMessage);
+    // Si hay imágenes, subirlas primero
+    let imageUrls: string[] = [];
+    if (selectedImages.length > 0) {
+      imageUrls = await Promise.all(selectedImages.map(file => uploadImage(file)));
+    }
+
+    // Enviar mensaje con imágenes
+    await sendMessage(inputMessage || '📎 Imagen', imageUrls);
     setInputMessage('');
+    setSelectedImages([]);
+    setImagesPreviews([]);
     
     // Cancelar el indicador de escritura
     notifyTyping(false);
@@ -158,6 +205,21 @@ export function Chat({ conversacionId, usuarioId, onClose, userRole, clienteInfo
                   <div className="message-content">
                     {mensaje.contenido}
                   </div>
+                  
+                  {/* Imágenes del mensaje */}
+                  {mensaje.imagenes && mensaje.imagenes.length > 0 && (
+                    <div className="message-images">
+                      {mensaje.imagenes.map((imagen, index) => (
+                        <img
+                          key={imagen.id || index}
+                          src={imagen.imagen_url}
+                          alt={`Imagen ${index + 1}`}
+                          className="message-image"
+                        />
+                      ))}
+                    </div>
+                  )}
+                  
                   <span className="message-time">
                     {formatTime(mensaje)}
                   </span>
@@ -186,7 +248,42 @@ export function Chat({ conversacionId, usuarioId, onClose, userRole, clienteInfo
 
       {/* Input */}
       <div className="chat-input-container">
+        {/* Previews de imágenes seleccionadas */}
+        {imagesPreviews.length > 0 && (
+          <div className="images-preview">
+            {imagesPreviews.map((preview, index) => (
+              <div key={index} className="image-preview-item">
+                <img src={preview} alt={`Preview ${index}`} />
+                <button
+                  type="button"
+                  className="remove-image-btn"
+                  onClick={() => removeImage(index)}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        
         <form onSubmit={handleSendMessage} className="chat-input-form">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleImageSelect}
+            accept="image/*"
+            multiple
+            style={{ display: 'none' }}
+          />
+          <button
+            type="button"
+            className="chat-attach-btn"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={!isConnected}
+            title="Adjuntar imagen"
+          >
+            <ImageIcon size={20} />
+          </button>
           <input
             type="text"
             value={inputMessage}
@@ -198,7 +295,7 @@ export function Chat({ conversacionId, usuarioId, onClose, userRole, clienteInfo
           <button
             type="submit"
             className="chat-send-btn"
-            disabled={!isConnected || !inputMessage.trim()}
+            disabled={!isConnected || (!inputMessage.trim() && selectedImages.length === 0)}
           >
             {isConnected ? <Send size={20} /> : <Loader size={20} className="spinning" />}
           </button>
