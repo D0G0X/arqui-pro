@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { Star, FolderKanban, Eye, MapPin, MessageCircle, CheckCircle } from 'lucide-react'
 import arquitectosService from '../services/api/arquitectosService'
-import proyectosService from '../services/api/proyectosService'
+import { useQuery } from '@apollo/client'
+import { PERFIL_COMPLETO_ARQUITECTO } from '../services/graphql/queries'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 import ErrorMessage from '../components/common/ErrorMessage'
 import type { Arquitecto, Proyecto } from '../types'
@@ -25,35 +26,128 @@ function ArquitectoProfile() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchData = async () => {
+    // Usamos la consulta GraphQL en lugar de los servicios REST para obtener el perfil completo.
+    // La actualización de vistas se hará vía REST (solo update) después de recibir los datos.
+    const fetchFromGraphql = async () => {
       if (!id) return
 
       setLoading(true)
       setError(null)
 
       try {
-        // Obtener datos del arquitecto
-        const arquitectoData = await arquitectosService.getById(id)
-        setArquitecto(arquitectoData)
-        // agregar una vista al arquitecto
-        arquitectosService.update(id, {vistas_perfil: arquitectoData.vistas_perfil+1});
-    
-        // Obtener proyectos del arquitecto
-        const allProyectos = await proyectosService.getAll()
-        const proyectosArquitecto = allProyectos.filter(
-          (proyecto) => proyecto.arquitecto_id === id
-        )
-        setProyectos(proyectosArquitecto)
+        // La consulta se lanza fuera (useQuery) — aquí solo esperamos a que llegue 'data' via efecto
       } catch (err) {
-        console.error('Error al cargar datos del arquitecto:', err)
-        setError('No se pudo cargar la información del arquitecto')
+        console.error('Error al preparar la carga del arquitecto:', err)
+        setError('No se pudo preparar la información del arquitecto')
       } finally {
         setLoading(false)
       }
     }
 
-    fetchData()
+    fetchFromGraphql()
   }, [id])
+
+  // Query GraphQL: perfil completo
+  const { data: gqlData, loading: gqlLoading, error: gqlError } = useQuery(PERFIL_COMPLETO_ARQUITECTO, {
+    variables: { arquitectoId: id },
+    skip: !id,
+    fetchPolicy: 'network-only',
+  })
+
+  // Cuando llegan datos GraphQL, mapearlos a los estados locales usados por el componente
+  useEffect(() => {
+    const populateFromGql = async () => {
+      if (!gqlData || !gqlData.perfilCompletoArquitecto) return
+
+      const perfil = gqlData.perfilCompletoArquitecto
+
+      // Soportar dos posibles shapes retornadas por el backend:
+      // 1) { datosBasicos, estadisticas, proyectos, valoracionesRecientes }
+      // 2) { arquitecto, usuario, proyectos, total_proyectos, valoracion_promedio }
+
+      // Extraer usuario
+      let usuarioObj: any = null
+      if (perfil.datosBasicos) {
+        usuarioObj = {
+          nombre: perfil.datosBasicos.nombre,
+          apellido: perfil.datosBasicos.apellido,
+          email: perfil.datosBasicos.email,
+          foto_perfil: perfil.datosBasicos.fotoPerfil || null,
+        }
+      } else if (perfil.usuario) {
+        usuarioObj = {
+          nombre: perfil.usuario.nombre,
+          apellido: perfil.usuario.apellido,
+          email: perfil.usuario.email,
+          foto_perfil: perfil.usuario.foto_perfil || perfil.usuario.fotoPerfil || null,
+        }
+      }
+
+      // Extraer arquitecto básico
+      const arquitectoFromGql: any = {}
+      if (perfil.datosBasicos) {
+        arquitectoFromGql.descripcion = perfil.datosBasicos.descripcion || ''
+        arquitectoFromGql.verificado = perfil.datosBasicos.verificado || false
+        arquitectoFromGql.cedula = perfil.datosBasicos.cedula || ''
+        arquitectoFromGql.especialidades = perfil.datosBasicos.especialidades || ''
+        arquitectoFromGql.valoracion_prom_proyecto =
+          perfil.estadisticas?.valoracionPromedio ?? perfil.valoracionPromedio ?? perfil.datosBasicos?.valoracionPromProyecto ?? perfil.datosBasicos?.valoracion_prom_proyecto ?? 0
+        arquitectoFromGql.vistas_perfil =
+          perfil.datosBasicos?.vistasPerfil ?? perfil.datosBasicos?.vistas_perfil ?? perfil.arquitecto?.vistasPerfil ?? perfil.arquitecto?.vistas_perfil ?? 0
+      } else if (perfil.arquitecto) {
+        arquitectoFromGql.descripcion = perfil.arquitecto.descripcion || ''
+        arquitectoFromGql.verificado = perfil.arquitecto.verificado || false
+        arquitectoFromGql.cedula = perfil.arquitecto.cedula || ''
+        arquitectoFromGql.especialidades = perfil.arquitecto.especialidades || ''
+        arquitectoFromGql.valoracion_prom_proyecto =
+          perfil.arquitecto?.valoracionPromProyecto ?? perfil.arquitecto?.valoracion_prom_proyecto ?? perfil.valoracionPromedio ?? perfil.valoracion_promedio ?? 0
+        arquitectoFromGql.vistas_perfil =
+          perfil.arquitecto?.vistasPerfil ?? perfil.arquitecto?.vistas_perfil ?? 0
+      }
+
+      // Mapear proyectos: soportar campos en diferentes formatos
+      const proyectosFromGql: Proyecto[] = (perfil.proyectos || []).map((p: any) => {
+        const imagenes = (p.imagenes || []).map((img: any) => ({ imagen_url: img.imagenUrl || img.imagen_url }))
+        return {
+          id: String(p.id),
+          titulo_proyecto: p.tituloProyecto || p.titulo_proyecto || p.titulo || '',
+          descripcion: p.descripcion || '',
+          tipo_proyecto: p.tipoProyecto || p.tipo_proyecto || p.tipo || '',
+          valoracion_promedio: p.valoracionPromedio ?? p.valoracion_promedio ?? 0,
+          imagenes,
+          avances: p.avances || [],
+          arquitecto_id: String(p.arquitectoId || p.arquitecto_id || id),
+        } as Proyecto
+      })
+
+      // Construir objeto arquitecto compatible con el componente
+      const arquitectoState: any = {
+        usuario: usuarioObj,
+        descripcion: arquitectoFromGql.descripcion,
+        verificado: arquitectoFromGql.verificado,
+        cedula: arquitectoFromGql.cedula,
+        especialidades: arquitectoFromGql.especialidades,
+        valoracion_prom_proyecto: arquitectoFromGql.valoracion_prom_proyecto,
+        vistas_perfil: arquitectoFromGql.vistas_perfil || 0,
+      }
+
+      setArquitecto(arquitectoState)
+      setProyectos(proyectosFromGql)
+
+      // Actualizar vistas vía REST: solo la actualización
+      try {
+        const currentViews = arquitectoState.vistas_perfil ?? 0
+        // Llamada REST para incrementar vistas en backend
+        await arquitectosService.update(String(id), { vistas_perfil: currentViews + 1 })
+        // actualizar estado local para reflejar incremento inmediato
+        setArquitecto((prev: any) => prev ? { ...prev, vistas_perfil: currentViews + 1 } : prev)
+      } catch (e) {
+        console.warn('No se pudo actualizar vistas vía REST:', e)
+      }
+    }
+
+    populateFromGql()
+  }, [gqlData, id])
 
   const getAvatarColor = (name: string) => {
     const index = name.charCodeAt(0) % AVATAR_COLORS.length
@@ -94,15 +188,14 @@ function ArquitectoProfile() {
     }
   }
 
-  if (loading) {
+  if (loading || gqlLoading) {
     return (
       <div className="arquitecto-profile-container">
         <LoadingSpinner />
       </div>
     )
   }
-
-  if (error || !arquitecto) {
+  if (error || gqlError || !arquitecto) {
     return (
       <div className="arquitecto-profile-container">
         <ErrorMessage message={error || 'Arquitecto no encontrado'} />
@@ -163,9 +256,9 @@ function ArquitectoProfile() {
             </div>
             <div className="stat-item">
               <Eye className="stat-icon" size={28} />
-              <span className="stat-value">{arquitecto.vistas_perfil+1}</span>
-              <span className="stat-label">Vistas</span>
-            </div>
+                <span className="stat-value">{arquitecto.vistas_perfil}</span>
+                <span className="stat-label">Vistas</span>
+              </div>
           </div>
 
           {/* Ubicación */}

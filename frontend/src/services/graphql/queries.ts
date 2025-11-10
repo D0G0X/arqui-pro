@@ -71,22 +71,26 @@ export const ESTADISTICAS_ARQUITECTO = gql`
 export const PERFIL_COMPLETO_ARQUITECTO = gql`
   query PerfilCompletoArquitecto($arquitectoId: ID!) {
     perfilCompletoArquitecto(arquitectoId: $arquitectoId) {
-      datosBasicos {
+      arquitecto {
+        id
+        cedula
+        valoracionPromProyecto
+        descripcion
+        especialidades
+        ubicacion
+        verificado
+        vistasPerfil
+        usuarioId
+      }
+      usuario {
         id
         nombre
         apellido
         email
         fotoPerfil
-        cedula
-        especialidades
-        descripcion
-        verificado
-      }
-      estadisticas {
-        proyectosCompletados
-        proyectosEnCurso
-        valoracionPromedio
-        totalValoraciones
+        estadoCuenta
+        rol
+        fechaRegistro
       }
       proyectos {
         id
@@ -94,21 +98,13 @@ export const PERFIL_COMPLETO_ARQUITECTO = gql`
         descripcion
         tipoProyecto
         valoracionPromedio
-        imagenes {
-          id
-          imagenUrl
-        }
+        fechaPublicacion
+        arquitectoId
+        conversacionId
+        clienteId
       }
-      valoracionesRecientes {
-        id
-        calificacion
-        comentario
-        fecha
-        cliente {
-          nombre
-          apellido
-        }
-      }
+      totalProyectos
+      valoracionPromedio
     }
   }
 `
