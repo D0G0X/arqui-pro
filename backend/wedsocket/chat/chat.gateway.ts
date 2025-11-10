@@ -51,8 +51,30 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('join_conversation')
   handleJoin(@MessageBody() data: { conversacion_id: string }, @ConnectedSocket() client: Socket) {
+    if (!data || !data.conversacion_id) {
+      console.error('❌ conversacion_id no proporcionado');
+      return;
+    }
+    
+    // 🔧 FIX CRÍTICO: Salir de TODAS las conversaciones anteriores
+    const currentRooms = Array.from(client.rooms);
+    for (const room of currentRooms) {
+      if (room.startsWith('conversacion:') && room !== `conversacion:${data.conversacion_id}`) {
+        client.leave(room);
+        console.log(`🚪 Cliente ${client.id} salió de ${room}`);
+      }
+    }
+    
     const room = `conversacion:${data.conversacion_id}`;
     client.join(room);
+    console.log(`Client ${client.id} joined room ${room} in /chat namespace`);
+    
+    // Verificar que el servidor esté inicializado antes de acceder a rooms
+    if (this.server && this.server.sockets && this.server.sockets.adapter && this.server.sockets.adapter.rooms) {
+      const roomSize = this.server.sockets.adapter.rooms.get(room)?.size || 0;
+      console.log(`Room ${room} now has ${roomSize} clients`);
+    }
+    
     client.emit('conversation:joined', { conversacion_id: data.conversacion_id });
   }
 
@@ -69,15 +91,53 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     remitente_id: string; 
     conversacion_id: string 
   }, @ConnectedSocket() client: Socket) {
-    const tokenHeader = (client.handshake.headers['authorization'] as string) || (client.handshake.auth && (client.handshake.auth as any).token) || '';
+    console.log('📤 Recibido message:create:', payload);
+    
+    // Validar payload
+    if (!payload || !payload.contenido || !payload.remitente_id || !payload.conversacion_id) {
+      console.error('❌ Payload inválido:', payload);
+      client.emit('error', { message: 'Invalid payload' });
+      return { status: 'error', error: 'Invalid payload' };
+    }
+
+    // Obtener token del cliente
+    const tokenHeader = (client.handshake.headers['authorization'] as string) || 
+                       (client.handshake.auth && (client.handshake.auth as any).token) || '';
+    console.log('🔑 Token header:', tokenHeader ? 'Presente' : 'Ausente');
+    
     try {
       const created = await this.chatService.createMessage(payload, tokenHeader);
+      console.log('✅ Mensaje creado exitosamente:', created);
+      
       const room = `conversacion:${payload.conversacion_id}`;
+      
+      // Verificar que el servidor esté inicializado
+      if (!this.server || !this.server.sockets || !this.server.sockets.adapter) {
+        console.error('❌ Servidor no inicializado correctamente');
+        client.emit('message:new', created); // Al menos enviar al cliente actual
+        return { status: 'ok', mensaje: created };
+      }
+      
+      const roomSize = this.server.sockets.adapter.rooms?.get(room)?.size || 0;
+      console.log(`📢 Emitiendo message:new a room ${room} con ${roomSize} clientes`);
+      console.log(`📦 Datos del mensaje:`, JSON.stringify(created, null, 2));
       this.server.to(room).emit('message:new', created);
-      return { status: 'ok' };
-    } catch (err) {
-      client.emit('error', { message: 'could_not_create_message' });
-      return { status: 'error' };
+      return { status: 'ok', mensaje: created };
+    } catch (err: any) {
+      console.error('❌ Error al crear mensaje:', err);
+      console.error('❌ Detalles del error:', {
+        message: err?.message,
+        response: err?.response?.data,
+        status: err?.response?.status,
+        statusText: err?.response?.statusText
+      });
+      const errorMessage = err?.response?.data?.error || err?.response?.data?.message || err?.message || 'could_not_create_message';
+      client.emit('error', { 
+        message: errorMessage,
+        details: err?.response?.data,
+        status: err?.response?.status
+      });
+      return { status: 'error', error: errorMessage };
     }
   }
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { CacheService } from '../cacheService'
+import { CacheService } from '../utils/cacheService'
 
 interface UseCachedDataOptions<T> {
   cacheKey: string
@@ -76,13 +76,21 @@ export function useCachedData<T>({
   }
 
   useEffect(() => {
-    // Si hay datos en caché, no hacer fetch
-    if (data) {
+    // Limpiar datos cuando cambian las dependencias
+    console.log(`🔄 Dependencias cambiaron para [${cacheKey}] - Limpiando estado`)
+    setData(null)
+    setLoading(true)
+    
+    // Verificar si hay datos en caché
+    const cachedData = CacheService.get<T>(cacheKey, variables, duration)
+    if (cachedData) {
       console.log(`📦 Usando datos desde caché [${cacheKey}]`)
+      setData(cachedData)
+      setLoading(false)
       return
     }
 
-    // Si no hay datos, hacer fetch
+    // Si no hay datos en caché, hacer fetch
     fetchData()
     
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -16,7 +16,6 @@
 const { io } = require('socket.io-client');
 
 const WS_HOST = process.env.WS_HOST || 'http://localhost:3006';
-const WS_HOST = process.env.WS_HOST || 'http://localhost:3006';
 const TOKEN = process.env.TOKEN || 'Bearer <tu_jwt_aqui>';
 const USUARIO_ID = process.env.USUARIO_ID;
 const CONVERSACION_ID = process.env.CONVERSACION_ID;
@@ -33,27 +32,40 @@ const chat = io(WS_HOST + '/chat', {
 });
 
 chat.on('connect', () => {
-  console.log('chat connected', chat.id);
-  chat.emit('unirseAConversacion', CONVERSACION_ID);
+  console.log('✅ Chat connected:', chat.id);
+  // Unirse a conversación usando el formato correcto
+  chat.emit('join_conversation', { conversacion_id: CONVERSACION_ID });
   setTimeout(() => {
-    chat.emit('enviarMensaje', {
+    // Enviar mensaje usando el formato correcto
+    chat.emit('message:create', {
       contenido: 'Prueba desde test-client',
-      emisor_id: USUARIO_ID,
-      conversacion_id: CONVERSACION_ID,
-      tipo: 'texto'
+      remitente_id: USUARIO_ID,
+      conversacion_id: CONVERSACION_ID
     });
   }, 500);
 });
 
-chat.on('nuevoMensaje', (m) => console.log('Nuevo mensaje recibido:', m));
+chat.on('connection:established', (data) => {
+  console.log('✅ Connection established:', data);
+});
+
+chat.on('conversation:joined', (data) => {
+  console.log('✅ Conversation joined:', data);
+});
+
+chat.on('message:new', (m) => {
+  console.log('📬 Nuevo mensaje recibido:', m);
+});
 chat.on('error', (error) => console.log('Error en chat:', error));
 
 // Mensajes namespace
 const mensajes = io(WS_HOST + '/mensajes', { extraHeaders: { Authorization: TOKEN } });
 mensajes.on('connect', () => {
-  console.log('mensajes connected', mensajes.id);
+  console.log('✅ Mensajes connected:', mensajes.id);
+  // Unirse a conversación (acepta tanto string como objeto)
+  mensajes.emit('join_conversation', { conversacion_id: CONVERSACION_ID });
   setTimeout(() => {
-    mensajes.emit('enviarMensaje', {
+    mensajes.emit('message:create', {
       contenido: 'Prueba desde namespace de mensajes',
       emisor_id: USUARIO_ID,
       conversacion_id: CONVERSACION_ID,
@@ -62,11 +74,20 @@ mensajes.on('connect', () => {
   }, 1000);
 });
 
-mensajes.on('nuevoMensaje', (m) => console.log('Nuevo mensaje en namespace mensajes:', m));
-mensajes.on('error', (error) => console.log('Error en mensajes:', error));
+mensajes.on('conversation:joined', (data) => {
+  console.log('✅ Mensajes - Conversation joined:', data);
+});
 
-// Notification namespace
-const noti = io(WS_HOST + '/notificaciones', { extraHeaders: { Authorization: TOKEN } });
+mensajes.on('message:new', (m) => {
+  console.log('📬 Nuevo mensaje en namespace mensajes:', m);
+});
+
+mensajes.on('error', (error) => {
+  console.error('❌ Error en mensajes:', error);
+});
+
+// Notification namespace (nota: el namespace real es /notificacion, no /notificaciones)
+const noti = io(WS_HOST + '/notificacion', { extraHeaders: { Authorization: TOKEN } });
 noti.on('connect', () => {
   console.log('✅ Notificaciones connected:', noti.id);
   

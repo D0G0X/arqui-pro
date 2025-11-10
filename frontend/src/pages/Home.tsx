@@ -1,4 +1,6 @@
 import { useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
+import { useAuth } from '../contexts/AuthContext'
 import Header from '../components/layout/Header'
 import Footer from '../components/layout/Footer'
 import { ROUTES } from '../config/constants'
@@ -6,6 +8,22 @@ import '../styles/Home.css'
 
 function Home() {
   const navigate = useNavigate()
+  const { user, isAuthenticated } = useAuth()
+
+  // Redirección automática si ya está autenticado
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      console.log('👤 Usuario autenticado detectado en Home, redirigiendo...', user.rol);
+      
+      if (user.rol === 'moderador') {
+        navigate("/moderador/dashboard", { replace: true });
+      } else if (user.rol === "cliente") {
+        navigate("/client/dashboard", { replace: true });
+      } else if (user.rol === "arquitecto") {
+        navigate("/arquitecto/profile", { replace: true });
+      }
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const handleSearch = () => {
     navigate(ROUTES.ARCHITECTS)

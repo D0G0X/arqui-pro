@@ -8,13 +8,32 @@ const axiosInstance = axios.create({
   },
 })
 
-// Request interceptor para agregar token
+// Request interceptor para agregar token y user ID
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = getAuthToken()
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+    
+    // Agregar X-User-ID para validaciones de seguridad en el backend
+    const userData = localStorage.getItem('user_data')
+    if (userData) {
+      try {
+        const user = JSON.parse(userData)
+        if (user.id) {
+          config.headers['X-User-ID'] = user.id
+          console.log('🔑 Agregando X-User-ID al request:', user.id, 'URL:', config.url)
+        } else {
+          console.warn('⚠️ user.id no encontrado en user_data')
+        }
+      } catch (error) {
+        console.error('❌ Error parsing user_data:', error)
+      }
+    } else {
+      console.warn('⚠️ No hay user_data en localStorage')
+    }
+    
     return config
   },
   (error) => {

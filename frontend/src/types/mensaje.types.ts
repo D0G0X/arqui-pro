@@ -6,6 +6,7 @@ export interface Mensaje {
   id: string
   contenido: string
   fecha_envio: string
+  hora_envio?: string
   leido: boolean
   remitente_id: string
   conversacion_id: string

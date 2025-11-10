@@ -80,7 +80,7 @@ export function useConversaciones(usuario_id?: string) {
     cacheKey: `conversaciones_${usuario_id}_cache`,
     fetchFunction: async () => {
       if (!usuario_id) throw new Error('Usuario ID requerido')
-      const response = await axiosInstance.get(`/usuarios/${usuario_id}/conversaciones`)
+      const response = await axiosInstance.get(`/conversaciones?usuario_id=${usuario_id}`)
       return response.data
     },
     duration: 2 * 60 * 1000, // 2 minutos
@@ -96,10 +96,12 @@ export function useMensajes(conversacion_id?: string) {
     cacheKey: `mensajes_${conversacion_id}_cache`,
     fetchFunction: async () => {
       if (!conversacion_id) throw new Error('Conversación ID requerido')
+      console.log(`🔍 Fetching mensajes para conversación: ${conversacion_id}`)
       const response = await axiosInstance.get(`/conversaciones/${conversacion_id}/mensajes`)
+      console.log(`✅ Mensajes recibidos:`, response.data.length, 'para conversación:', conversacion_id)
       return response.data
     },
-    duration: 1 * 60 * 1000, // 1 minuto
+    duration: 5 * 1000, // 5 segundos (cache muy corto para evitar datos incorrectos)
     dependencies: [conversacion_id]
   })
 }

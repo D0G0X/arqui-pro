@@ -19,7 +19,12 @@ Rails.application.routes.draw do
       resources :clientes
       resources :arquitectos
       resources :moderadores
-      resources :conversaciones
+      resources :conversaciones do
+        member do
+          get :mensajes
+          put :marcar_mensajes_leidos
+        end
+      end
       resources :notificaciones
       resources :verificaciones do
         member do
