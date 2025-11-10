@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, useContext } from 'react'
+import React, { createContext, useState, useEffect, useContext } from 'react'
 import type { ReactNode } from 'react'
 import { logger } from '../utils/logger'
 import { USER_ROLES } from '../config/constants'

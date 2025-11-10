@@ -1,13 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { Chat } from '../components/Chat';
-import { NotificationInbox } from '../components/NotificationInbox';
+import { Chat } from '../../components/Chat';
+import { NotificationInbox } from '../../components/NotificationInbox';
 import { Search, Settings, MessageCircle, ArrowLeft } from 'lucide-react';
-import { useConversaciones } from '../hooks/useApiWithCache';
-import axiosInstance from '../services/api/axiosInstance';
-import type { Conversacion } from '../types';
-import '../styles/ClientChat.css';
+import { useConversaciones } from '../../hooks/useApiWithCache';
+import axiosInstance from '../../services/api/axiosInstance';
+import type { Conversacion } from '../../types';
+import '../../styles/ClientChat.css';
 
 interface Conversation {
   id: string;
