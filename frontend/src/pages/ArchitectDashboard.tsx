@@ -5,8 +5,7 @@ import { MessageCircle, LogOut, Plus, Clock, CheckCircle, AlertCircle } from 'lu
 import { NotificationInbox } from '../components/NotificationInbox';
 import arquitectosService from '../services/api/arquitectosService';
 import proyectosService from '../services/api/proyectosService';
-import type { Arquitecto } from '../types';
-import type { Proyecto } from '../services/api/proyectosService';
+import type { Arquitecto, Proyecto } from '../types';
 import { getInitials, getAvatarColor } from '../utils/formatters';
 import { AVATAR_COLORS } from '../config/constants';
 import '../styles/ArchitectDashboard.css';
@@ -61,7 +60,7 @@ export default function ArchitectDashboard() {
   const fetchProyectos = async (arquitectoId: string) => {
     try {
       setLoadingProyectos(true);
-      const allProyectos = await proyectosService.getProyectos();
+      const allProyectos = await proyectosService.getAll();
       // Filtrar proyectos del arquitecto actual
       const proyectosArquitecto = allProyectos.filter(
         p => String(p.arquitecto_id) === String(arquitectoId)

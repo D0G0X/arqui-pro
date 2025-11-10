@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { ArrowLeft, FolderPlus } from 'lucide-react';
-import proyectosService, { type Proyecto } from '../services/api/proyectosService';
+import proyectosService from '../services/api/proyectosService';
 import arquitectosService from '../services/api/arquitectosService';
+import type { CreateProyectoDto } from '../types';
 import { NotificationInbox } from '../components/NotificationInbox';
 import '../styles/CreateProject.css';
 
@@ -79,15 +80,15 @@ export default function CreateProject() {
         arquitecto_id: arquitectoId,
       });
 
-      const proyecto: Proyecto = {
+      const proyecto: CreateProyectoDto = {
         titulo_proyecto: formData.titulo_proyecto,
         descripcion: formData.descripcion,
         tipo_proyecto: formData.tipo_proyecto,
         arquitecto_id: arquitectoId,
-        ...(formData.cliente_id && { cliente_id: formData.cliente_id }),
+        cliente_id: formData.cliente_id || null,
       };
 
-      const result = await proyectosService.createProyecto(proyecto);
+      const result = await proyectosService.create(proyecto);
       console.log('✅ Proyecto creado exitosamente:', result);
       
       // Redirigir al dashboard del arquitecto

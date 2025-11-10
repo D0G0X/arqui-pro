@@ -20,8 +20,8 @@ interface Estadisticas {
   verificacionesPendientes: number;
 }
 
-interface Notificacion {
-  id: number;
+interface NotificacionUI {
+  id: string | number;
   tipo: 'verificacion' | 'mensaje' | 'incidencia';
   titulo: string;
   subtitulo?: string;
@@ -36,7 +36,7 @@ export const ModeratorDashboard = () => {
 
   const [stats, setStats] = useState<Estadisticas | null>(null);
   const [loading, setLoading] = useState(true);
-  const [notificaciones, setNotificaciones] = useState<Notificacion[]>([
+  const [notificaciones, setNotificaciones] = useState<NotificacionUI[]>([
     {
       id: 1,
       tipo: 'verificacion',
@@ -55,13 +55,13 @@ export const ModeratorDashboard = () => {
 
   // Suscribirse a notificaciones en tiempo real
   useEffect(() => {
-    const unsubscribe = notificationService.onNotification((notification) => {
+    const unsubscribe = notificationService.onNotification((notification: any) => {
       setNotificaciones(prev => [
         {
-          id: notification.id,
-          tipo: notification.tipo as 'verificacion' | 'mensaje' | 'incidencia',
-          titulo: notification.mensaje,
-          subtitulo: notification.metadata?.descripcion || '',
+          id: notification.id || `notif-${Date.now()}`,
+          tipo: 'mensaje' as const,
+          titulo: notification.data?.titulo || 'Nueva notificación',
+          subtitulo: notification.data?.mensaje || '',
           tiempo: 'Ahora'
         },
         ...prev.slice(0, 9) // Mantener máximo 10 notificaciones

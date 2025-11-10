@@ -13,7 +13,7 @@ export type { Cliente } from './cliente.types'
 export type { Moderador } from './moderador.types'
 
 // Proyecto
-export type { Proyecto } from './proyecto.types'
+export type { Proyecto, CreateProyectoDto, UpdateProyectoDto } from './proyecto.types'
 
 // Solicitud Proyecto
 export type { SolicitudProyecto } from './solicitud_proyecto.types'
