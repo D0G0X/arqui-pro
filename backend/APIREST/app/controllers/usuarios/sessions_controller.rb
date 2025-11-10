@@ -15,7 +15,7 @@ class Usuarios::SessionsController < ApplicationController
         jti: usuario.jti
       }
       
-      token = JWT.encode(payload, Rails.application.credentials.devise_jwt_secret_key, 'HS256')
+      token = JWT.encode(payload, JWT_SECRET_KEY, JWT_ALGORITHM)
       
       response.headers['Authorization'] = "Bearer #{token}"
       
@@ -53,7 +53,7 @@ class Usuarios::SessionsController < ApplicationController
     puts " "
   
     begin
-      payload = JWT.decode(token, Rails.application.credentials.devise_jwt_secret_key, true, { algorithm: 'HS256' }).first
+      payload = JWT.decode(token, JWT_SECRET_KEY, true, { algorithm: JWT_ALGORITHM }).first
       usuario = Usuario.find(payload['sub'])
 
       if payload['jti'] == usuario.jti

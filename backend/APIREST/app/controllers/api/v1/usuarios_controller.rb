@@ -46,7 +46,11 @@ module Api
             private
 
             def usuario_params
-                params.require(:usuario).permit(:nombre, :apellido, :email, :estado_cuenta, :password, :rol, :fecha_registro, :foto_perfil)
+                params.require(:usuario).permit(:nombre, :apellido, :email, :estado_cuenta, :password, :rol, :fecha_registro, :foto_perfil,
+                cliente_attributes: [:cedula],
+                arquitecto_attributes: [:cedula, :valoracion_prom_proyecto, :descripcion, :especialidades, :ubicacion, :verificado, :vistas_perfil],
+                moderador_attributes: [:num_incidencias_resultas, :num_arquitectos_verificados]
+                )
             end
 
             def set_usuario

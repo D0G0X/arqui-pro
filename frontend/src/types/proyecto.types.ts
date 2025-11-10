@@ -9,11 +9,34 @@ export interface Proyecto {
   titulo_proyecto: string
   descripcion: string
   tipo_proyecto: 'portafolio' | 'contratado'
+  fecha_publicacion: Date
   valoracion_promedio: number
   arquitecto_id: string
-  cliente_id: string | null
+  cliente_id?: string | null
+  conversacion_id?: string
+  solicitud_proyecto_id?: string
   arquitecto?: Arquitecto
   cliente?: Cliente
   imagenes?: Imagen[]
   avances?: Avance[]
+}
+
+export interface CreateProyectoDto{
+  titulo_proyecto: string
+  descripcion: string
+  tipo_proyecto: 'portafolio' | 'contratado'
+  arquitecto_id: string
+  cliente_id: string | null
+}
+
+export interface UpdateProyectoDto{
+  titulo_proyecto?: string
+  descripcion?: string
+  tipo_proyecto?: 'portafolio' | 'contratado'
+  fecha_publicacion?: Date
+  valoracion_promedio?: number
+  arquitecto_id?: string
+  cliente_id?: string | null
+  conversacion_id?: string
+  solicitud_proyecto_id?: string
 }

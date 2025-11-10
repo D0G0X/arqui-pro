@@ -1,12 +1,9 @@
-import Header from '../components/layout/Header'
-import Footer from '../components/layout/Footer'
 import '../styles/AboutUs.css'
 
 function AboutUs() {
   return (
     <div className="about-container">
-      <Header />
-      
+
       <main className="about-content">
         <section className="about-hero">
           <h1 className="about-title">About ArquiPro</h1>
@@ -111,8 +108,6 @@ function AboutUs() {
           </div>
         </section>
       </main>
-
-      <Footer />
     </div>
   )
 }

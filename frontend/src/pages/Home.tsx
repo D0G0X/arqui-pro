@@ -1,6 +1,4 @@
 import { useNavigate } from 'react-router-dom'
-import Header from '../components/layout/Header'
-import Footer from '../components/layout/Footer'
 import { ROUTES } from '../config/constants'
 import '../styles/Home.css'
 
@@ -13,8 +11,6 @@ function Home() {
 
   return (
     <div className="home-container">
-      <Header />
-      
       <main className="main-content">
         {/* Hero Section with Background Image */}
         <section className="hero-banner">
@@ -177,8 +173,6 @@ function Home() {
           </div>
         </section>
       </main>
-
-      <Footer />
     </div>
   )
 }

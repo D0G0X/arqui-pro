@@ -1,3 +1,4 @@
+import { useNavigate, useLocation } from 'react-router-dom'
 import '../../styles/ArquitectoCard.css'
 
 interface ArquitectoSimpleCardProps {
@@ -17,6 +18,7 @@ const AVATAR_COLORS = [
 ]
 
 function ArquitectoSimpleCard({ 
+  id,
   nombre, 
   apellido, 
   especialidades, 
@@ -25,7 +27,8 @@ function ArquitectoSimpleCard({
 }: ArquitectoSimpleCardProps) {
   const nombreCompleto = `${nombre} ${apellido}`
   const iniciales = `${nombre[0]}${apellido[0]}`
-  
+  const navigate = useNavigate();
+  const location = useLocation();
   // Generar color basado en el nombre
   const getAvatarColor = (name: string) => {
     const index = name.charCodeAt(0) % AVATAR_COLORS.length
@@ -39,6 +42,13 @@ function ArquitectoSimpleCard({
     ? especialidades.split(',')[0].trim() 
     : 'Arquitecto'
 
+  const handleVerPerfil = () => {
+    if(location.pathname === "/architects"){
+      navigate(`/architect/${id}`);
+    }else{
+      navigate(`/cliente/arquitecto/${id}`);
+    }
+  }
   return (
     <div className="arquitecto-card arquitecto-card-simple">
       <div className="arquitecto-avatar" style={{ backgroundColor: avatarColor }}>
@@ -58,6 +68,12 @@ function ArquitectoSimpleCard({
           <span className="rating-value">{valoracionPromedioProyecto.toFixed(1)}</span>
         </div>
       </div>
+            <button
+        onClick={handleVerPerfil}
+        className="arquitecto-button"
+      >
+        Ver Perfil
+      </button>
     </div>
   )
 }

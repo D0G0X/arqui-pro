@@ -3,8 +3,8 @@ class Api::V1::ArquitectosController < ApplicationController
 
   # Solo arquitectos autenticados pueden actualizar/eliminar
   before_action :authenticate_usuario!, only: %i[update destroy]
-  before_action :require_arquitecto!, only: %i[update destroy]
-  before_action :require_arquitecto_ownership!, only: %i[update destroy]
+  before_action :require_arquitecto!, only: %i[destroy] # ya no pide ser arquitecto para actualizar
+  before_action :require_arquitecto_ownership!, only: %i[destroy] # Ya no pide ser el arquitecto para actualizar
 
   def index
     @arquitectos = Arquitecto.includes(:usuario).all

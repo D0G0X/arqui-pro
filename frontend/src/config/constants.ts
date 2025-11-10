@@ -120,6 +120,14 @@ export const ROUTES = {
   LOGIN: '/login',
   REGISTER: '/register',
   REGISTER_CLIENTE: '/registro-cliente',
+  CLIENTE: {
+    HOME: '/cliente/home',
+    PROYECTOS: '/cliente/proyectos',
+    MENSAJES: '/cliente/mensajes',
+    BUSCAR_ARQUITECTO: '/cliente/buscar-arquitecto',
+    SOLICITUD: '/cliente/solicitud',
+    PROYECTO: '/cliente/proyecto',
+  },
   MODERATOR: {
     DASHBOARD: '/moderador/dashboard',
     VERIFICACIONES: '/moderador/verificaciones',
