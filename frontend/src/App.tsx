@@ -3,7 +3,7 @@ import { ApolloProvider } from '@apollo/client'
 import { useEffect } from 'react'
 import apolloClient from './services/graphql/apolloClient'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
-import { notificationService } from './services/notificationService'
+import { notificationService } from './services/websocket/notificationService'
 import ErrorBoundary from './components/common/ErrorBoundary'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import Home from './pages/Home'
@@ -13,13 +13,13 @@ import LoginPage from './pages/auth/LoginPage'
 import RegistroClientePage from './pages/auth/RegistroClientePage'
 import RegistroArquitectoPage from './pages/auth/RegistroArquitectoPage'
 import RegistroModeradorPage from './pages/auth/RegistroModeradorPage'
-import ArchitectProfile from './pages/Arquitecto/ArchitectProfile'
+
 import ClientChat from './pages/Cliente/ClientChat'
 import ArchitectDashboard from './pages/Arquitecto/ArchitectDashboard'
 import ArchitectChat from './pages/Arquitecto/ArchitectChat'
 import CreateProject from './pages/Arquitecto/CreateProject'
 import ArchitectProjectDetail from './pages/Arquitecto/ArchitectProjectDetail'
-
+import ArquitectoProfile from './pages/Arquitecto/ArquitectoProfile'
 import { ModeratorDashboard, Verificaciones, Incidencias } from './pages/Moderator'
 import ClienteLayout from './components/layout/Cliente/ClienteLayout'
 import ArquitectoLayout from './components/layout/Arquitecto/ArquitectoLayout'
@@ -39,14 +39,14 @@ function WebSocketManager() {
   }, [])
 
   useEffect(() => {
-    // Solo conectar si el usuario es moderador
-    if (user && user.rol === 'moderador') {
-      // notificationService.connect(Number(user.id), user.rol)
-      console.log('WebSocket connection disabled temporarily')
+    // Conectar al WebSocket de notificaciones para todos los usuarios autenticados
+    if (user && user.id) {
+      notificationService.connect()
+      console.log('✅ WebSocket de notificaciones conectado para usuario:', user.id)
 
       // Cleanup al desmontar
       return () => {
-        // notificationService.disconnect()
+        notificationService.disconnect()
       }
     }
   }, [user])
@@ -66,16 +66,14 @@ function App() {
               <Route path="/" element={<MainLayout children={<Home/>} />} />
               <Route path="/architects" element={<MainLayout children={<FindArchitects />}/>} />
               <Route path="/about" element={<MainLayout children={<AboutUs />}/>} />
-              <Route path="/architect/:id" element={<MainLayout children={<ArchitectProfile />}/>} />
+              <Route path="/architect/:id" element={<MainLayout children={<ArquitectoProfile />}/>} />
+              <Route path="/arquitecto/:id" element={<MainLayout children={<ArquitectoProfile />}/>} />
               <Route path="/proyecto/:id" element={<MainLayout children={<ProyectoDetail />}/>} />
 
               <Route path="/login" element={<LoginPage/>}/>
               <Route path="/registro-cliente" element={<RegistroClientePage/>}/>
               <Route path="/registro-arquitecto" element={<RegistroArquitectoPage/>}/>
               <Route path="/registro-moderador" element={<RegistroModeradorPage/>}/>
-              
-              {/* Rutas Públicas - Perfil de Arquitecto */}
-              <Route path="/arquitecto/:id" element={<ArchitectProfile />} />
               
               {/* Rutas Protegidas - Arquitecto */}
               <Route 
@@ -106,7 +104,7 @@ function App() {
                 <Route path="/cliente/home" element={<ClienteHome />} />
                 <Route path="/cliente/mis-proyectos" element={<MisProyectos />} />
                 <Route path="/cliente/find-arquitectos" element={<FindArchitects />} />
-                <Route path="/cliente/arquitecto/:id" element={<ArchitectProfile />} />
+                <Route path="/cliente/arquitecto/:id" element={<ArquitectoProfile />} />
                 <Route path="/cliente/proyecto/:id" element={<ProyectoDetail />} />
                 <Route path='/cliente/conversaciones' element={<ClientChat />} />
               </Route>

@@ -8,6 +8,14 @@ const axiosInstance = axios.create({
   },
 })
 
+// Crear una instancia pública (sin interceptores) para endpoints que no requieren autenticación
+export const axiosPublic = axios.create({
+  baseURL: API_CONFIG.REST_API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+})
+
 // Request interceptor para agregar token y user ID
 axiosInstance.interceptors.request.use(
   (config) => {

@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { NotificacionesDropdown } from '../common/NotificacionesDropdown'
 import '../../styles/Header.css'
 
 function Header() {
@@ -38,6 +39,7 @@ function Header() {
         <div className="auth-buttons">
           {isAuthenticated ? (
             <>
+              <NotificacionesDropdown />
               <span className="user-greeting">Hi, {user?.nombre}!</span>
               <button onClick={handleLogout} className="login-btn">
                 LOG OUT

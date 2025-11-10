@@ -5,7 +5,7 @@ const WS_URL = import.meta.env.VITE_WS_URL || "http://localhost:3006";
 
 interface Notification {
   id: string;
-  type: "nuevaConversacion" | "message:new";
+  type: "nuevaConversacion" | "message:new" | "proyecto:creado" | "arquitecto:verificado" | "generic";
   data: any;
   timestamp: Date;
   read: boolean;
@@ -21,6 +21,9 @@ class NotificationService {
       logger.info("Notificaciones ya conectadas");
       return;
     }
+
+    // Solicitar permiso para notificaciones del navegador
+    this.requestPermission();
 
     // Obtener token de autenticación
     const token = localStorage.getItem('auth_token');
@@ -54,10 +57,70 @@ class NotificationService {
       this.addNotification(notification);
     });
 
+    // Escuchar cuando se crea una nueva conversación
+    this.socket.on("conversacion:creada", (data) => {
+      const notification: Notification = {
+        id: `conv-${Date.now()}`,
+        type: "nuevaConversacion",
+        data,
+        timestamp: new Date(),
+        read: false,
+      };
+      this.addNotification(notification);
+    });
+
     this.socket.on("message:new", (data) => {
       const notification: Notification = {
         id: `msg-${Date.now()}`,
         type: "message:new",
+        data,
+        timestamp: new Date(),
+        read: false,
+      };
+      this.addNotification(notification);
+    });
+
+    // Escuchar cuando un arquitecto crea un proyecto para un cliente
+    this.socket.on("proyecto:creado", (data) => {
+      const notification: Notification = {
+        id: `proyecto-${Date.now()}`,
+        type: "proyecto:creado",
+        data,
+        timestamp: new Date(),
+        read: false,
+      };
+      this.addNotification(notification);
+    });
+
+    // Escuchar cuando un arquitecto es verificado
+    this.socket.on("arquitecto:verificado", (data) => {
+      const notification: Notification = {
+        id: `verif-${Date.now()}`,
+        type: "arquitecto:verificado",
+        data,
+        timestamp: new Date(),
+        read: false,
+      };
+      this.addNotification(notification);
+    });
+
+    // Escuchar cuando un arquitecto es rechazado
+    this.socket.on("arquitecto:rechazado", (data) => {
+      const notification: Notification = {
+        id: `rech-${Date.now()}`,
+        type: "arquitecto:verificado",
+        data,
+        timestamp: new Date(),
+        read: false,
+      };
+      this.addNotification(notification);
+    });
+
+    // Escuchar notificaciones genéricas
+    this.socket.on("notificacion", (data) => {
+      const notification: Notification = {
+        id: `notif-${Date.now()}`,
+        type: "generic",
         data,
         timestamp: new Date(),
         read: false,
@@ -110,6 +173,18 @@ class NotificationService {
 
   get unreadCount(): number {
     return this.notifications.filter((n) => !n.read).length;
+  }
+
+  // Solicitar permiso para notificaciones del navegador
+  async requestPermission() {
+    if ('Notification' in window && Notification.permission === 'default') {
+      try {
+        const permission = await Notification.requestPermission();
+        logger.info('Permiso de notificaciones:', permission);
+      } catch (error) {
+        logger.error('Error solicitando permiso de notificaciones:', error);
+      }
+    }
   }
 }
 

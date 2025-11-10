@@ -1,6 +1,7 @@
 import { Outlet, useLocation, Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../contexts/AuthContext'
-import { Home, Folder, MessageSquare, Search, LogOut, Bell } from 'lucide-react'
+import { Home, Folder, MessageSquare, Search, LogOut } from 'lucide-react'
+import { NotificacionesDropdown } from '../../common/NotificacionesDropdown'
 import '../../../styles/ClienteLayout.css'
 import '../../../styles/Moderator/ModeratorSidebar.css'
 
@@ -72,10 +73,7 @@ const ClienteLayout = () => {
             </div>
 
             <div className="cliente-header-right">
-              <button className="notificaciones-btn" aria-label="Notificaciones">
-                <Bell size={18} />
-                <span className="notificacion-badge">1</span>
-              </button>
+              <NotificacionesDropdown />
 
               <div className="cliente-user-menu">
                 <div className="cliente-user-info">

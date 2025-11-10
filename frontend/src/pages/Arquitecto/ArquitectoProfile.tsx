@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { Star, FolderKanban, Eye, MapPin, MessageCircle, CheckCircle } from 'lucide-react'
 import arquitectosService from '../../services/api/arquitectosService'
+import conversacionesService from '../../services/api/conversacionesService'
+import axiosInstance from '../../services/api/axiosInstance'
+import { useAuth } from '../../contexts/AuthContext'
 import { useQuery } from '@apollo/client'
 import { PERFIL_COMPLETO_ARQUITECTO } from '../../services/graphql/queries'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
@@ -18,12 +21,14 @@ const AVATAR_COLORS = [
 function ArquitectoProfile() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const location = useLocation();
+  const location = useLocation()
+  const { user } = useAuth()
 
   const [arquitecto, setArquitecto] = useState<Arquitecto | null>(null)
   const [proyectos, setProyectos] = useState<Proyecto[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [creatingConversation, setCreatingConversation] = useState(false)
 
   useEffect(() => {
     // Usamos la consulta GraphQL en lugar de los servicios REST para obtener el perfil completo.
@@ -173,11 +178,86 @@ function ArquitectoProfile() {
     return '/placeholder-project.jpg'
   }
 
-  const handleContactar = () => {
-    // TODO: Implementar navegación a conversación
-    console.log('Contactar arquitecto:', arquitecto?.id)
-    // navigate(`/conversacion/${arquitecto?.id}`)
-    alert('La funcionalidad de conversación estará disponible próximamente')
+  const handleContactar = async () => {
+    if (!user || !arquitecto) {
+      alert('Debes iniciar sesión para contactar al arquitecto')
+      navigate('/login')
+      return
+    }
+
+    if (user.rol !== 'cliente') {
+      alert('Solo los clientes pueden contactar arquitectos')
+      return
+    }
+
+    try {
+      setCreatingConversation(true)
+
+      // Obtener el cliente_id del usuario actual
+      const responseCliente = await axiosInstance.get(`/clientes?usuario_id=${user.id}`)
+      console.log('📋 Response clientes:', responseCliente.data)
+      
+      const clientes = Array.isArray(responseCliente.data) ? responseCliente.data : [responseCliente.data]
+      const cliente = clientes[0]
+      
+      console.log('👤 Cliente encontrado:', cliente)
+      
+      if (!cliente || !cliente.id) {
+        alert('No se encontró tu perfil de cliente')
+        return
+      }
+
+      const clienteId = String(cliente.id)
+      const arquitectoId = String(arquitecto.id)
+
+      console.log('🔍 Buscando conversación existente...', { 
+        clienteId, 
+        arquitectoId,
+        clienteIdType: typeof clienteId,
+        arquitectoIdType: typeof arquitectoId 
+      })
+
+      // Verificar si ya existe una conversación
+      const conversacionExistente = await conversacionesService.getByParticipants(
+        clienteId,
+        arquitectoId
+      )
+
+      let conversacionId: string
+
+      if (conversacionExistente) {
+        console.log('✅ Conversación existente encontrada:', conversacionExistente.id)
+        conversacionId = conversacionExistente.id
+      } else {
+        // Crear nueva conversación
+        console.log('📝 Creando nueva conversación...')
+        console.log('Datos a enviar:', { cliente_id: clienteId, arquitecto_id: arquitectoId })
+        
+        const response = await conversacionesService.create({
+          cliente_id: clienteId,
+          arquitecto_id: arquitectoId
+        })
+
+        conversacionId = response.conversacion.id
+        console.log('✅ Conversación creada:', conversacionId)
+      }
+
+      // Redirigir directamente al chat con la conversación seleccionada
+      navigate('/cliente/conversaciones', { 
+        state: { 
+          conversacionId,
+          autoOpen: true 
+        } 
+      })
+      
+    } catch (error: any) {
+      console.error('❌ Error al crear conversación:', error)
+      console.error('Response data:', error?.response?.data)
+      console.error('Response status:', error?.response?.status)
+      alert(`Hubo un error al crear la conversación: ${error?.response?.data?.error || error.message}`)
+    } finally {
+      setCreatingConversation(false)
+    }
   }
 
   const handleProyectoClick = (proyectoId: string) => {
@@ -272,9 +352,13 @@ function ArquitectoProfile() {
           )}
 
           {/* Botón Contactar */}
-          <button className="contact-button" onClick={handleContactar}>
+          <button 
+            className="contact-button" 
+            onClick={handleContactar}
+            disabled={creatingConversation}
+          >
             <MessageCircle size={20} />
-            Contactar Arquitecto
+            {creatingConversation ? 'Creando conversación...' : 'Contactar Arquitecto'}
           </button>
 
           {/* Especialidades */}

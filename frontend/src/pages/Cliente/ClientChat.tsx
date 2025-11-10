@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Chat } from '../../components/Chat';
 import { NotificationInbox } from '../../components/NotificationInbox';
@@ -21,6 +21,7 @@ interface Conversation {
 export default function ClientChat() {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -130,6 +131,19 @@ export default function ClientChat() {
       navigate('/login');
     }
   }, [isAuthenticated, navigate]);
+
+  // Abrir conversación automáticamente si viene del botón "Contactar"
+  useEffect(() => {
+    const state = location.state as any;
+    if (state?.conversacionId && state?.autoOpen && conversations.length > 0) {
+      const conversacionExiste = conversations.find(c => c.id === state.conversacionId);
+      if (conversacionExiste) {
+        handleSelectConversation(state.conversacionId);
+        // Limpiar el state para que no se abra de nuevo al recargar
+        window.history.replaceState({}, document.title);
+      }
+    }
+  }, [location.state, conversations]);
 
   const handleSelectConversation = (conversacionId: string) => {
     setChatOpen(false);

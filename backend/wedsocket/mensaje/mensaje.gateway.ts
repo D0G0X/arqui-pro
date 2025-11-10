@@ -7,6 +7,8 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { MensajeService } from './mensaje.service';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
 
 @WebSocketGateway({
   namespace: '/mensajes',
@@ -20,7 +22,10 @@ import { MensajeService } from './mensaje.service';
 export class MensajeGateway {
   @WebSocketServer() server: Server;
 
-  constructor(private readonly mensajeService: MensajeService) {}
+  constructor(
+    private readonly mensajeService: MensajeService,
+    private readonly httpService: HttpService,
+  ) {}
 
   @SubscribeMessage('message:create')
   async handleEnviarMensaje(
@@ -50,6 +55,19 @@ export class MensajeGateway {
       this.server
         .to(`conversacion:${payload.conversacion_id}`)
         .emit('message:new', mensajeCreado);
+
+      // Enviar notificación al namespace de notificaciones
+      try {
+        await firstValueFrom(
+          this.httpService.post('http://localhost:3006/api/notificaciones/emit', {
+            evento: 'message:new',
+            data: mensajeCreado,
+          })
+        );
+        console.log(`🔔 [NOTIFICATION] Notificación de mensaje enviada`);
+      } catch (notifError) {
+        console.warn(`⚠️ [NOTIFICATION] No se pudo enviar notificación:`, notifError.message);
+      }
 
       return { status: 'ok', mensaje: mensajeCreado };
     } catch (error: any) {

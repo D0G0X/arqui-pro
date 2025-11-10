@@ -16,6 +16,9 @@ class Api::V1::ProyectosController < ApplicationController
   def create
     @proyecto = Proyecto.new(proyecto_params)
     if @proyecto.save
+      # Notificar al cliente que se creó un proyecto
+      WebsocketNotifier.notify_proyecto_creado(@proyecto)
+      
       render json: @proyecto, status: :created
     else
       render json: @proyecto.errors, status: :unprocessable_entity

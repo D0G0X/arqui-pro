@@ -3,7 +3,8 @@ import type { RegistroUsuarioInput, Usuario } from "../../types/usuario.types";
 import { registroUsuario } from "../../services/api/auth/authService";
 import FormularioRegistroArquitecto from "../../components/auth/FormularioRegistroArquitecto";
 import { useNavigate } from "react-router-dom";
-
+import verificacionService from "../../services/api/verificacionService"
+import { axiosPublic } from "../../services/api/axiosInstance"
 
 export default function RegistroArquitectoPage(){
     const navigate = useNavigate();
@@ -29,8 +30,40 @@ export default function RegistroArquitectoPage(){
             const nuevoUsuario: Usuario = await registroUsuario(data);
 
             console.log("Arquitecto registrado:", nuevoUsuario);
-            // Navegar a la página de inicio de sesión después del registro exitoso
-            navigate('/login');
+                // Intentar crear una verificación pendiente asignada a un moderador aleatorio existente
+                try {
+                    // Obtener el arquitecto creado (búsqueda por usuario_id)
+                    const arquitectosResp = await axiosPublic.get('/arquitectos')
+                    const arquitectos = Array.isArray(arquitectosResp.data) ? arquitectosResp.data : arquitectosResp.data?.arquitectos || []
+                    const arquitectoDelUsuario = arquitectos.find((arq: any) => arq.usuario_id === nuevoUsuario.id)
+                    
+                    if (!arquitectoDelUsuario) {
+                        throw new Error('No se encontró el arquitecto creado para este usuario')
+                    }
+
+                    // Obtener lista de moderadores usando instancia pública (sin interceptores)
+                    const moderatorsResp = await axiosPublic.get('/moderadores')
+                    const moderators = Array.isArray(moderatorsResp.data) ? moderatorsResp.data : moderatorsResp.data?.moderadores || []
+                    let moderadorId: string | null = null
+                    if (moderators.length > 0) {
+                        const randomIndex = Math.floor(Math.random() * moderators.length)
+                        // Usar el id del moderador aleatorio
+                        moderadorId = moderators[randomIndex]?.id || null
+                    }
+
+                    await verificacionService.create({
+                        estado: 'pendiente',
+                        arquitecto_id: arquitectoDelUsuario.id,
+                        moderador_id: moderadorId
+                    })
+                } catch (verifError) {
+                    // No interrumpimos el flujo de registro si la creación de la verificación falla,
+                    // solo lo registramos en consola para que el equipo lo revise.
+                    console.error('Error creando verificación inicial para el arquitecto:', verifError)
+                }
+
+                // Navegar a la página de inicio de sesión después del registro exitoso
+                navigate('/login');
         } catch (error: any) {
             let errorMessage = "Error en el registro del arquitecto. Por favor, intente más tarde.";
             
