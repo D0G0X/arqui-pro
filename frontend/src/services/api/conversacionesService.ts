@@ -9,6 +9,7 @@ interface CreateConversacionParams {
 interface ConversacionResponse {
   conversacion: Conversacion
   message?: string
+  existing?: boolean // Indica si la conversación ya existía
 }
 
 const conversacionesService = {
@@ -20,9 +21,9 @@ const conversacionesService = {
       '/conversaciones',
       {
         conversacion: {
-          cliente_id: Number(params.cliente_id),
-          arquitecto_id: Number(params.arquitecto_id),
-          fecha: new Date().toISOString().split('T')[0] // YYYY-MM-DD
+          cliente_id: params.cliente_id, // UUID como string
+          arquitecto_id: params.arquitecto_id // UUID como string
+          // fecha se maneja automáticamente en el backend
         }
       }
     )
@@ -76,6 +77,14 @@ const conversacionesService = {
    */
   async marcarMensajesLeidos(conversacionId: string) {
     const response = await axiosInstance.put(`/conversaciones/${conversacionId}/marcar_mensajes_leidos`)
+    return response.data
+  },
+
+  /**
+   * Eliminar una conversación
+   */
+  async delete(conversacionId: string): Promise<{ success: boolean; message: string }> {
+    const response = await axiosInstance.delete(`/conversaciones/${conversacionId}`)
     return response.data
   }
 }

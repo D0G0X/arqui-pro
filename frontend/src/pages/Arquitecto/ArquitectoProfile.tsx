@@ -9,6 +9,7 @@ import { useQuery } from '@apollo/client'
 import { PERFIL_COMPLETO_ARQUITECTO } from '../../services/graphql/queries'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import ErrorMessage from '../../components/common/ErrorMessage'
+import { CacheService } from '../../utils/cacheService'
 import type { Arquitecto, Proyecto } from '../../types'
 import '../../styles/ArquitectoProfile.css'
 
@@ -29,6 +30,7 @@ function ArquitectoProfile() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [creatingConversation, setCreatingConversation] = useState(false)
+  const [arquitectoIdReal, setArquitectoIdReal] = useState<string | null>(null) // ID de la tabla arquitectos
 
   useEffect(() => {
     // Usamos la consulta GraphQL en lugar de los servicios REST para obtener el perfil completo.
@@ -139,15 +141,42 @@ function ArquitectoProfile() {
       setArquitecto(arquitectoState)
       setProyectos(proyectosFromGql)
 
-      // Actualizar vistas vía REST: solo la actualización
+      // 🔧 El ID de la URL puede ser arquitecto_id o usuario_id
+      // Intentar ambos para obtener el arquitecto_id real
       try {
-        const currentViews = arquitectoState.vistas_perfil ?? 0
-        // Llamada REST para incrementar vistas en backend
-        await arquitectosService.update(String(id), { vistas_perfil: currentViews + 1 })
-        // actualizar estado local para reflejar incremento inmediato
-        setArquitecto((prev: any) => prev ? { ...prev, vistas_perfil: currentViews + 1 } : prev)
+        let realArquitectoId: string | null = null
+        
+        // Primero intentar como arquitecto_id directo
+        try {
+          const directResponse = await axiosInstance.get(`/arquitectos/${id}`)
+          if (directResponse.data && directResponse.data.id) {
+            realArquitectoId = String(directResponse.data.id)
+            console.log('✅ Arquitecto ID obtenido directamente:', realArquitectoId)
+          }
+        } catch (directError) {
+          // Si falla, intentar buscarlo por usuario_id
+          console.log('⚠️ No se encontró como arquitecto_id, intentando como usuario_id...')
+          const byUsuarioResponse = await axiosInstance.get(`/arquitectos?usuario_id=${id}`)
+          const arquitectos = Array.isArray(byUsuarioResponse.data) ? byUsuarioResponse.data : [byUsuarioResponse.data]
+          
+          if (arquitectos[0] && arquitectos[0].id) {
+            realArquitectoId = String(arquitectos[0].id)
+            console.log('✅ Arquitecto ID obtenido por usuario_id:', realArquitectoId)
+          }
+        }
+        
+        if (realArquitectoId) {
+          setArquitectoIdReal(realArquitectoId)
+          
+          // Actualizar vistas vía REST usando el ID real
+          const currentViews = arquitectoState.vistas_perfil ?? 0
+          await arquitectosService.update(realArquitectoId, { vistas_perfil: currentViews + 1 })
+          setArquitecto((prev: any) => prev ? { ...prev, vistas_perfil: currentViews + 1 } : prev)
+        } else {
+          console.error('❌ No se pudo obtener el arquitecto_id real')
+        }
       } catch (e) {
-        console.warn('No se pudo actualizar vistas vía REST:', e)
+        console.warn('No se pudo obtener arquitecto_id real o actualizar vistas:', e)
       }
     }
 
@@ -207,42 +236,41 @@ function ArquitectoProfile() {
         return
       }
 
-      const clienteId = String(cliente.id)
-      const arquitectoId = String(arquitecto.id)
+      // 🔧 Usar el arquitecto_id real obtenido de la tabla arquitectos
+      if (!arquitectoIdReal) {
+        alert('No se pudo determinar el ID del arquitecto. Intenta recargar la página.')
+        return
+      }
 
-      console.log('🔍 Buscando conversación existente...', { 
+      const clienteId = String(cliente.id)
+      const arquitectoId = arquitectoIdReal // Usar el ID real de la tabla arquitectos
+
+      console.log('🔍 Creando o buscando conversación...', { 
         clienteId, 
         arquitectoId,
         clienteIdType: typeof clienteId,
         arquitectoIdType: typeof arquitectoId 
       })
 
-      // Verificar si ya existe una conversación
-      const conversacionExistente = await conversacionesService.getByParticipants(
-        clienteId,
-        arquitectoId
-      )
+      // Crear conversación (el backend validará si ya existe y devolverá la existente)
+      const response = await conversacionesService.create({
+        cliente_id: clienteId,
+        arquitecto_id: arquitectoId
+      })
 
-      let conversacionId: string
-
-      if (conversacionExistente) {
-        console.log('✅ Conversación existente encontrada:', conversacionExistente.id)
-        conversacionId = conversacionExistente.id
+      const conversacionId = response.conversacion.id
+      
+      if (response.existing) {
+        console.log('✅ Conversación existente encontrada:', conversacionId)
       } else {
-        // Crear nueva conversación
-        console.log('📝 Creando nueva conversación...')
-        console.log('Datos a enviar:', { cliente_id: clienteId, arquitecto_id: arquitectoId })
-        
-        const response = await conversacionesService.create({
-          cliente_id: clienteId,
-          arquitecto_id: arquitectoId
-        })
-
-        conversacionId = response.conversacion.id
-        console.log('✅ Conversación creada:', conversacionId)
+        console.log('✅ Nueva conversación creada:', conversacionId)
+        // Invalidar el caché de conversaciones para que se recargue
+        CacheService.remove(`conversaciones_${user.id}_cache`)
+        console.log('🗑️ Caché de conversaciones invalidado')
       }
 
       // Redirigir directamente al chat con la conversación seleccionada
+      console.log('🚀 Redirigiendo a /cliente/conversaciones con:', { conversacionId, autoOpen: true })
       navigate('/cliente/conversaciones', { 
         state: { 
           conversacionId,
@@ -254,7 +282,17 @@ function ArquitectoProfile() {
       console.error('❌ Error al crear conversación:', error)
       console.error('Response data:', error?.response?.data)
       console.error('Response status:', error?.response?.status)
-      alert(`Hubo un error al crear la conversación: ${error?.response?.data?.error || error.message}`)
+      
+      let errorMessage = 'Hubo un error al crear la conversación'
+      if (error?.response?.data?.details) {
+        errorMessage += ': ' + error.response.data.details.join(', ')
+      } else if (error?.response?.data?.error) {
+        errorMessage += ': ' + error.response.data.error
+      } else if (error.message) {
+        errorMessage += ': ' + error.message
+      }
+      
+      alert(errorMessage)
     } finally {
       setCreatingConversation(false)
     }

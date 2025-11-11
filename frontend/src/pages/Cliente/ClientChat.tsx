@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Chat } from '../../components/Chat';
-import { NotificationInbox } from '../../components/NotificationInbox';
 import { Search, Settings, MessageCircle } from 'lucide-react';
 import { useConversaciones } from '../../hooks/useApiWithCache';
 import axiosInstance from '../../services/api/axiosInstance';
@@ -63,7 +62,7 @@ export default function ClientChat() {
   console.log('ID del Cliente para filtrar conversaciones:', clienteId);
   
   // Obtener conversaciones reales desde la API
-  const { data: conversacionesData, loading: loadingConversaciones, error: errorConversaciones } = useConversaciones(user?.id);
+  const { data: conversacionesData, loading: loadingConversaciones, error: errorConversaciones, refetch: refetchConversaciones } = useConversaciones(user?.id);
   
   // Transformar conversaciones de la API al formato de la UI
   const conversations = useMemo<Conversation[]>(() => {
@@ -187,9 +186,6 @@ export default function ClientChat() {
 
   return (
     <div className="client-chat-page">
-      {/* Bandeja de notificaciones global */}
-      <NotificationInbox />
-
       <div className="chat-container-wrapper">
         {/* Left Panel - Conversations List */}
         <aside className="conversations-panel">
@@ -252,6 +248,12 @@ export default function ClientChat() {
               onClose={() => {
                 setChatOpen(false);
                 setSelectedConversation(null);
+              }}
+              onDeleteConversation={async () => {
+                // Cerrar chat y refrescar lista de conversaciones
+                setChatOpen(false);
+                setSelectedConversation(null);
+                await refetchConversaciones(); // Refrescar datos en lugar de reload
               }}
             />
           ) : (

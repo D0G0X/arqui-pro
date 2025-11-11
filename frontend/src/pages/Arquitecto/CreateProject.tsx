@@ -4,6 +4,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { ArrowLeft, FolderPlus } from 'lucide-react';
 import proyectosService from '../../services/api/proyectosService';
 import arquitectosService from '../../services/api/arquitectosService';
+import axiosInstance from '../../services/api/axiosInstance';
 import type { CreateProyectoDto } from '../../types';
 import { NotificationInbox } from '../../components/NotificationInbox';
 import '../../styles/CreateProject.css';
@@ -15,6 +16,7 @@ export default function CreateProject() {
   const clienteId = searchParams.get('cliente_id');
 
   const [arquitectoId, setArquitectoId] = useState<string | null>(null);
+  const [clienteNombre, setClienteNombre] = useState<string>('');
   const [formData, setFormData] = useState({
     titulo_proyecto: '',
     descripcion: '',
@@ -62,6 +64,31 @@ export default function CreateProject() {
 
     fetchArquitecto();
   }, [user, navigate]);
+
+  // Obtener el nombre del cliente si existe cliente_id
+  useEffect(() => {
+    const fetchCliente = async () => {
+      if (!clienteId) return;
+
+      try {
+        console.log('🔍 Buscando cliente:', clienteId);
+        const response = await axiosInstance.get(`/clientes/${clienteId}`);
+        const cliente = response.data;
+        
+        if (cliente && cliente.usuario) {
+          const nombreCompleto = `${cliente.usuario.nombre} ${cliente.usuario.apellido}`;
+          setClienteNombre(nombreCompleto);
+          console.log('✅ Cliente encontrado:', nombreCompleto);
+        }
+      } catch (err) {
+        console.error('❌ Error obteniendo cliente:', err);
+        // Si falla, al menos mostrar el ID
+        setClienteNombre(`Cliente ID: ${clienteId}`);
+      }
+    };
+
+    fetchCliente();
+  }, [clienteId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -206,12 +233,16 @@ export default function CreateProject() {
 
           {clienteId && (
             <div className="form-group">
-              <label>Cliente ID</label>
+              <label>Cliente</label>
               <input
                 type="text"
-                value={formData.cliente_id}
+                value={clienteNombre || 'Cargando...'}
                 disabled
                 className="form-input disabled"
+              />
+              <input
+                type="hidden"
+                value={formData.cliente_id}
               />
             </div>
           )}

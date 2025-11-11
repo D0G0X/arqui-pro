@@ -27,6 +27,8 @@ class NotificationService {
 
     // Obtener token de autenticación
     const token = localStorage.getItem('auth_token');
+    const userStr = localStorage.getItem('user');
+    const user = userStr ? JSON.parse(userStr) : null;
 
     this.socket = io(`${WS_URL}/notificacion`, {
       transports: ["websocket", "polling"],
@@ -40,10 +42,32 @@ class NotificationService {
 
     this.socket.on("connect", () => {
       logger.info("✅ Conectado al servidor de notificaciones");
+      
+      // Registrar el usuario en el servidor WebSocket
+      if (user && user.id) {
+        this.socket?.emit('register_user', { usuario_id: user.id });
+        logger.info(`📝 Usuario ${user.id} registrado en notificaciones`);
+      }
     });
 
     this.socket.on("disconnect", () => {
       logger.warn("❌ Desconectado del servidor de notificaciones");
+    });
+
+    // ========================================
+    // EVENTO: Nueva notificación genérica
+    // ========================================
+    this.socket.on("nueva_notificacion", (data) => {
+      logger.info("📬 Nueva notificación recibida:", data);
+      const notification: Notification = {
+        id: data.id || `notif-${Date.now()}`,
+        type: "generic",
+        data,
+        timestamp: new Date(data.fecha || Date.now()),
+        read: false,
+      };
+      this.addNotification(notification);
+      this.showBrowserNotification("Nueva notificación", data.mensaje);
     });
 
     this.socket.on("nuevaConversacion", (data) => {
@@ -82,6 +106,7 @@ class NotificationService {
 
     // Escuchar cuando un arquitecto crea un proyecto para un cliente
     this.socket.on("proyecto:creado", (data) => {
+      logger.info("📬 Proyecto creado:", data);
       const notification: Notification = {
         id: `proyecto-${Date.now()}`,
         type: "proyecto:creado",
@@ -90,10 +115,12 @@ class NotificationService {
         read: false,
       };
       this.addNotification(notification);
+      this.showBrowserNotification("Nuevo Proyecto", data.mensaje || "Se ha creado un nuevo proyecto");
     });
 
     // Escuchar cuando un arquitecto es verificado
-    this.socket.on("arquitecto:verificado", (data) => {
+    this.socket.on("arquitecto_verificado", (data) => {
+      logger.info("📬 Arquitecto verificado:", data);
       const notification: Notification = {
         id: `verif-${Date.now()}`,
         type: "arquitecto:verificado",
@@ -183,6 +210,21 @@ class NotificationService {
         logger.info('Permiso de notificaciones:', permission);
       } catch (error) {
         logger.error('Error solicitando permiso de notificaciones:', error);
+      }
+    }
+  }
+
+  // Mostrar notificación del navegador
+  showBrowserNotification(title: string, body: string) {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      try {
+        new Notification(title, {
+          body,
+          icon: '/logo.png', // Asegúrate de tener un logo en public/
+          badge: '/logo.png',
+        });
+      } catch (error) {
+        logger.error('Error mostrando notificación del navegador:', error);
       }
     }
   }

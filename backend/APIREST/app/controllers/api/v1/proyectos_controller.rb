@@ -16,8 +16,16 @@ class Api::V1::ProyectosController < ApplicationController
   def create
     @proyecto = Proyecto.new(proyecto_params)
     if @proyecto.save
-      # Notificar al cliente que se creó un proyecto
-      WebsocketNotifier.notify_proyecto_creado(@proyecto)
+      Rails.logger.info "✅ Proyecto creado: #{@proyecto.id} - #{@proyecto.titulo_proyecto}"
+      
+      # Notificar al cliente si el proyecto es de tipo 'contratado'
+      if @proyecto.tipo_proyecto == 'contratado' && @proyecto.cliente_id.present?
+        begin
+          NotificationService.notify_proyecto_creado(@proyecto)
+        rescue => e
+          Rails.logger.error "❌ Error al notificar proyecto creado: #{e.message}"
+        end
+      end
       
       render json: @proyecto, status: :created
     else

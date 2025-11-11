@@ -36,6 +36,25 @@ class Api::V1::NotificacionesController < ApplicationController
     end
   end
 
+  # Marcar todas las notificaciones de un usuario como leídas
+  def marcar_todas_leidas
+    usuario_id = params[:usuario_id]
+    
+    if usuario_id.blank?
+      return render json: { error: 'usuario_id es requerido' }, status: :bad_request
+    end
+
+    count = Notificacion.where(usuario_id: usuario_id, leido: false).update_all(leido: true)
+    
+    Rails.logger.info "✅ #{count} notificaciones marcadas como leídas para usuario #{usuario_id}"
+    
+    render json: { 
+      success: true, 
+      message: "#{count} notificaciones marcadas como leídas",
+      count: count 
+    }
+  end
+
   private
 
   def notificacion_params

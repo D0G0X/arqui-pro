@@ -8,15 +8,23 @@ module WebSocketNotifier
       http = Net::HTTP.new(uri.host, uri.port)
       request = Net::HTTP::Post.new(uri.path, 'Content-Type' => 'application/json')
       request.body = {
-        conversacion: conversacion.as_json(include: :participantes),
-        participante_ids: conversacion.participantes.pluck(:id)
+        conversacion: conversacion.as_json(
+          include: {
+            cliente: { include: :usuario },
+            arquitecto: { include: :usuario }
+          }
+        ),
+        participante_ids: conversacion.participante_ids
       }.to_json
+      
+      Rails.logger.info "📤 Enviando notificación WebSocket para conversación #{conversacion.id}"
+      Rails.logger.info "   Participantes: #{conversacion.participante_ids.join(', ')}"
       
       begin
         response = http.request(request)
-        Rails.logger.info "WebSocket notification sent: #{response.code} - #{response.message}"
+        Rails.logger.info "✅ WebSocket notification sent: #{response.code} - #{response.message}"
       rescue => e
-        Rails.logger.error "Error notifying WebSocket: #{e.message}"
+        Rails.logger.error "❌ Error notifying WebSocket: #{e.message}"
       end
     end
 

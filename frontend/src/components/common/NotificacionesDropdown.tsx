@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Bell, X, CheckCheck } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import axiosInstance from '../../services/api/axiosInstance'
+import notificacionesService from '../../services/api/notificacionesService'
 import { notificationService } from '../../services/websocket/notificationService'
 import '../../styles/NotificacionesDropdown.css'
 
@@ -118,16 +119,17 @@ export const NotificacionesDropdown = () => {
   }
 
   const marcarTodasComoLeidas = async () => {
+    if (!user) return
+    
     try {
-      const promises = notificaciones
-        .filter(n => !n.leida)
-        .map(n => axiosInstance.patch(`/notificaciones/${n.id}`, { leida: true }))
+      await notificacionesService.marcarTodasLeidas(user.id)
       
-      await Promise.all(promises)
-      
+      // Actualizar estado local
       setNotificaciones(prev =>
         prev.map(n => ({ ...n, leida: true }))
       )
+      
+      console.log('✅ Todas las notificaciones marcadas como leídas')
     } catch (error) {
       console.error('Error al marcar todas como leídas:', error)
     }

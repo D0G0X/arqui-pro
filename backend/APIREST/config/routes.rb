@@ -30,7 +30,11 @@ Rails.application.routes.draw do
           put :marcar_mensajes_leidos
         end
       end
-      resources :notificaciones
+      resources :notificaciones do
+        collection do
+          put :marcar_todas_leidas
+        end
+      end
       resources :verificaciones do
         member do
           post :aprobar

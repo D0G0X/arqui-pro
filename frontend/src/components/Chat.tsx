@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, Loader, FolderPlus, ImageIcon, X } from 'lucide-react';
+import { Send, Loader, FolderPlus, ImageIcon, X, Trash2 } from 'lucide-react';
 import { useChat } from '../hooks/useChat';
+import conversacionesService from '../services/api/conversacionesService';
 import type { Mensaje } from '../types/mensaje.types';
 import '../styles/Chat.css';
 
@@ -14,13 +15,16 @@ interface ChatProps {
     nombre: string;
   };
   onCreateProject?: () => void;
+  onDeleteConversation?: () => void;
 }
 
-export function Chat({ conversacionId, usuarioId, onClose, userRole, clienteInfo, onCreateProject }: ChatProps) {
+export function Chat({ conversacionId, usuarioId, onClose, userRole, clienteInfo, onCreateProject, onDeleteConversation }: ChatProps) {
   const [inputMessage, setInputMessage] = useState('');
   const [isTypingTimeout, setIsTypingTimeout] = useState<number | null>(null);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [imagesPreviews, setImagesPreviews] = useState<string[]>([]);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -77,6 +81,33 @@ export function Chat({ conversacionId, usuarioId, onClose, userRole, clienteInfo
       };
       reader.readAsDataURL(file);
     });
+  };
+
+  // Eliminar conversación
+  const handleDeleteConversation = async () => {
+    if (!conversacionId) return;
+    
+    setIsDeleting(true);
+    try {
+      await conversacionesService.delete(conversacionId);
+      console.log('✅ Conversación eliminada');
+      
+      // Notificar al componente padre para que actualice la lista
+      if (onDeleteConversation) {
+        onDeleteConversation();
+      }
+      
+      // Cerrar el chat
+      if (onClose) {
+        onClose();
+      }
+    } catch (error) {
+      console.error('❌ Error eliminando conversación:', error);
+      alert('No se pudo eliminar la conversación');
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteModal(false);
+    }
   };
 
   // Manejar envío de mensaje
@@ -164,6 +195,13 @@ export function Chat({ conversacionId, usuarioId, onClose, userRole, clienteInfo
               Crear Proyecto
             </button>
           )}
+          <button 
+            onClick={() => setShowDeleteModal(true)} 
+            className="delete-chat-btn"
+            title="Eliminar conversación"
+          >
+            <Trash2 size={18} />
+          </button>
           {onClose && (
             <button onClick={onClose} className="chat-close-btn">
               ×
@@ -304,6 +342,39 @@ export function Chat({ conversacionId, usuarioId, onClose, userRole, clienteInfo
           </button>
         </form>
       </div>
+
+      {/* Modal de confirmación para eliminar */}
+      {showDeleteModal && (
+        <div className="modal-overlay" onClick={() => setShowDeleteModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>¿Eliminar conversación?</h3>
+              <button onClick={() => setShowDeleteModal(false)} className="modal-close-btn">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <p>Esta acción no se puede deshacer. Se eliminarán todos los mensajes de esta conversación.</p>
+            </div>
+            <div className="modal-footer">
+              <button 
+                onClick={() => setShowDeleteModal(false)} 
+                className="modal-btn-cancel"
+                disabled={isDeleting}
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={handleDeleteConversation} 
+                className="modal-btn-delete"
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Eliminando...' : 'Eliminar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

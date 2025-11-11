@@ -40,12 +40,12 @@ class Api::V1::MensajesController < ApplicationController
         @mensaje.reload
       end
       
-      # Notificar al WebSocket sobre el nuevo mensaje
+      # Notificar sobre el nuevo mensaje (crea notificación en BD y envía WebSocket)
       begin
-        WebSocketNotifier.notify_message_created(@mensaje)
-        Rails.logger.info "WebSocket notification sent for message #{@mensaje.id}"
+        NotificationService.notify_nuevo_mensaje(@mensaje)
+        Rails.logger.info "✅ Notificación enviada para mensaje #{@mensaje.id}"
       rescue => e
-        Rails.logger.error "Failed to notify WebSocket: #{e.message}"
+        Rails.logger.error "❌ Error al notificar mensaje: #{e.message}"
         Rails.logger.error e.backtrace.join("\n")
       end
       

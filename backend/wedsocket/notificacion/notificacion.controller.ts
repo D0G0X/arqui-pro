@@ -9,22 +9,30 @@ export class NotificacionController {
 
   @Post('emit')
   async emitirNotificacion(@Body() payload: {
-    evento: string;
+    event?: string;
+    evento?: string;
     data: any;
-    usuario_id?: number;
+    usuario_id?: string;
   }) {
-    this.logger.log(`📢 Recibido evento desde Rails: ${payload.evento}`);
+    const evento = payload.event || payload.evento;
+    this.logger.log(`📢 Recibido evento desde Rails: ${evento}`);
+    this.logger.log(`   Usuario ID: ${payload.usuario_id || 'todos'}`);
     
     try {
-      // Emitir el evento a todos los clientes conectados
-      this.notificacionGateway.server.emit(payload.evento, payload.data);
-      
-      this.logger.log(`✅ Evento ${payload.evento} emitido a todos los clientes`);
+      if (payload.usuario_id) {
+        // Emitir a un usuario específico
+        this.notificacionGateway.emitToUser(payload.usuario_id, evento, payload.data);
+        this.logger.log(`✅ Evento ${evento} emitido a usuario ${payload.usuario_id}`);
+      } else {
+        // Emitir a todos los clientes conectados
+        this.notificacionGateway.server.emit(evento, payload.data);
+        this.logger.log(`✅ Evento ${evento} emitido a todos los clientes`);
+      }
       
       return { 
         status: 'success', 
-        message: `Evento ${payload.evento} emitido correctamente`,
-        evento: payload.evento
+        message: `Evento ${evento} emitido correctamente`,
+        evento: evento
       };
     } catch (error) {
       this.logger.error(`❌ Error emitiendo evento: ${error.message}`);
