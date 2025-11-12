@@ -15,6 +15,15 @@ export class NotificacionController {
     usuario_id?: string;
   }) {
     const evento = payload.event || payload.evento;
+    
+    if (!evento) {
+      this.logger.error('❌ No se proporcionó un evento');
+      return { 
+        status: 'error', 
+        message: 'El campo "event" o "evento" es requerido' 
+      };
+    }
+    
     this.logger.log(`📢 Recibido evento desde Rails: ${evento}`);
     this.logger.log(`   Usuario ID: ${payload.usuario_id || 'todos'}`);
     

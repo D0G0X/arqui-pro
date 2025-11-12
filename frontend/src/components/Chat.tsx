@@ -3,6 +3,7 @@ import { Send, Loader, FolderPlus, ImageIcon, X, Trash2 } from 'lucide-react';
 import { useChat } from '../hooks/useChat';
 import conversacionesService from '../services/api/conversacionesService';
 import type { Mensaje } from '../types/mensaje.types';
+import supabaseStorage from '../services/supabaseStorage';
 import '../styles/Chat.css';
 
 interface ChatProps {
@@ -72,15 +73,18 @@ export function Chat({ conversacionId, usuarioId, onClose, userRole, clienteInfo
     setImagesPreviews(prev => prev.filter((_, i) => i !== index));
   };
 
-  // Subir imagen a un servicio (por ahora usaremos base64)
+  // Subir imagen a Supabase Storage
   const uploadImage = async (file: File): Promise<string> => {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        resolve(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    });
+    try {
+      const timestamp = Date.now()
+      const fileName = `mensajes/${conversacionId}/${timestamp}_${file.name}`
+      
+      const imagenUrl = await supabaseStorage.uploadImagen(file, fileName)
+      return imagenUrl
+    } catch (error) {
+      console.error('Error al subir imagen:', error)
+      throw new Error('No se pudo subir la imagen')
+    }
   };
 
   // Eliminar conversación

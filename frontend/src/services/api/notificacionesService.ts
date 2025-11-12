@@ -2,6 +2,15 @@ import axiosInstance from './axiosInstance'
 
 const notificacionesService = {
   /**
+   * Marcar una notificación como leída
+   */
+  async marcarComoLeida(notificacionId: string): Promise<void> {
+    await axiosInstance.patch(`/notificaciones/${notificacionId}`, {
+      leida: true
+    })
+  },
+
+  /**
    * Marcar todas las notificaciones de un usuario como leídas
    */
   async marcarTodasLeidas(usuarioId: string): Promise<{ success: boolean; count: number }> {

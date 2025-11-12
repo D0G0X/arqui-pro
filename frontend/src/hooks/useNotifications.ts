@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { io } from 'socket.io-client';
 import { logger } from '../utils/logger';
+import notificacionesService from '../services/api/notificacionesService';
 
 export interface Notificacion {
   id: string;
@@ -115,12 +116,22 @@ export function useNotifications({
   }, [autoConnect, usuarioId]);
 
   // Marcar notificación como leída
-  const markAsRead = useCallback((notificacionId: string) => {
-    setNotificaciones(prev => 
-      prev.map(n => 
-        n.id === notificacionId ? { ...n, leida: true } : n
-      )
-    );
+  const markAsRead = useCallback(async (notificacionId: string) => {
+    try {
+      // Actualizar en el backend si el ID corresponde a una notificación real (no generada localmente)
+      if (!notificacionId.startsWith('msg-') && !notificacionId.startsWith('conv-')) {
+        await notificacionesService.marcarComoLeida(notificacionId)
+      }
+      
+      // Actualizar en el estado local
+      setNotificaciones(prev => 
+        prev.map(n => 
+          n.id === notificacionId ? { ...n, leida: true } : n
+        )
+      );
+    } catch (error) {
+      logger.error('Error al marcar notificación como leída', error)
+    }
   }, []);
 
   // Limpiar todas las notificaciones
