@@ -16,7 +16,7 @@ function Home() {
       if (user.rol === 'moderador') {
         navigate("/moderador/dashboard", { replace: true });
       } else if (user.rol === "cliente") {
-        navigate("/client/dashboard", { replace: true });
+        navigate("/cliente/home", { replace: true });
       } else if (user.rol === "arquitecto") {
         navigate("/arquitecto/profile", { replace: true });
       }

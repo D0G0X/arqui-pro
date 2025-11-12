@@ -1,10 +1,15 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { Star, FolderKanban, Eye, MapPin, MessageCircle, CheckCircle } from 'lucide-react'
+import { AlertTriangle } from 'lucide-react'
 import arquitectosService from '../../services/api/arquitectosService'
 import conversacionesService from '../../services/api/conversacionesService'
+import incidenciasService from '../../services/api/incidenciasService'
+import imagenesService from '../../services/api/imagenesService'
+import supabaseStorage from '../../services/supabaseStorage'
 import axiosInstance from '../../services/api/axiosInstance'
 import { useAuth } from '../../contexts/AuthContext'
+import ReportIncidenceModal from '../../components/common/ReportIncidenceModal'
 import { useQuery } from '@apollo/client'
 import { PERFIL_COMPLETO_ARQUITECTO } from '../../services/graphql/queries'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
@@ -24,6 +29,7 @@ function ArquitectoProfile() {
   const navigate = useNavigate()
   const location = useLocation()
   const { user } = useAuth()
+  const [reportModalVisible, setReportModalVisible] = useState(false)
 
   const [arquitecto, setArquitecto] = useState<Arquitecto | null>(null)
   const [proyectos, setProyectos] = useState<Proyecto[]>([])
@@ -335,6 +341,105 @@ function ArquitectoProfile() {
 
   const avatarColor = getAvatarColor(nombreCompleto)
 
+  const handleReportSubmit = async ({ descripcion, imagenes }: { descripcion: string; imagenes: File[] }) => {
+    if (!user) {
+      alert('Debes iniciar sesión para reportar')
+      return
+    }
+
+    // Obtener el ID del USUARIO infractor (no el id del registro Arquitecto)
+    let usuarioInfractorId: string | null = null
+    if (arquitecto?.usuario?.id) {
+      usuarioInfractorId = arquitecto.usuario.id
+    } else if (arquitectoIdReal) {
+      // Si solo tenemos el arquitecto_id (tabla arquitectos), pedir al backend el usuario asociado
+      try {
+        const resp = await axiosInstance.get(`/arquitectos/${arquitectoIdReal}`)
+        // Puede venir como usuario_id o usuario: { id }
+        usuarioInfractorId = resp.data.usuario_id || resp.data.usuario?.id || null
+      } catch (e) {
+        console.warn('No se pudo obtener usuario del arquitecto por arquitecto_id:', e)
+      }
+    }
+
+    // Fallback: si la URL contiene el usuario_id directamente en `id`, intentar usarlo
+    if (!usuarioInfractorId && id) {
+      try {
+        const respUser = await axiosInstance.get(`/usuarios/${id}`)
+        usuarioInfractorId = respUser.data.id || null
+      } catch (e) {
+        console.warn('No se pudo obtener usuario por id de URL:', e)
+      }
+    }
+
+    if (!usuarioInfractorId) {
+      alert('No se pudo determinar el usuario (usuario_id) del arquitecto. Intenta recargar la página.')
+      return
+    }
+
+    try {
+      // 1. Crear la incidencia primero (sin imágenes)
+      const incidenciaPayload = {
+        descripcion,
+        usuario_emisor_id: user.id,
+        usuario_infractor_id: usuarioInfractorId,
+        estado: 'pendiente' as const,
+        moderador_id: null
+      }
+
+      console.log('📝 Creando incidencia:', incidenciaPayload)
+
+      const incidenciaResponse = await incidenciasService.create(incidenciaPayload)
+      const incidenciaId = incidenciaResponse.id
+      console.log('✅ Incidencia creada:', incidenciaId)
+
+      // 2. Subir las imágenes a Supabase y crear registros de imagen
+      if (imagenes && imagenes.length > 0) {
+        for (let i = 0; i < imagenes.length; i++) {
+          const file = imagenes[i]
+          try {
+            console.log(`📤 Subiendo imagen ${i + 1}/${imagenes.length}:`, file.name)
+
+            // Generar nombre único para el archivo
+            const timestamp = Date.now()
+            const randomStr = Math.random().toString(36).substr(2, 9)
+            const fileName = `incidencia-${incidenciaId}/${timestamp}-${randomStr}-${file.name}`
+
+            // Subir a Supabase Storage
+            const imagenUrl = await supabaseStorage.uploadImagen(file, fileName)
+            console.log(`✅ Imagen subida a Supabase:`, imagenUrl)
+
+            // Crear registro de imagen en la base de datos
+            const imagenPayload = {
+              imagen_url: imagenUrl,
+              fecha: new Date().toISOString(),
+              imagen_asociaciones_attributes: [
+                {
+                  asociable_type: 'Incidencia' as const,
+                  asociable_id: incidenciaId
+                }
+              ]
+            }
+
+            await imagenesService.create(imagenPayload)
+            console.log(`✅ Imagen guardada en BD`)
+          } catch (imgError: any) {
+            console.error(`❌ Error al procesar imagen ${i + 1}:`, imgError.message)
+            alert(`Advertencia: no se pudo procesar la imagen "${file.name}". Continuando con el resto...`)
+            // Continuar con las demás imágenes
+          }
+        }
+      }
+
+      alert('Reporte enviado correctamente')
+      setReportModalVisible(false)
+    } catch (error: any) {
+      console.error('❌ Error al enviar incidencia:', error)
+      alert('No se pudo enviar el reporte. Intenta nuevamente más tarde.')
+      throw error
+    }
+  }
+
   return (
     <div className="arquitecto-profile-container">
       <div className="arquitecto-profile-content">
@@ -399,15 +504,24 @@ function ArquitectoProfile() {
             {creatingConversation ? 'Creando conversación...' : 'Contactar Arquitecto'}
           </button>
 
+          {/* Botón Reportar (solo clientes logueados) */}
+          {user && user.rol === 'cliente' && (
+            <button
+              className="report-button"
+              onClick={() => setReportModalVisible(true)}
+            >
+              <AlertTriangle size={16} />
+              Reportar Arquitecto
+            </button>
+          )}
+
           {/* Especialidades */}
           {especialidadesList.length > 0 && (
             <div className="sidebar-section">
               <h3 className="sidebar-title">Especialidades</h3>
               <div className="especialidades-list">
                 {especialidadesList.map((especialidad, index) => (
-                  <span key={index} className="especialidad-tag">
-                    {especialidad}
-                  </span>
+                  <span key={index} className="especialidad-tag">{especialidad}</span>
                 ))}
               </div>
             </div>
@@ -477,6 +591,11 @@ function ArquitectoProfile() {
           )}
         </div>
       </div>
+      <ReportIncidenceModal
+        visible={reportModalVisible}
+        onClose={() => setReportModalVisible(false)}
+        onSubmit={handleReportSubmit}
+      />
     </div>
   )
 }
