@@ -1,11 +1,20 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { Star, FolderKanban, Eye, MapPin, MessageCircle, CheckCircle } from 'lucide-react'
+import { AlertTriangle } from 'lucide-react'
 import arquitectosService from '../../services/api/arquitectosService'
+import conversacionesService from '../../services/api/conversacionesService'
+import incidenciasService from '../../services/api/incidenciasService'
+import imagenesService from '../../services/api/imagenesService'
+import supabaseStorage from '../../services/supabaseStorage'
+import axiosInstance from '../../services/api/axiosInstance'
+import { useAuth } from '../../contexts/AuthContext'
+import ReportIncidenceModal from '../../components/common/ReportIncidenceModal'
 import { useQuery } from '@apollo/client'
 import { PERFIL_COMPLETO_ARQUITECTO } from '../../services/graphql/queries'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import ErrorMessage from '../../components/common/ErrorMessage'
+import { CacheService } from '../../utils/cacheService'
 import type { Arquitecto, Proyecto } from '../../types'
 import '../../styles/ArquitectoProfile.css'
 
@@ -18,12 +27,16 @@ const AVATAR_COLORS = [
 function ArquitectoProfile() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const location = useLocation();
+  const location = useLocation()
+  const { user } = useAuth()
+  const [reportModalVisible, setReportModalVisible] = useState(false)
 
   const [arquitecto, setArquitecto] = useState<Arquitecto | null>(null)
   const [proyectos, setProyectos] = useState<Proyecto[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [creatingConversation, setCreatingConversation] = useState(false)
+  const [arquitectoIdReal, setArquitectoIdReal] = useState<string | null>(null) // ID de la tabla arquitectos
 
   useEffect(() => {
     // Usamos la consulta GraphQL en lugar de los servicios REST para obtener el perfil completo.
@@ -134,15 +147,42 @@ function ArquitectoProfile() {
       setArquitecto(arquitectoState)
       setProyectos(proyectosFromGql)
 
-      // Actualizar vistas vía REST: solo la actualización
+      // 🔧 El ID de la URL puede ser arquitecto_id o usuario_id
+      // Intentar ambos para obtener el arquitecto_id real
       try {
-        const currentViews = arquitectoState.vistas_perfil ?? 0
-        // Llamada REST para incrementar vistas en backend
-        await arquitectosService.update(String(id), { vistas_perfil: currentViews + 1 })
-        // actualizar estado local para reflejar incremento inmediato
-        setArquitecto((prev: any) => prev ? { ...prev, vistas_perfil: currentViews + 1 } : prev)
+        let realArquitectoId: string | null = null
+        
+        // Primero intentar como arquitecto_id directo
+        try {
+          const directResponse = await axiosInstance.get(`/arquitectos/${id}`)
+          if (directResponse.data && directResponse.data.id) {
+            realArquitectoId = String(directResponse.data.id)
+            console.log('✅ Arquitecto ID obtenido directamente:', realArquitectoId)
+          }
+        } catch (directError) {
+          // Si falla, intentar buscarlo por usuario_id
+          console.log('⚠️ No se encontró como arquitecto_id, intentando como usuario_id...')
+          const byUsuarioResponse = await axiosInstance.get(`/arquitectos?usuario_id=${id}`)
+          const arquitectos = Array.isArray(byUsuarioResponse.data) ? byUsuarioResponse.data : [byUsuarioResponse.data]
+          
+          if (arquitectos[0] && arquitectos[0].id) {
+            realArquitectoId = String(arquitectos[0].id)
+            console.log('✅ Arquitecto ID obtenido por usuario_id:', realArquitectoId)
+          }
+        }
+        
+        if (realArquitectoId) {
+          setArquitectoIdReal(realArquitectoId)
+          
+          // Actualizar vistas vía REST usando el ID real
+          const currentViews = arquitectoState.vistas_perfil ?? 0
+          await arquitectosService.update(realArquitectoId, { vistas_perfil: currentViews + 1 })
+          setArquitecto((prev: any) => prev ? { ...prev, vistas_perfil: currentViews + 1 } : prev)
+        } else {
+          console.error('❌ No se pudo obtener el arquitecto_id real')
+        }
       } catch (e) {
-        console.warn('No se pudo actualizar vistas vía REST:', e)
+        console.warn('No se pudo obtener arquitecto_id real o actualizar vistas:', e)
       }
     }
 
@@ -173,11 +213,95 @@ function ArquitectoProfile() {
     return '/placeholder-project.jpg'
   }
 
-  const handleContactar = () => {
-    // TODO: Implementar navegación a conversación
-    console.log('Contactar arquitecto:', arquitecto?.id)
-    // navigate(`/conversacion/${arquitecto?.id}`)
-    alert('La funcionalidad de conversación estará disponible próximamente')
+  const handleContactar = async () => {
+    if (!user || !arquitecto) {
+      alert('Debes iniciar sesión para contactar al arquitecto')
+      navigate('/login')
+      return
+    }
+
+    if (user.rol !== 'cliente') {
+      alert('Solo los clientes pueden contactar arquitectos')
+      return
+    }
+
+    try {
+      setCreatingConversation(true)
+
+      // Obtener el cliente_id del usuario actual
+      const responseCliente = await axiosInstance.get(`/clientes?usuario_id=${user.id}`)
+      console.log('📋 Response clientes:', responseCliente.data)
+      
+      const clientes = Array.isArray(responseCliente.data) ? responseCliente.data : [responseCliente.data]
+      const cliente = clientes[0]
+      
+      console.log('👤 Cliente encontrado:', cliente)
+      
+      if (!cliente || !cliente.id) {
+        alert('No se encontró tu perfil de cliente')
+        return
+      }
+
+      // 🔧 Usar el arquitecto_id real obtenido de la tabla arquitectos
+      if (!arquitectoIdReal) {
+        alert('No se pudo determinar el ID del arquitecto. Intenta recargar la página.')
+        return
+      }
+
+      const clienteId = String(cliente.id)
+      const arquitectoId = arquitectoIdReal // Usar el ID real de la tabla arquitectos
+
+      console.log('🔍 Creando o buscando conversación...', { 
+        clienteId, 
+        arquitectoId,
+        clienteIdType: typeof clienteId,
+        arquitectoIdType: typeof arquitectoId 
+      })
+
+      // Crear conversación (el backend validará si ya existe y devolverá la existente)
+      const response = await conversacionesService.create({
+        cliente_id: clienteId,
+        arquitecto_id: arquitectoId
+      })
+
+      const conversacionId = response.conversacion.id
+      
+      if (response.existing) {
+        console.log('✅ Conversación existente encontrada:', conversacionId)
+      } else {
+        console.log('✅ Nueva conversación creada:', conversacionId)
+        // Invalidar el caché de conversaciones para que se recargue
+        CacheService.remove(`conversaciones_${user.id}_cache`)
+        console.log('🗑️ Caché de conversaciones invalidado')
+      }
+
+      // Redirigir directamente al chat con la conversación seleccionada
+      console.log('🚀 Redirigiendo a /cliente/conversaciones con:', { conversacionId, autoOpen: true })
+      navigate('/cliente/conversaciones', { 
+        state: { 
+          conversacionId,
+          autoOpen: true 
+        } 
+      })
+      
+    } catch (error: any) {
+      console.error('❌ Error al crear conversación:', error)
+      console.error('Response data:', error?.response?.data)
+      console.error('Response status:', error?.response?.status)
+      
+      let errorMessage = 'Hubo un error al crear la conversación'
+      if (error?.response?.data?.details) {
+        errorMessage += ': ' + error.response.data.details.join(', ')
+      } else if (error?.response?.data?.error) {
+        errorMessage += ': ' + error.response.data.error
+      } else if (error.message) {
+        errorMessage += ': ' + error.message
+      }
+      
+      alert(errorMessage)
+    } finally {
+      setCreatingConversation(false)
+    }
   }
 
   const handleProyectoClick = (proyectoId: string) => {
@@ -216,6 +340,105 @@ function ArquitectoProfile() {
     : []
 
   const avatarColor = getAvatarColor(nombreCompleto)
+
+  const handleReportSubmit = async ({ descripcion, imagenes }: { descripcion: string; imagenes: File[] }) => {
+    if (!user) {
+      alert('Debes iniciar sesión para reportar')
+      return
+    }
+
+    // Obtener el ID del USUARIO infractor (no el id del registro Arquitecto)
+    let usuarioInfractorId: string | null = null
+    if (arquitecto?.usuario?.id) {
+      usuarioInfractorId = arquitecto.usuario.id
+    } else if (arquitectoIdReal) {
+      // Si solo tenemos el arquitecto_id (tabla arquitectos), pedir al backend el usuario asociado
+      try {
+        const resp = await axiosInstance.get(`/arquitectos/${arquitectoIdReal}`)
+        // Puede venir como usuario_id o usuario: { id }
+        usuarioInfractorId = resp.data.usuario_id || resp.data.usuario?.id || null
+      } catch (e) {
+        console.warn('No se pudo obtener usuario del arquitecto por arquitecto_id:', e)
+      }
+    }
+
+    // Fallback: si la URL contiene el usuario_id directamente en `id`, intentar usarlo
+    if (!usuarioInfractorId && id) {
+      try {
+        const respUser = await axiosInstance.get(`/usuarios/${id}`)
+        usuarioInfractorId = respUser.data.id || null
+      } catch (e) {
+        console.warn('No se pudo obtener usuario por id de URL:', e)
+      }
+    }
+
+    if (!usuarioInfractorId) {
+      alert('No se pudo determinar el usuario (usuario_id) del arquitecto. Intenta recargar la página.')
+      return
+    }
+
+    try {
+      // 1. Crear la incidencia primero (sin imágenes)
+      const incidenciaPayload = {
+        descripcion,
+        usuario_emisor_id: user.id,
+        usuario_infractor_id: usuarioInfractorId,
+        estado: 'pendiente' as const,
+        moderador_id: null
+      }
+
+      console.log('📝 Creando incidencia:', incidenciaPayload)
+
+      const incidenciaResponse = await incidenciasService.create(incidenciaPayload)
+      const incidenciaId = incidenciaResponse.id
+      console.log('✅ Incidencia creada:', incidenciaId)
+
+      // 2. Subir las imágenes a Supabase y crear registros de imagen
+      if (imagenes && imagenes.length > 0) {
+        for (let i = 0; i < imagenes.length; i++) {
+          const file = imagenes[i]
+          try {
+            console.log(`📤 Subiendo imagen ${i + 1}/${imagenes.length}:`, file.name)
+
+            // Generar nombre único para el archivo
+            const timestamp = Date.now()
+            const randomStr = Math.random().toString(36).substr(2, 9)
+            const fileName = `incidencia-${incidenciaId}/${timestamp}-${randomStr}-${file.name}`
+
+            // Subir a Supabase Storage
+            const imagenUrl = await supabaseStorage.uploadImagen(file, fileName)
+            console.log(`✅ Imagen subida a Supabase:`, imagenUrl)
+
+            // Crear registro de imagen en la base de datos
+            const imagenPayload = {
+              imagen_url: imagenUrl,
+              fecha: new Date().toISOString(),
+              imagen_asociaciones_attributes: [
+                {
+                  asociable_type: 'Incidencia' as const,
+                  asociable_id: incidenciaId
+                }
+              ]
+            }
+
+            await imagenesService.create(imagenPayload)
+            console.log(`✅ Imagen guardada en BD`)
+          } catch (imgError: any) {
+            console.error(`❌ Error al procesar imagen ${i + 1}:`, imgError.message)
+            alert(`Advertencia: no se pudo procesar la imagen "${file.name}". Continuando con el resto...`)
+            // Continuar con las demás imágenes
+          }
+        }
+      }
+
+      alert('Reporte enviado correctamente')
+      setReportModalVisible(false)
+    } catch (error: any) {
+      console.error('❌ Error al enviar incidencia:', error)
+      alert('No se pudo enviar el reporte. Intenta nuevamente más tarde.')
+      throw error
+    }
+  }
 
   return (
     <div className="arquitecto-profile-container">
@@ -272,10 +495,25 @@ function ArquitectoProfile() {
           )}
 
           {/* Botón Contactar */}
-          <button className="contact-button" onClick={handleContactar}>
+          <button 
+            className="contact-button" 
+            onClick={handleContactar}
+            disabled={creatingConversation}
+          >
             <MessageCircle size={20} />
-            Contactar Arquitecto
+            {creatingConversation ? 'Creando conversación...' : 'Contactar Arquitecto'}
           </button>
+
+          {/* Botón Reportar (solo clientes logueados) */}
+          {user && user.rol === 'cliente' && (
+            <button
+              className="report-button"
+              onClick={() => setReportModalVisible(true)}
+            >
+              <AlertTriangle size={16} />
+              Reportar Arquitecto
+            </button>
+          )}
 
           {/* Especialidades */}
           {especialidadesList.length > 0 && (
@@ -283,9 +521,7 @@ function ArquitectoProfile() {
               <h3 className="sidebar-title">Especialidades</h3>
               <div className="especialidades-list">
                 {especialidadesList.map((especialidad, index) => (
-                  <span key={index} className="especialidad-tag">
-                    {especialidad}
-                  </span>
+                  <span key={index} className="especialidad-tag">{especialidad}</span>
                 ))}
               </div>
             </div>
@@ -355,6 +591,11 @@ function ArquitectoProfile() {
           )}
         </div>
       </div>
+      <ReportIncidenceModal
+        visible={reportModalVisible}
+        onClose={() => setReportModalVisible(false)}
+        onSubmit={handleReportSubmit}
+      />
     </div>
   )
 }

@@ -209,7 +209,17 @@
 /* CONTENT */
 .cliente-content {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0; /* Crítico para que el scroll funcione en elementos flex hijos */
+}
+
+/* Padding para páginas normales (override desde la página si es necesario) */
+.cliente-content > *:not(.client-chat-page) {
   padding: 32px;
+  overflow: auto;
+  flex: 1;
 }
 
 /* RESPONSIVE */

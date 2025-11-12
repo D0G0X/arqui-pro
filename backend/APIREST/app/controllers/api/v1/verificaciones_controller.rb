@@ -80,6 +80,14 @@ class Api::V1::VerificacionesController < ApplicationController
       # Actualizar el campo verificado en arquitectos
       @verificacion.arquitecto.update!(verificado: true)
       
+      # Notificar al arquitecto que fue verificado (guarda en BD y envía WebSocket)
+      begin
+        NotificationService.notify_arquitecto_verificado(@verificacion.arquitecto)
+        Rails.logger.info "✅ Notificación enviada al arquitecto #{@verificacion.arquitecto.id}"
+      rescue => e
+        Rails.logger.error "❌ Error al notificar verificación: #{e.message}"
+      end
+      
       # Incrementar contador del moderador
       moderador.increment!(:num_arquitectos_verificados)
     end
@@ -123,6 +131,9 @@ class Api::V1::VerificacionesController < ApplicationController
       
       # Asegurar que el campo verificado sea false en arquitectos
       @verificacion.arquitecto.update!(verificado: false)
+      
+      # Notificar al arquitecto que fue rechazado
+      WebsocketNotifier.notify_arquitecto_rechazado(@verificacion.arquitecto)
     end
     
     render json: { 

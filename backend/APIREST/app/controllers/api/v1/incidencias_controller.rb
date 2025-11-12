@@ -35,13 +35,15 @@ class Api::V1::IncidenciasController < ApplicationController
           id: incidencia.usuario_emisor.id,
           nombre: incidencia.usuario_emisor.nombre,
           apellido: incidencia.usuario_emisor.apellido,
-          email: incidencia.usuario_emisor.email
+          email: incidencia.usuario_emisor.email,
+          estado_cuenta: incidencia.usuario_emisor.estado_cuenta
         } : nil,
         infractor: incidencia.usuario_infractor ? {
           id: incidencia.usuario_infractor.id,
           nombre: incidencia.usuario_infractor.nombre,
           apellido: incidencia.usuario_infractor.apellido,
-          email: incidencia.usuario_infractor.email
+          email: incidencia.usuario_infractor.email,
+          estado_cuenta: incidencia.usuario_infractor.estado_cuenta
         } : nil,
         moderador: incidencia.moderador ? {
           usuario: {

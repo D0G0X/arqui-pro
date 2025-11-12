@@ -48,19 +48,60 @@ class Api::V1::ConversacionesController < ApplicationController
   end
 
   def create
+    Rails.logger.info "\n📝 [CREATE] Creando conversación"
+    Rails.logger.info "   Params recibidos: #{conversacion_params.inspect}"
+    
+    # Verificar si ya existe una conversación entre estos participantes
+    conversacion_existente = Conversacion.find_by(
+      cliente_id: conversacion_params[:cliente_id],
+      arquitecto_id: conversacion_params[:arquitecto_id]
+    )
+    
+    if conversacion_existente
+      Rails.logger.info "✅ Conversación ya existe: #{conversacion_existente.id}"
+      render json: { 
+        conversacion: conversacion_existente.as_json(
+          include: {
+            cliente: { include: :usuario },
+            arquitecto: { include: :usuario }
+          }
+        ),
+        message: 'Ya existe una conversación con este arquitecto',
+        existing: true
+      }, status: :ok
+      return
+    end
+    
     @conversacion = Conversacion.new(conversacion_params)
+    
     if @conversacion.save
-      # Notificar al WebSocket sobre la nueva conversación
+      Rails.logger.info "✅ Conversación creada exitosamente: #{@conversacion.id}"
+      
+      # Notificar sobre la nueva conversación (envía WebSocket)
       begin
-        WebSocketNotifier.notify_conversation_created(@conversacion)
-        Rails.logger.info "WebSocket notification sent for conversation #{@conversacion.id}"
+        NotificationService.notify_conversacion_creada(@conversacion)
+        Rails.logger.info "✅ Notificación WebSocket enviada para conversación #{@conversacion.id}"
       rescue => e
-        Rails.logger.error "Failed to notify WebSocket: #{e.message}"
+        Rails.logger.error "❌ Error al notificar conversación: #{e.message}"
         Rails.logger.error e.backtrace.join("\n")
       end
-      render json: @conversacion, status: :created
+      
+      render json: { 
+        conversacion: @conversacion.as_json(
+          include: {
+            cliente: { include: :usuario },
+            arquitecto: { include: :usuario }
+          }
+        ),
+        message: 'Conversación creada exitosamente',
+        existing: false
+      }, status: :created
     else
-      render json: @conversacion.errors, status: :unprocessable_entity
+      Rails.logger.error "❌ Error al crear conversación: #{@conversacion.errors.full_messages.join(', ')}"
+      render json: { 
+        error: 'No se pudo crear la conversación',
+        details: @conversacion.errors.full_messages 
+      }, status: :unprocessable_entity
     end
   end
 
@@ -77,11 +118,22 @@ class Api::V1::ConversacionesController < ApplicationController
   end
 
   def destroy
+    Rails.logger.info "\n🗑️ [DELETE] Eliminando conversación #{params[:id]}"
+    
     if @conversacion
+      # Eliminar todos los mensajes asociados (cascade delete configurado en el modelo)
+      Rails.logger.info "   Eliminando #{@conversacion.mensajes.count} mensajes..."
+      
       @conversacion.destroy
-      head :no_content  # responde con 204 No Content si se eliminó correctamente
+      Rails.logger.info "✅ Conversación eliminada exitosamente"
+      
+      render json: { 
+        success: true,
+        message: 'Conversación eliminada exitosamente' 
+      }, status: :ok
     else
-      render json: { error: "conversacion no encontrado" }, status: :not_found
+      Rails.logger.error "❌ Conversación no encontrada: #{params[:id]}"
+      render json: { error: "Conversación no encontrada" }, status: :not_found
     end
   end
 

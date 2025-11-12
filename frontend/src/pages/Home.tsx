@@ -1,12 +1,20 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { ROUTES } from '../config/constants'
+import valoracionesService from '../services/api/valoracionesService'
+import proyectosService from '../services/api/proyectosService'
+import type { Valoracion } from '../types/valoracion.types'
+import type { Proyecto } from '../types/proyecto.types'
 import '../styles/Home.css'
 
 function Home() {
   const navigate = useNavigate()
   const { user, isAuthenticated } = useAuth()
+  const [valoraciones, setValoraciones] = useState<Valoracion[]>([])
+  const [proyectosContratados, setProyectosContratados] = useState<Proyecto[]>([])
+  const [loadingValoraciones, setLoadingValoraciones] = useState(true)
+  const [loadingProyectos, setLoadingProyectos] = useState(true)
 
   // Redirección automática si ya está autenticado
   useEffect(() => {
@@ -16,15 +24,65 @@ function Home() {
       if (user.rol === 'moderador') {
         navigate("/moderador/dashboard", { replace: true });
       } else if (user.rol === "cliente") {
-        navigate("/client/dashboard", { replace: true });
+        navigate("/cliente/home", { replace: true });
       } else if (user.rol === "arquitecto") {
         navigate("/arquitecto/profile", { replace: true });
       }
     }
   }, [isAuthenticated, user, navigate]);
 
+  // Cargar valoraciones
+  useEffect(() => {
+    const cargarValoraciones = async () => {
+      try {
+        setLoadingValoraciones(true)
+        const data = await valoracionesService.getAll()
+        // Mostrar solo las últimas 6 valoraciones
+        setValoraciones(data.slice(0, 6))
+      } catch (error) {
+        console.error('Error al cargar valoraciones:', error)
+      } finally {
+        setLoadingValoraciones(false)
+      }
+    }
+    cargarValoraciones()
+  }, [])
+
+  // Cargar proyectos contratados
+  useEffect(() => {
+    const cargarProyectosContratados = async () => {
+      try {
+        setLoadingProyectos(true)
+        // Usar método público para el home landing
+        const data = await proyectosService.getAll(undefined, true)
+        // Filtrar solo proyectos tipo 'contratado' y mostrar los últimos 6
+        const contratados = data
+          .filter((p: Proyecto) => p.tipo_proyecto === 'contratado')
+          .slice(0, 6)
+        setProyectosContratados(contratados)
+      } catch (error) {
+        console.error('Error al cargar proyectos contratados:', error)
+      } finally {
+        setLoadingProyectos(false)
+      }
+    }
+    cargarProyectosContratados()
+  }, [])
+
   const handleSearch = () => {
     navigate(ROUTES.ARCHITECTS)
+  }
+
+  const renderStars = (calificacion: number) => {
+    const stars = []
+    for (let i = 1; i <= 5; i++) {
+      stars.push(
+        <span key={i} className={i <= calificacion ? 'star-filled' : 'star-empty'}>
+          ★
+        </span>
+      )
+    }
+    return stars
   }
 
   return (
@@ -129,41 +187,99 @@ function Home() {
           </div>
         </section>
 
-        {/* Testimonials Section */}
-        <section className="testimonials-section">
-          <h2 className="section-title-large">Trusted by Clients and Architects Alike</h2>
+        {/* Valoraciones Section */}
+        <section className="valoraciones-section">
+          <h2 className="section-title-large">Valoraciones Recientes</h2>
           <p className="section-subtitle-large">
-            See what our users are saying about their experience on ArquiPro.
+            Descubre lo que nuestros clientes dicen sobre sus proyectos.
           </p>
           
-          <div className="testimonials-grid">
-            <div className="testimonial-card">
-              <p className="testimonial-text">
-                "ArquiPro made finding an architect for our dream home renovation an absolute breeze. 
-                The platform is intuitive, and the quality of talent is exceptional. We couldn't be happier with the result."
-              </p>
-              <div className="testimonial-author">
-                <div className="author-avatar">MF</div>
-                <div className="author-info">
-                  <h4>Michael Foster</h4>
-                  <p>Homeowner & Client</p>
+          {loadingValoraciones ? (
+            <div className="loading-message">Cargando valoraciones...</div>
+          ) : valoraciones.length > 0 ? (
+            <div className="valoraciones-grid">
+              {valoraciones.map((valoracion) => (
+                <div key={valoracion.id} className="valoracion-card">
+                  <div className="valoracion-header">
+                    <div className="valoracion-stars">
+                      {renderStars(valoracion.calificacion)}
+                    </div>
+                    <div className="valoracion-rating">{valoracion.calificacion}/5</div>
+                  </div>
+                  <p className="valoracion-text">
+                    "{valoracion.comentario}"
+                  </p>
+                  <div className="valoracion-footer">
+                    <div className="valoracion-author">
+                      {valoracion.cliente?.usuario 
+                        ? `${valoracion.cliente.usuario.nombre} ${valoracion.cliente.usuario.apellido}`
+                        : 'Cliente'
+                      }
+                    </div>
+                    {valoracion.proyecto && (
+                      <div className="valoracion-project">
+                        Proyecto: {valoracion.proyecto.titulo_proyecto}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
-            <div className="testimonial-card">
-              <p className="testimonial-text">
-                "As an architect, this platform has been a game-changer for my practice. 
-                It connects me with serious clients and provides the tools I need to manage projects efficiently from start to finish."
-              </p>
-              <div className="testimonial-author">
-                <div className="author-avatar">SJ</div>
-                <div className="author-info">
-                  <h4>Sarah Jennings</h4>
-                  <p>Principal Architect</p>
+          ) : (
+            <div className="empty-message">No hay valoraciones disponibles</div>
+          )}
+        </section>
+
+        {/* Proyectos Contratados Section */}
+        <section className="proyectos-section">
+          <h2 className="section-title-large">Proyectos Contratados</h2>
+          <p className="section-subtitle-large">
+            Explora algunos de los proyectos que se están desarrollando en nuestra plataforma.
+          </p>
+          
+          {loadingProyectos ? (
+            <div className="loading-message">Cargando proyectos...</div>
+          ) : proyectosContratados.length > 0 ? (
+            <div className="proyectos-grid">
+              {proyectosContratados.map((proyecto) => (
+                <div key={proyecto.id} className="proyecto-card">
+                  {proyecto.imagenes && proyecto.imagenes.length > 0 ? (
+                    <div 
+                      className="proyecto-image"
+                      style={{ backgroundImage: `url(${proyecto.imagenes[0].imagen_url})` }}
+                    />
+                  ) : (
+                    <div className="proyecto-image proyecto-image-placeholder">
+                      <span>🏗️</span>
+                    </div>
+                  )}
+                  <div className="proyecto-content">
+                    <h3 className="proyecto-title">{proyecto.titulo_proyecto}</h3>
+                    <p className="proyecto-description">
+                      {proyecto.descripcion.length > 150 
+                        ? `${proyecto.descripcion.substring(0, 150)}...` 
+                        : proyecto.descripcion
+                      }
+                    </p>
+                    <div className="proyecto-footer">
+                      {proyecto.arquitecto?.usuario && (
+                        <div className="proyecto-architect">
+                          Arquitecto: {proyecto.arquitecto.usuario.nombre} {proyecto.arquitecto.usuario.apellido}
+                        </div>
+                      )}
+                      {proyecto.valoracion_promedio > 0 && (
+                        <div className="proyecto-rating">
+                          ⭐ {proyecto.valoracion_promedio.toFixed(1)}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
-          </div>
+          ) : (
+            <div className="empty-message">No hay proyectos contratados disponibles</div>
+          )}
         </section>
 
         {/* CTA Section */}

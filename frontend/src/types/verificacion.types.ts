@@ -10,3 +10,17 @@ export interface Verificacion {
   arquitecto?: Arquitecto
   moderador?: Moderador
 }
+
+export interface UpdateVerificacionDto{
+  estado?: 'pendiente' | 'verificado' | 'rechazado'
+  arquitecto_id?: string
+  moderador_id?: string | null
+  arquitecto?: Arquitecto
+  moderador?: Moderador 
+}
+
+export interface CrateVerificacionDto{
+  estado: 'pendiente' | 'verificado' | 'rechazado'
+  arquitecto_id: string
+  moderador_id: string | null 
+}

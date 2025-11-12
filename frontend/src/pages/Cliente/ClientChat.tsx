@@ -1,8 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Chat } from '../../components/Chat';
-import { NotificationInbox } from '../../components/NotificationInbox';
 import { Search, Settings, MessageCircle } from 'lucide-react';
 import { useConversaciones } from '../../hooks/useApiWithCache';
 import axiosInstance from '../../services/api/axiosInstance';
@@ -21,6 +20,7 @@ interface Conversation {
 export default function ClientChat() {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -62,7 +62,7 @@ export default function ClientChat() {
   console.log('ID del Cliente para filtrar conversaciones:', clienteId);
   
   // Obtener conversaciones reales desde la API
-  const { data: conversacionesData, loading: loadingConversaciones, error: errorConversaciones } = useConversaciones(user?.id);
+  const { data: conversacionesData, loading: loadingConversaciones, error: errorConversaciones, refetch: refetchConversaciones } = useConversaciones(user?.id);
   
   // Transformar conversaciones de la API al formato de la UI
   const conversations = useMemo<Conversation[]>(() => {
@@ -131,6 +131,19 @@ export default function ClientChat() {
     }
   }, [isAuthenticated, navigate]);
 
+  // Abrir conversación automáticamente si viene del botón "Contactar"
+  useEffect(() => {
+    const state = location.state as any;
+    if (state?.conversacionId && state?.autoOpen && conversations.length > 0) {
+      const conversacionExiste = conversations.find(c => c.id === state.conversacionId);
+      if (conversacionExiste) {
+        handleSelectConversation(state.conversacionId);
+        // Limpiar el state para que no se abra de nuevo al recargar
+        window.history.replaceState({}, document.title);
+      }
+    }
+  }, [location.state, conversations]);
+
   const handleSelectConversation = (conversacionId: string) => {
     setChatOpen(false);
     setTimeout(() => {
@@ -173,9 +186,6 @@ export default function ClientChat() {
 
   return (
     <div className="client-chat-page">
-      {/* Bandeja de notificaciones global */}
-      <NotificationInbox />
-
       <div className="chat-container-wrapper">
         {/* Left Panel - Conversations List */}
         <aside className="conversations-panel">
@@ -238,6 +248,12 @@ export default function ClientChat() {
               onClose={() => {
                 setChatOpen(false);
                 setSelectedConversation(null);
+              }}
+              onDeleteConversation={async () => {
+                // Cerrar chat y refrescar lista de conversaciones
+                setChatOpen(false);
+                setSelectedConversation(null);
+                await refetchConversaciones(); // Refrescar datos en lugar de reload
               }}
             />
           ) : (

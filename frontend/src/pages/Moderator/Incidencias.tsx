@@ -17,6 +17,7 @@ interface Incidencia {
     nombre: string;
     apellido: string;
     email: string;
+    estado_cuenta?: 'activo' | 'suspendido';
   };
   infractor?: {
     id: number;
@@ -40,6 +41,7 @@ export const Incidencias = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [modalDescripcion, setModalDescripcion] = useState<string | null>(null);
+  const [modalSuspender, setModalSuspender] = useState<Incidencia | null>(null);
 
   useEffect(() => {
     cargarIncidencias();
@@ -93,23 +95,83 @@ export const Incidencias = () => {
     }
   };
 
-  const handleCambiarEstadoUsuario = async (usuarioId: number | string, estadoActual: 'activo' | 'suspendido' | undefined) => {
+  const handleCambiarEstadoUsuario = async (
+    usuarioId: number | string, 
+    estadoActual: 'activo' | 'suspendido' | undefined,
+    tipo: 'emisor' | 'infractor' = 'infractor'
+  ) => {
     const nuevoEstado = estadoActual === 'activo' ? 'suspendido' : 'activo';
     const accion = nuevoEstado === 'suspendido' ? 'suspender' : 'activar';
     
-    if (!confirm(`¿Seguro que deseas ${accion} a este usuario?`)) return;
-
     try {
       if (nuevoEstado === 'suspendido') {
         await moderadorService.suspenderUsuario(usuarioId);
       } else {
         await moderadorService.activarUsuario(usuarioId);
       }
-      alert(`✅ Usuario ${nuevoEstado === 'suspendido' ? 'suspendido' : 'activado'} exitosamente`);
-      cargarIncidencias();
     } catch (error) {
       console.error(`Error al ${accion} usuario:`, error);
       alert(`Error al ${accion} el usuario`);
+      throw error;
+    }
+  };
+
+  const handleAplicarSuspensiones = async () => {
+    if (!modalSuspender) return;
+
+    const incidenciaOriginal = incidencias.find(i => i.id === modalSuspender.id);
+    if (!incidenciaOriginal) return;
+
+    const acciones: Array<{ usuarioId: number | string; tipo: 'emisor' | 'infractor'; accion: 'suspender' | 'activar' }> = [];
+
+    // Verificar si hay cambios en el emisor
+    if (modalSuspender.emisor && incidenciaOriginal.emisor) {
+      const estadoOriginal = incidenciaOriginal.emisor.estado_cuenta;
+      const estadoNuevo = modalSuspender.emisor.estado_cuenta;
+      if (estadoOriginal !== estadoNuevo) {
+        acciones.push({
+          usuarioId: modalSuspender.emisor.id,
+          tipo: 'emisor',
+          accion: estadoNuevo === 'suspendido' ? 'suspender' : 'activar'
+        });
+      }
+    }
+
+    // Verificar si hay cambios en el infractor
+    if (modalSuspender.infractor && incidenciaOriginal.infractor) {
+      const estadoOriginal = incidenciaOriginal.infractor.estado_cuenta;
+      const estadoNuevo = modalSuspender.infractor.estado_cuenta;
+      if (estadoOriginal !== estadoNuevo) {
+        acciones.push({
+          usuarioId: modalSuspender.infractor.id,
+          tipo: 'infractor',
+          accion: estadoNuevo === 'suspendido' ? 'suspender' : 'activar'
+        });
+      }
+    }
+
+    if (acciones.length === 0) {
+      alert('No hay cambios para aplicar');
+      return;
+    }
+
+    if (!confirm(`¿Seguro que deseas aplicar ${acciones.length} cambio(s)?`)) return;
+
+    try {
+      // Aplicar todas las acciones
+      for (const accion of acciones) {
+        const estadoActual = accion.accion === 'suspender' ? 'activo' : 'suspendido';
+        await handleCambiarEstadoUsuario(
+          accion.usuarioId,
+          estadoActual,
+          accion.tipo
+        );
+      }
+      alert('✅ Cambios aplicados exitosamente');
+      setModalSuspender(null);
+      await cargarIncidencias();
+    } catch (error) {
+      alert('Error al aplicar los cambios');
     }
   };
 
@@ -175,10 +237,17 @@ export const Incidencias = () => {
                   </td>
                   <td>{new Date(incidencia.fecha).toLocaleDateString()}</td>
                   <td>
-                    {incidencia.emisor 
-                      ? `${incidencia.emisor.nombre} ${incidencia.emisor.apellido}`
-                      : `Usuario ${incidencia.emisor_id}`
-                    }
+                    <div>
+                      {incidencia.emisor 
+                        ? `${incidencia.emisor.nombre} ${incidencia.emisor.apellido}`
+                        : `Usuario ${incidencia.emisor_id}`
+                      }
+                      {incidencia.emisor?.estado_cuenta && (
+                        <span className={`inc-badge ${incidencia.emisor.estado_cuenta === 'activo' ? 'inc-badge-success' : 'inc-badge-danger'}`} style={{ marginLeft: '8px' }}>
+                          {incidencia.emisor.estado_cuenta === 'activo' ? 'Activo' : 'Suspendido'}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td>
                     {incidencia.infractor 
@@ -203,18 +272,17 @@ export const Incidencias = () => {
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                      {(incidencia.infractor_id || incidencia.infractor?.id) && incidencia.infractor && (
+                      {/* Botón único para suspender/activar usuarios */}
+                      {((incidencia.emisor_id || incidencia.emisor?.id) || (incidencia.infractor_id || incidencia.infractor?.id)) && (
                         <button
-                          onClick={() => handleCambiarEstadoUsuario(
-                            incidencia.infractor?.id || incidencia.infractor_id!,
-                            incidencia.infractor?.estado_cuenta
-                          )}
-                          className={incidencia.infractor.estado_cuenta === 'activo' ? 'btn-suspender' : 'btn-activar'}
-                          title={incidencia.infractor.estado_cuenta === 'activo' ? 'Suspender usuario' : 'Activar usuario'}
+                          onClick={() => setModalSuspender(incidencia)}
+                          className="btn-suspender"
+                          title="Gestionar suspensión de usuarios"
                         >
-                          {incidencia.infractor.estado_cuenta === 'activo' ? 'Suspender' : 'Activar'}
+                          Suspender
                         </button>
                       )}
+                      {/* Botones de acción de incidencia */}
                       {(incidencia.estado === 'pendiente' || incidencia.estado === 'en revision') ? (
                         <button
                           onClick={() => handleResolver(incidencia.id)}
@@ -268,6 +336,99 @@ export const Incidencias = () => {
               </div>
               <div className="inc-modal-body">
                 <p>{modalDescripcion}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal para suspender/activar usuarios */}
+        {modalSuspender && (
+          <div className="inc-modal-overlay" onClick={() => setModalSuspender(null)}>
+            <div className="inc-modal-content inc-modal-suspender" onClick={(e) => e.stopPropagation()}>
+              <div className="inc-modal-header">
+                <h3>Gestionar Suspensión de Usuarios</h3>
+                <button className="inc-modal-close" onClick={() => setModalSuspender(null)}>×</button>
+              </div>
+              <div className="inc-modal-body">
+                <div className="suspender-usuarios-list">
+                  {/* Usuario Emisor */}
+                  {modalSuspender.emisor && (
+                    <div className="suspender-usuario-item">
+                      <div className="suspender-usuario-info">
+                        <h4>Usuario Emisor</h4>
+                        <p>
+                          {modalSuspender.emisor.nombre} {modalSuspender.emisor.apellido}
+                        </p>
+                        <p className="suspender-usuario-email">{modalSuspender.emisor.email}</p>
+                        <span className={`inc-badge ${modalSuspender.emisor.estado_cuenta === 'activo' ? 'inc-badge-success' : 'inc-badge-danger'}`}>
+                          {modalSuspender.emisor.estado_cuenta === 'activo' ? 'Activo' : 'Suspendido'}
+                        </span>
+                      </div>
+                      <div className="suspender-usuario-actions">
+                        <button
+                          onClick={() => {
+                            setModalSuspender({
+                              ...modalSuspender,
+                              emisor: {
+                                ...modalSuspender.emisor!,
+                                estado_cuenta: modalSuspender.emisor!.estado_cuenta === 'activo' ? 'suspendido' : 'activo'
+                              }
+                            });
+                          }}
+                          className={modalSuspender.emisor.estado_cuenta === 'activo' ? 'btn-suspender' : 'btn-activar'}
+                        >
+                          {modalSuspender.emisor.estado_cuenta === 'activo' ? 'Suspender' : 'Activar'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Usuario Infractor */}
+                  {modalSuspender.infractor && (
+                    <div className="suspender-usuario-item">
+                      <div className="suspender-usuario-info">
+                        <h4>Usuario Infractor</h4>
+                        <p>
+                          {modalSuspender.infractor.nombre} {modalSuspender.infractor.apellido}
+                        </p>
+                        <p className="suspender-usuario-email">{modalSuspender.infractor.email}</p>
+                        <span className={`inc-badge ${modalSuspender.infractor.estado_cuenta === 'activo' ? 'inc-badge-success' : 'inc-badge-danger'}`}>
+                          {modalSuspender.infractor.estado_cuenta === 'activo' ? 'Activo' : 'Suspendido'}
+                        </span>
+                      </div>
+                      <div className="suspender-usuario-actions">
+                        <button
+                          onClick={() => {
+                            setModalSuspender({
+                              ...modalSuspender,
+                              infractor: {
+                                ...modalSuspender.infractor!,
+                                estado_cuenta: modalSuspender.infractor!.estado_cuenta === 'activo' ? 'suspendido' : 'activo'
+                              }
+                            });
+                          }}
+                          className={modalSuspender.infractor.estado_cuenta === 'activo' ? 'btn-suspender' : 'btn-activar'}
+                        >
+                          {modalSuspender.infractor.estado_cuenta === 'activo' ? 'Suspender' : 'Activar'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="inc-modal-footer">
+                <button
+                  className="btn-cancelar"
+                  onClick={() => setModalSuspender(null)}
+                >
+                  Cancelar
+                </button>
+                <button
+                  className="btn-aplicar"
+                  onClick={handleAplicarSuspensiones}
+                >
+                  Aplicar Cambios
+                </button>
               </div>
             </div>
           </div>

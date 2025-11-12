@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, ImageIcon, Plus, Trash2, X, CheckCircle } from 'lucide-react';
 import proyectosService from '../../services/api/proyectosService';
 import avancesService from '../../services/api/avancesService';
+import supabaseStorage from '../../services/supabaseStorage';
 import type { Proyecto } from '../../types/proyecto.types';
 import type { Avance } from '../../types/avance.types';
 import '../../styles/ArchitectProjectDetail.css';
@@ -92,13 +93,16 @@ export default function ArchitectProjectDetail() {
   };
 
   const uploadImage = async (file: File): Promise<string> => {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        resolve(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    });
+    try {
+      const timestamp = Date.now()
+      const fileName = `proyectos/${id}/avances/${timestamp}_${file.name}`
+      
+      const imagenUrl = await supabaseStorage.uploadImagen(file, fileName)
+      return imagenUrl
+    } catch (error) {
+      console.error('Error al subir imagen:', error)
+      throw new Error('No se pudo subir la imagen')
+    }
   };
 
   const handleCreateAvance = async (e: React.FormEvent) => {
@@ -186,21 +190,18 @@ export default function ArchitectProjectDetail() {
     try {
       setUploadingImages(true);
 
-      // Convertir imágenes a base64
-      const imagePromises = selectedImages.map(file => {
-        return new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
+      // Subir imágenes a Supabase Storage
+      const uploadPromises = selectedImages.map(async (file) => {
+        const timestamp = Date.now()
+        const fileName = `proyectos/${id}/portafolio/${timestamp}_${file.name}`
+        return await supabaseStorage.uploadImagen(file, fileName)
       });
 
-      const base64Images = await Promise.all(imagePromises);
+      const imageUrls = await Promise.all(uploadPromises);
 
       // TODO: Implementar endpoint para agregar imágenes al proyecto
       // Por ahora solo mostramos que se procesaron las imágenes
-      console.log('Imágenes procesadas:', base64Images.length);
+      console.log('Imágenes subidas a Supabase:', imageUrls.length);
 
       // Recargar el proyecto
       const proyectoActualizado = await proyectosService.getById(id);
@@ -212,6 +213,7 @@ export default function ArchitectProjectDetail() {
       setShowAddImagesModal(false);
       alert('Imágenes agregadas exitosamente a la galería');
     } catch (err: any) {
+      console.error('Error al agregar imágenes:', err);
       alert('Error al agregar imágenes: ' + err.message);
     } finally {
       setUploadingImages(false);

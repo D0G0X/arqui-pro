@@ -3,7 +3,6 @@ import { useQuery } from '@apollo/client';
 import { Users, FolderKanban, AlertCircle, CheckCircle, TrendingUp, TrendingDown, Clock } from 'lucide-react';
 import { ModeratorLayout } from '../../components/Moderator/ModeratorLayout';
 import { moderadorService } from '../../services/api/moderador/moderadorService';
-import { notificationService } from '../../services/websocket/notificationService';
 import { GET_MODERATOR_STATS } from '../../services/graphql/queries';
 import '../../styles/Moderator/Dashboard.css';
 
@@ -20,13 +19,6 @@ interface Estadisticas {
   verificacionesPendientes: number;
 }
 
-interface NotificacionUI {
-  id: string | number;
-  tipo: 'verificacion' | 'mensaje' | 'incidencia';
-  titulo: string;
-  subtitulo?: string;
-  tiempo: string;
-}
 
 export const ModeratorDashboard = () => {
   // Usar GraphQL para obtener KPIs de la plataforma
@@ -36,43 +28,6 @@ export const ModeratorDashboard = () => {
 
   const [stats, setStats] = useState<Estadisticas | null>(null);
   const [loading, setLoading] = useState(true);
-  const [notificaciones, setNotificaciones] = useState<NotificacionUI[]>([
-    {
-      id: 1,
-      tipo: 'verificacion',
-      titulo: 'Nueva verificación pendiente',
-      subtitulo: 'Revisión de documentos arquitecto',
-      tiempo: 'hace 5 min'
-    },
-    {
-      id: 2,
-      tipo: 'incidencia',
-      titulo: 'Nueva incidencia reportada',
-      subtitulo: 'Error en proyecto',
-      tiempo: 'hace 30 min'
-    }
-  ]);
-
-  // Suscribirse a notificaciones en tiempo real
-  useEffect(() => {
-    const unsubscribe = notificationService.onNotification((notification: any) => {
-      setNotificaciones(prev => [
-        {
-          id: notification.id || `notif-${Date.now()}`,
-          tipo: 'mensaje' as const,
-          titulo: notification.data?.titulo || 'Nueva notificación',
-          subtitulo: notification.data?.mensaje || '',
-          tiempo: 'Ahora'
-        },
-        ...prev.slice(0, 9) // Mantener máximo 10 notificaciones
-      ]);
-    });
-
-    // Cleanup al desmontar
-    return () => {
-      unsubscribe();
-    };
-  }, []);
 
   useEffect(() => {
     cargarEstadisticasDetalladas();
@@ -199,28 +154,26 @@ export const ModeratorDashboard = () => {
           </div>
         </div>
 
-        {/* Notificaciones Recientes */}
-        <div className="dashboard-notifications">
-          <h2 className="notifications-title">Notificaciones Recientes</h2>
-          <div className="notifications-list">
-            {notificaciones.map((notif) => (
-              <div key={notif.id} className="notification-item">
-                <div className={`notification-icon notification-icon--${notif.tipo}`}>
-                  {notif.tipo === 'verificacion' && <CheckCircle size={20} />}
-                  {notif.tipo === 'mensaje' && <Users size={20} />}
-                  {notif.tipo === 'incidencia' && <AlertCircle size={20} />}
-                </div>
-                <div className="notification-content">
-                  <p className="notification-title">
-                    {notif.titulo}
-                    {notif.subtitulo && (
-                      <> <span className="notification-subtitle">{notif.subtitulo}</span></>
-                    )}
-                  </p>
-                </div>
-                <span className="notification-time">{notif.tiempo}</span>
+        {/* Estadísticas Adicionales */}
+        <div className="dashboard-additional-stats">
+          <div className="additional-stat-card">
+            <div className="additional-stat-header">
+              <h3>Resumen de Actividad</h3>
+            </div>
+            <div className="additional-stat-content">
+              <div className="stat-row">
+                <span className="stat-label">Proyectos Nuevos (mes)</span>
+                <span className="stat-value">{stats?.proyectosNuevos || 0}</span>
               </div>
-            ))}
+              <div className="stat-row">
+                <span className="stat-label">Incidencias Pendientes</span>
+                <span className="stat-value">{stats?.incidenciasPendientes || 0}</span>
+              </div>
+              <div className="stat-row">
+                <span className="stat-label">Verificaciones Pendientes</span>
+                <span className="stat-value">{stats?.verificacionesPendientes || 0}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

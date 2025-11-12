@@ -9,13 +9,44 @@ class Api::V1::ProyectosController < ApplicationController
   before_action :require_proyecto_ownership!, only: %i[update destroy add_imagenes]
 
   def index
-    @proyectos = Proyecto.all
-    render json: @proyectos
+    @proyectos = Proyecto.includes(:arquitecto, :cliente, :imagenes).all
+    
+    # Filtrar por tipo_proyecto si se proporciona
+    if params[:tipo_proyecto].present?
+      @proyectos = @proyectos.where(tipo_proyecto: params[:tipo_proyecto])
+    end
+    
+    render json: @proyectos.as_json(
+      include: {
+        arquitecto: {
+          include: {
+            usuario: { only: [:id, :nombre, :apellido] }
+          }
+        },
+        cliente: {
+          include: {
+            usuario: { only: [:id, :nombre, :apellido] }
+          }
+        },
+        imagenes: { only: [:id, :imagen_url] }
+      }
+    )
   end
 
   def create
     @proyecto = Proyecto.new(proyecto_params)
     if @proyecto.save
+      Rails.logger.info "✅ Proyecto creado: #{@proyecto.id} - #{@proyecto.titulo_proyecto}"
+      
+      # Notificar al cliente si el proyecto es de tipo 'contratado'
+      if @proyecto.tipo_proyecto == 'contratado' && @proyecto.cliente_id.present?
+        begin
+          NotificationService.notify_proyecto_creado(@proyecto)
+        rescue => e
+          Rails.logger.error "❌ Error al notificar proyecto creado: #{e.message}"
+        end
+      end
+      
       render json: @proyecto, status: :created
     else
       render json: @proyecto.errors, status: :unprocessable_entity

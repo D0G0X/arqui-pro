@@ -434,3 +434,35 @@
     text-align: left;
   }
 }
+
+/* Report Button Styles */
+.report-button {
+  margin-top: 0.5rem;
+  background: #ff4d6d;
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background-color 0.2s ease;
+  width: 100%;
+  justify-content: center;
+}
+
+.report-button:hover {
+  background: #ff3d57;
+}
+
+.report-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.report-button svg {
+  flex-shrink: 0;
+}

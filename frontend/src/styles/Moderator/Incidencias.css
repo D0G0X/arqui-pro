@@ -300,3 +300,202 @@
   background-color: #e2e3e5;
   color: #383d41;
 }
+
+/* Modal de Suspensión */
+.inc-modal-suspender {
+  max-width: 600px;
+}
+
+.inc-modal-footer {
+  padding: 20px 28px;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  background: #f8f9fa;
+  border-radius: 0 0 16px 16px;
+}
+
+.btn-cancelar {
+  padding: 10px 24px;
+  border: 1px solid #6c757d;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: #fff;
+  color: #6c757d;
+}
+
+.btn-cancelar:hover {
+  background-color: #f8f9fa;
+  border-color: #5a6268;
+}
+
+.btn-aplicar {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: #28a745;
+  color: #fff;
+}
+
+.btn-aplicar:hover {
+  background-color: #218838;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+}
+
+.suspender-usuarios-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.suspender-usuario-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+  transition: all 0.2s ease;
+}
+
+.suspender-usuario-item:hover {
+  background: #e9ecef;
+  border-color: #dee2e6;
+}
+
+.suspender-usuario-info {
+  flex: 1;
+}
+
+.suspender-usuario-info h4 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #212529;
+}
+
+.suspender-usuario-info p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: #495057;
+}
+
+.suspender-usuario-email {
+  font-size: 13px !important;
+  color: #6c757d !important;
+}
+
+.suspender-usuario-info .inc-badge {
+  margin-top: 8px;
+  display: inline-block;
+}
+
+.suspender-usuario-actions {
+  margin-left: 20px;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .incidencias-table {
+    font-size: 13px;
+  }
+
+  .incidencias-table th,
+  .incidencias-table td {
+    padding: 12px 16px;
+  }
+
+  .page-title {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .incidencias-table {
+    min-width: 800px;
+  }
+
+  .incidencias-table th,
+  .incidencias-table td {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+
+  .page-title {
+    font-size: 22px;
+    margin-bottom: 20px;
+  }
+
+  .btn-resolver,
+  .btn-reabrir,
+  .btn-suspender,
+  .btn-activar {
+    padding: 5px 12px;
+    font-size: 12px;
+  }
+
+  .inc-modal-content {
+    width: 95%;
+    max-width: 95%;
+  }
+
+  .inc-modal-suspender {
+    max-width: 95%;
+  }
+
+  .suspender-usuario-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .suspender-usuario-actions {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .suspender-usuario-actions button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title {
+    font-size: 20px;
+  }
+
+  .incidencias-table th {
+    font-size: 10px;
+    padding: 8px 10px;
+  }
+
+  .incidencias-table td {
+    font-size: 11px;
+    padding: 8px 10px;
+  }
+
+  .pagination {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .pagination-btn {
+    width: 100%;
+  }
+}
