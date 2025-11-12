@@ -403,3 +403,99 @@
 .suspender-usuario-actions {
   margin-left: 20px;
 }
+
+/* Responsive */
+@media (max-width: 992px) {
+  .incidencias-table {
+    font-size: 13px;
+  }
+
+  .incidencias-table th,
+  .incidencias-table td {
+    padding: 12px 16px;
+  }
+
+  .page-title {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .incidencias-table {
+    min-width: 800px;
+  }
+
+  .incidencias-table th,
+  .incidencias-table td {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+
+  .page-title {
+    font-size: 22px;
+    margin-bottom: 20px;
+  }
+
+  .btn-resolver,
+  .btn-reabrir,
+  .btn-suspender,
+  .btn-activar {
+    padding: 5px 12px;
+    font-size: 12px;
+  }
+
+  .inc-modal-content {
+    width: 95%;
+    max-width: 95%;
+  }
+
+  .inc-modal-suspender {
+    max-width: 95%;
+  }
+
+  .suspender-usuario-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .suspender-usuario-actions {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .suspender-usuario-actions button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title {
+    font-size: 20px;
+  }
+
+  .incidencias-table th {
+    font-size: 10px;
+    padding: 8px 10px;
+  }
+
+  .incidencias-table td {
+    font-size: 11px;
+    padding: 8px 10px;
+  }
+
+  .pagination {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .pagination-btn {
+    width: 100%;
+  }
+}

@@ -1,6 +1,8 @@
-# GraphQL Gateway - ArquiPro
+# 🔷 GraphQL Gateway - ArquiPro
 
 Servicio GraphQL desarrollado en **Python 3.11+** con **FastAPI** y **Strawberry GraphQL** que actúa como gateway de agregación sobre la API REST de Rails.
+
+> **Nota:** Este servicio NO reemplaza la API REST. Usa REST para CRUD y GraphQL para consultas complejas. Ver [Frontend Implementation Guide](../frontend/FRONTEND_IMPLEMENTATION.md) para más detalles.
 
 ## 📋 Tabla de Contenidos
 
@@ -788,6 +790,7 @@ arquitecto_id: Optional[str] = None
 - [FastAPI Documentation](https://fastapi.tiangolo.com/)
 - [GraphQL Official Docs](https://graphql.org/learn/)
 - [httpx Async Client](https://www.python-httpx.org/)
+- [Frontend GraphQL Implementation](../frontend/FRONTEND_IMPLEMENTATION.md#graphql-implementation)
 
 ### Arquitectura de Referencia
 
@@ -797,6 +800,35 @@ arquitecto_id: Optional[str] = None
 ---
 
 ## 🔄 Integración con Frontend
+
+### Configuración de Apollo Client
+
+**Archivo:** `frontend/src/services/graphql/apolloClient.ts`
+
+```typescript
+import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client'
+import { setContext } from '@apollo/client/link/context'
+import { API_CONFIG, getAuthToken } from '../../config/api.config'
+
+const httpLink = createHttpLink({
+  uri: API_CONFIG.GRAPHQL_URL, // http://localhost:8000/graphql
+})
+
+const authLink = setContext((_, { headers }) => {
+  const token = getAuthToken()
+  return {
+    headers: {
+      ...headers,
+      authorization: token ? `Bearer ${token}` : '',
+    },
+  }
+})
+
+export const apolloClient = new ApolloClient({
+  link: authLink.concat(httpLink),
+  cache: new InMemoryCache(),
+})
+```
 
 ### Ejemplo con Apollo Client (React)
 

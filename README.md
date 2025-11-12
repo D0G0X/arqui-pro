@@ -43,8 +43,10 @@
 ### Para Moderadores 🛡️
 - 👥 **Gestión de usuarios** y verificaciones
 - 📋 **Moderación de contenido** y reportes
-- 📊 **Estadísticas de la plataforma**
+- 📊 **Estadísticas de la plataforma** con KPIs en tiempo real
 - ⚠️ **Manejo de incidencias** y conflictos
+- 🔒 **Suspensión/activación de usuarios** desde incidencias
+- 📱 **Dashboard responsive** optimizado para móviles
 
 ---
 
@@ -357,11 +359,13 @@ curl http://localhost:8000/health
 
 - **[REST API](./docs/APIREST.md)** - Endpoints, modelos, autenticación
 - **[GraphQL Gateway](./docs/graphql.md)** - Queries, tipos, ejemplos
-- **[WebSocket Server](./docs/WEBSOCKET_SETUP.md)** - Eventos, namespaces, testing
+- **[WebSocket Server](./docs/WEBSOCKET_INTEGRATION.md)** - Eventos, namespaces, integración
+- **[Frontend Implementation](./frontend/FRONTEND_IMPLEMENTATION.md)** - REST, GraphQL y WebSocket en React
 - **[Frontend](./frontend/README.md)** - Componentes, routing, estado
 
 ### Guías Técnicas Especiales
 
+- **[Frontend Implementation Guide](./frontend/FRONTEND_IMPLEMENTATION.md)** - Cómo se implementaron REST, GraphQL y WebSocket
 - **[Sistema de Caché](./frontend/CACHE_IMPLEMENTATION_SUMMARY.md)** - localStorage, hooks, servicios
 - **[Hooks con Caché](./frontend/src/hooks/HOOKS_WITH_CACHE.md)** - Ejemplos de uso
 - **[Guía Rápida de Caché](./frontend/QUICK_CACHE_GUIDE.md)** - Plantillas para nuevos servicios
@@ -715,6 +719,10 @@ Este proyecto está bajo la licencia **MIT**.
 - ✅ Sistema de notificaciones
 - ✅ Gestión de proyectos
 - ✅ Sistema de caché
+- ✅ Módulo de administrador responsive
+- ✅ Gestión de incidencias con suspensión de usuarios
+- ✅ Sección de valoraciones en landing page
+- ✅ Proyectos contratados en landing page
 
 ### Versión 1.1 (Próximo)
 - ⏳ Pagos integrados (Stripe/PayPal)
