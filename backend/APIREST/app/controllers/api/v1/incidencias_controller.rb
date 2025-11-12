@@ -7,7 +7,7 @@ class Api::V1::IncidenciasController < ApplicationController
   before_action :require_incidencia_ownership!, only: %i[update destroy]
 
   def index
-    @incidencias = Incidencia.includes(:usuario_emisor, :usuario_infractor, moderador: :usuario).all
+    @incidencias = Incidencia.includes(:usuario_emisor, :usuario_infractor, :imagenes, moderador: [:usuario]).all
     
     # Filtrar por estado si se proporciona
     if params[:estado].present? && params[:estado] != 'todos'
@@ -31,6 +31,7 @@ class Api::V1::IncidenciasController < ApplicationController
         emisor_id: incidencia.usuario_emisor_id,
         infractor_id: incidencia.usuario_infractor_id,
         moderador_id: incidencia.moderador_id,
+        imagenes: incidencia.imagenes.map { |img| { id: img.id, imagen_url: img.imagen_url, fecha: img.fecha } },
         emisor: incidencia.usuario_emisor ? {
           id: incidencia.usuario_emisor.id,
           nombre: incidencia.usuario_emisor.nombre,
@@ -63,7 +64,18 @@ class Api::V1::IncidenciasController < ApplicationController
   end
 
   def create
-    @incidencia = Incidencia.new(incidencia_params)
+    # Asignar un moderador aleatorio de los que existen en la base de datos
+    moderadores = Moderador.pluck(:id)
+    if moderadores.empty?
+      return render json: { error: 'No hay moderadores disponibles' }, status: :unprocessable_entity
+    end
+    
+    moderador_id = moderadores.sample
+    
+    # Crear incidencia con moderador aleatorio
+    incidencia_params_with_moderador = incidencia_params.merge(moderador_id: moderador_id)
+    @incidencia = Incidencia.new(incidencia_params_with_moderador)
+    
     if @incidencia.save
       render json: @incidencia, status: :created
     else

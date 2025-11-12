@@ -285,3 +285,111 @@
 .fra-client-register-button:hover {
     background-color: #ffe0b2; /* Un poco más oscuro al pasar el ratón */
 }
+
+/* -------------------------------------------------------------------- */
+/* --- Estilos para Select Multiple (Especialidades) --- */
+/* -------------------------------------------------------------------- */
+
+.fra-especialidades-wrapper {
+    position: relative;
+    z-index: 10;
+}
+
+.fra-especialidades-button {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #d9d9d9;
+    border-radius: 8px;
+    font-size: 15px;
+    font-family: inherit;
+    background-color: #ffffff;
+    color: #343a40;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.fra-especialidades-button:hover {
+    border-color: #f7931e80;
+}
+
+.fra-especialidades-button:focus {
+    outline: none;
+    border-color: #f7931e;
+    box-shadow: 0 0 0 3px rgba(247, 147, 30, 0.15);
+}
+
+.fra-especialidades-button-text {
+    font-weight: 500;
+    text-align: left;
+}
+
+.fra-dropdown-arrow {
+    display: inline-block;
+    font-size: 12px;
+    transition: transform 0.3s ease;
+    color: #f7931e;
+}
+
+.fra-dropdown-arrow.open {
+    transform: rotate(180deg);
+}
+
+/* Dropdown flotante */
+.fra-especialidades-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 8px;
+    background-color: #ffffff;
+    border: 1px solid #d9d9d9;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    max-height: 280px;
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+.fra-especialidad-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 14px;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    user-select: none;
+}
+
+.fra-especialidad-item:last-child {
+    border-bottom: none;
+}
+
+.fra-especialidad-item:hover {
+    background-color: #fef5ee;
+}
+
+.fra-especialidad-item.selected {
+    background-color: #fff3e6;
+}
+
+.fra-especialidad-item input[type="checkbox"] {
+    margin-right: 10px;
+    cursor: pointer;
+    accent-color: #f7931e;
+    width: 18px;
+    height: 18px;
+}
+
+.fra-especialidad-item input[type="checkbox"]:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.fra-especialidad-name {
+    font-size: 15px;
+    color: #343a40;
+    flex: 1;
+}
