@@ -1,4 +1,4 @@
-import axiosInstance from "./axiosInstance"
+import axiosInstance, { axiosPublic } from "./axiosInstance"
 import type { Proyecto, CreateProyectoDto, UpdateProyectoDto } from "../../types/proyecto.types"
 import { CacheService } from '../../utils/cacheService'
 import type { Cliente } from "../../types"
@@ -7,8 +7,10 @@ import clienteService from "./clienteService"
 const CACHE_DURATION = 3 * 60 * 1000 // 3 minutos
 
 class ProyectosService {
-  async getAll(): Promise<Proyecto[]> {
-    const response = await axiosInstance.get('/proyectos')
+  async getAll(tipoProyecto?: 'portafolio' | 'contratado', usePublic: boolean = false): Promise<Proyecto[]> {
+    const params = tipoProyecto ? { tipo_proyecto: tipoProyecto } : {}
+    const client = usePublic ? axiosPublic : axiosInstance
+    const response = await client.get('/proyectos', { params })
     return Array.isArray(response.data) ? response.data : response.data.proyectos || []
   }
 

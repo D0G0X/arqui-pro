@@ -9,8 +9,28 @@ class Api::V1::ProyectosController < ApplicationController
   before_action :require_proyecto_ownership!, only: %i[update destroy add_imagenes]
 
   def index
-    @proyectos = Proyecto.all
-    render json: @proyectos
+    @proyectos = Proyecto.includes(:arquitecto, :cliente, :imagenes).all
+    
+    # Filtrar por tipo_proyecto si se proporciona
+    if params[:tipo_proyecto].present?
+      @proyectos = @proyectos.where(tipo_proyecto: params[:tipo_proyecto])
+    end
+    
+    render json: @proyectos.as_json(
+      include: {
+        arquitecto: {
+          include: {
+            usuario: { only: [:id, :nombre, :apellido] }
+          }
+        },
+        cliente: {
+          include: {
+            usuario: { only: [:id, :nombre, :apellido] }
+          }
+        },
+        imagenes: { only: [:id, :imagen_url] }
+      }
+    )
   end
 
   def create
