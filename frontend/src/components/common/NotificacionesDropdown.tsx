@@ -106,9 +106,7 @@ export const NotificacionesDropdown = () => {
 
   const marcarComoLeida = async (notificacionId: string) => {
     try {
-      await axiosInstance.patch(`/notificaciones/${notificacionId}`, {
-        leida: true
-      })
+      await notificacionesService.marcarComoLeida(notificacionId)
       
       setNotificaciones(prev =>
         prev.map(n => n.id === notificacionId ? { ...n, leida: true } : n)
