@@ -33,7 +33,7 @@ export default function FormularioLogin({onSubmit}: Props){
             </div>
             
             <h1 className="welcome-title">Welcome Back</h1>
-            <p className="subtitle">Log in to your account to continue</p>
+            <p className="subtitle">Sign in to your account to continue</p>
 
             <form onSubmit={handleSubmit} className="login-form">
                 
@@ -96,7 +96,7 @@ export default function FormularioLogin({onSubmit}: Props){
                 </div>
 
                 {/* Botón de Login */}
-                <button type="submit" className="login-button">Log In</button>
+                <button type="submit" className="login-button">Sign In</button>
             </form>
             
             {/* Sección de Sign Up */}

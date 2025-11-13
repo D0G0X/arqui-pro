@@ -241,7 +241,7 @@ export default function FormularioRegistroClientes({ onSubmit, onRegisterAsArqui
 
             {/* Sección de "Already have an account?" */}
             <div className="signup-text">
-                Already have an account? <a href="/login" className="signup-link">Log in</a>
+                Already have an account? <a href="/login" className="signup-link">Sign in</a>
             </div>
             
             {/* Botón de "Register as Architect" */}
