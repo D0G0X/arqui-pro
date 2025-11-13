@@ -1,6 +1,6 @@
 import { useQuery } from '@apollo/client'
 import { GET_MODERATOR_STATS } from '../services/graphql/queries'
-import type { ModeratorStats } from '../types/moderator.types'
+import type { ModeratorStats } from '../types/moderador.types'
 
 interface KpisPlataforma {
   totalUsuarios: number
