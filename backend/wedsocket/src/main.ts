@@ -21,15 +21,19 @@ async function bootstrap() {
     await app.listen(port);
     
     console.log('=================================');
-    console.log(`Server started successfully`);
-    console.log(`HTTP server: http://localhost:${port}`);
-    console.log(`WebSocket endpoints:`);
-    console.log(`- Chat: ws://localhost:${port}/chat`);
-    console.log(`- Mensajes: ws://localhost:${port}/mensajes`);
-    console.log(`- Notificaciones: ws://localhost:${port}/notificacion`);
+    console.log(`🚀 Server started successfully`);
+    console.log(`📡 HTTP server: http://localhost:${port}`);
+    console.log(`🔌 WebSocket endpoints:`);
+    console.log(`   - Chat: ws://localhost:${port}/chat`);
+    console.log(`   - Mensajes: ws://localhost:${port}/mensajes`);
+    console.log(`   - Notificaciones: ws://localhost:${port}/notificacion`);
+    console.log(`   - Proyectos: ws://localhost:${port}/proyectos`);
+    console.log(`   - Avances: ws://localhost:${port}/avances`);
+    console.log(`   - Incidencias: ws://localhost:${port}/incidencias`);
+    console.log(`   - Valoraciones: ws://localhost:${port}/valoraciones`);
     console.log('=================================');
   } catch (error) {
-    console.error('Failed to start server:', error);
+    console.error('❌ Failed to start server:', error);
     process.exit(1);
   }
 }

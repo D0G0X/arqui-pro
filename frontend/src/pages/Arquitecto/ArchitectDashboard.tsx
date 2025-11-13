@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useProyectos } from '../../hooks/useProyectos';
+import { useAvances } from '../../hooks/useAvances';
+import { useValoraciones } from '../../hooks/useValoraciones';
 import { logger } from '../../utils/logger';
 import arquitectosService from '../../services/api/arquitectosService';
 import proyectosService from '../../services/api/proyectosService';
@@ -13,6 +16,22 @@ const ArchitectDashboard = () => {
   const [arquitecto, setArquitecto] = useState<Arquitecto | null>(null);
   const [proyectosRecientes, setProyectosRecientes] = useState<Proyecto[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // WebSocket hooks para actualizaciones en tiempo real
+  const { proyectos: proyectosWS, isConnected: proyectosConnected } = useProyectos({
+    arquitectoId: arquitecto?.id,
+    autoConnect: !!arquitecto?.id
+  });
+
+  const { avances, isConnected: avancesConnected } = useAvances({
+    arquitectoId: arquitecto?.id,
+    autoConnect: !!arquitecto?.id
+  });
+
+  const { promedio, isConnected: valoracionesConnected } = useValoraciones({
+    arquitectoId: arquitecto?.id,
+    autoConnect: !!arquitecto?.id
+  });
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -46,6 +65,19 @@ const ArchitectDashboard = () => {
 
     cargarDatos();
   }, [user]);
+
+  // Actualizar proyectos cuando lleguen desde WebSocket
+  useEffect(() => {
+    if (proyectosWS.length > 0) {
+      setProyectosRecientes(prev => {
+        const nuevosProyectos = [...proyectosWS, ...prev];
+        const proyectosUnicos = Array.from(
+          new Map(nuevosProyectos.map(p => [p.id, p])).values()
+        ) as Proyecto[];
+        return proyectosUnicos.slice(0, 4);
+      });
+    }
+  }, [proyectosWS]);
 
   if (loading) {
     return (
@@ -183,14 +215,48 @@ const ArchitectDashboard = () => {
                 </div>
                 <div className="estadistica-info">
                   <span className="estadistica-numero">
-                    {arquitecto?.valoracion_prom_proyecto 
+                    {promedio !== null && promedio > 0
+                      ? promedio.toFixed(1)
+                      : arquitecto?.valoracion_prom_proyecto 
                       ? arquitecto.valoracion_prom_proyecto.toFixed(1) 
                       : '0.0'}
                   </span>
-                  <span className="estadistica-texto">Valoración Promedio</span>
+                  <span className="estadistica-texto">
+                    Valoración Promedio
+                    {valoracionesConnected && (
+                      <span className="ws-status ws-connected" title="WebSocket conectado">●</span>
+                    )}
+                  </span>
+                </div>
+              </div>
+
+              {/* Avances Totales */}
+              <div className="estadistica-item">
+                <div className="estadistica-icono avances">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M9 11l3 3L22 4" />
+                    <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
+                  </svg>
+                </div>
+                <div className="estadistica-info">
+                  <span className="estadistica-numero">{avances.length}</span>
+                  <span className="estadistica-texto">
+                    Avances Registrados
+                    {avancesConnected && (
+                      <span className="ws-status ws-connected" title="WebSocket conectado">●</span>
+                    )}
+                  </span>
                 </div>
               </div>
             </div>
+
+            {/* Indicador de conexión WebSocket */}
+            {(proyectosConnected || avancesConnected || valoracionesConnected) && (
+              <div className="ws-indicator">
+                <span className="ws-indicator-dot"></span>
+                <span className="ws-indicator-text">Actualizaciones en tiempo real activas</span>
+              </div>
+            )}
           </section>
 
           {/* Acciones Rápidas */}

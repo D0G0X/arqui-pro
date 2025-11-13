@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
+import { useProyectos } from '../../hooks/useProyectos'
+import { useValoraciones } from '../../hooks/useValoraciones'
 import ArquitectoCard from '../../components/common/ArquitectoCard'
 import TarjetaProyecto from '../../components/common/TarjetaProyecto'
 import TarjetaSolicitud from '../../components/common/TarjetaSolicitud'
@@ -16,6 +18,17 @@ const ClienteHome = () => {
   const [proyectosRecientes, setProyectosRecientes] = useState<Proyecto[]>([])
   const [solicitudesRecientes, setSolicitudesRecientes] = useState<SolicitudProyecto[]>([])
   const [loading, setLoading] = useState(true)
+  const [clienteId, setClienteId] = useState<string | null>(null)
+
+  // WebSocket hooks para actualizaciones en tiempo real
+  const { proyectos: proyectosWS, isConnected: proyectosConnected } = useProyectos({
+    clienteId: clienteId || undefined,
+    autoConnect: !!clienteId
+  });
+
+  const { isConnected: valoracionesConnected } = useValoraciones({
+    autoConnect: true
+  });
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -25,6 +38,7 @@ const ClienteHome = () => {
         // TODO: Obtener cliente_id desde el usuario autenticado
         // Por ahora usamos un valor temporal o del localStorage
         const tempUsuarioClienteId = localStorage.getItem('cliente_id') || user?.id
+        setClienteId(tempUsuarioClienteId || null);
 
         // Cargar arquitectos recomendados (ordenados por valoración)
         const arquitectosData = await arquitectosService.getAll({
@@ -63,7 +77,20 @@ const ClienteHome = () => {
     }
 
     cargarDatos()
-  }, [user])
+  }, [user]);
+
+  // Actualizar proyectos cuando lleguen desde WebSocket
+  useEffect(() => {
+    if (proyectosWS.length > 0) {
+      setProyectosRecientes(prev => {
+        const nuevosProyectos = [...proyectosWS, ...prev];
+        const proyectosUnicos = Array.from(
+          new Map(nuevosProyectos.map(p => [p.id, p])).values()
+        ) as Proyecto[];
+        return proyectosUnicos.slice(0, 4);
+      });
+    }
+  }, [proyectosWS]);
 
   if (loading) {
     return (
@@ -102,7 +129,12 @@ const ClienteHome = () => {
 
           {/* Proyectos Recientes */}
           <section className="seccion-proyectos">
-            <h2 className="seccion-titulo">Proyectos Recientes</h2>
+            <h2 className="seccion-titulo">
+              Proyectos Recientes
+              {proyectosConnected && (
+                <span className="ws-status ws-connected" title="WebSocket conectado">●</span>
+              )}
+            </h2>
             <div className="proyectos-grid">
               {proyectosRecientes.length > 0 ? (
                 proyectosRecientes.map((proyecto) => (
@@ -117,6 +149,12 @@ const ClienteHome = () => {
                 </div>
               )}
             </div>
+            {(proyectosConnected || valoracionesConnected) && (
+              <div className="ws-indicator-small">
+                <span className="ws-dot"></span>
+                <span className="ws-text">Actualizaciones en tiempo real</span>
+              </div>
+            )}
           </section>
         </div>
 
