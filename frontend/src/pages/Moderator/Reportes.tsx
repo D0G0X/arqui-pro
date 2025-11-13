@@ -153,9 +153,6 @@ export const Reportes = () => {
             <FileText size={32} />
             Generador de Reportes
           </h1>
-          <p className="reportes-subtitle">
-            Genera reportes detallados de la plataforma usando consultas GraphQL
-          </p>
         </div>
 
         <div className="reportes-grid">
@@ -202,15 +199,6 @@ export const Reportes = () => {
           })}
         </div>
 
-        <div className="reportes-info">
-          <h3>Información sobre los Reportes</h3>
-          <ul>
-            <li>Los reportes se generan en tiempo real usando consultas GraphQL</li>
-            <li>Los reportes se almacenan temporalmente y expiran después de 24 horas</li>
-            <li>Cada reporte se abre en una nueva ventana para facilitar la visualización</li>
-            <li>Los datos mostrados reflejan el estado actual de la plataforma</li>
-          </ul>
-        </div>
       </div>
     </ModeratorLayout>
   );
