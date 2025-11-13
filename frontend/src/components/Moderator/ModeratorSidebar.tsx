@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { Home, AlertCircle, CheckCircle, LogOut, Menu, X } from 'lucide-react';
+import { Home, AlertCircle, CheckCircle, LogOut, Menu, X, FileText } from 'lucide-react';
 import '../../styles/Moderator/ModeratorSidebar.css';
 
 export const ModeratorSidebar = () => {
@@ -35,6 +35,11 @@ export const ModeratorSidebar = () => {
       path: '/moderador/verificaciones',
       label: 'Verificaciones',
       icon: CheckCircle
+    },
+    {
+      path: '/moderador/reportes',
+      label: 'Reportes',
+      icon: FileText
     }
   ];
 
