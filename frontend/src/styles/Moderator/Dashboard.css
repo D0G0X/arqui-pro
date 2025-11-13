@@ -199,6 +199,34 @@
   color: #6c757d;
 }
 
+/* WebSocket Status Indicators */
+.ws-status-inline {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #10b981;
+  margin-left: 8px;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+  animation: pulse-ws-inline 2s infinite;
+  vertical-align: middle;
+}
+
+@keyframes pulse-ws-inline {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.stat-card__label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 /* Responsive */
 @media (max-width: 1200px) {
   .dashboard-stats {

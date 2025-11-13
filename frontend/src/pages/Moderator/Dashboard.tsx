@@ -3,6 +3,9 @@ import { useQuery } from '@apollo/client';
 import { Users, FolderKanban, AlertCircle, CheckCircle, TrendingUp, TrendingDown, Clock } from 'lucide-react';
 import { ModeratorLayout } from '../../components/Moderator/ModeratorLayout';
 import { moderadorService } from '../../services/api/moderador/moderadorService';
+import { notificationService } from '../../services/websocket/notificationService';
+import { useIncidencias } from '../../hooks/useIncidencias';
+import { useProyectos } from '../../hooks/useProyectos';
 import { GET_MODERATOR_STATS } from '../../services/graphql/queries';
 import '../../styles/Moderator/Dashboard.css';
 
@@ -28,6 +31,75 @@ export const ModeratorDashboard = () => {
 
   const [stats, setStats] = useState<Estadisticas | null>(null);
   const [loading, setLoading] = useState(true);
+  const [notificaciones, setNotificaciones] = useState<NotificacionUI[]>([
+    {
+      id: 1,
+      tipo: 'verificacion',
+      titulo: 'Nueva verificación pendiente',
+      subtitulo: 'Revisión de documentos arquitecto',
+      tiempo: 'hace 5 min'
+    },
+    {
+      id: 2,
+      tipo: 'incidencia',
+      titulo: 'Nueva incidencia reportada',
+      subtitulo: 'Error en proyecto',
+      tiempo: 'hace 30 min'
+    }
+  ]);
+
+  // WebSocket hooks para actualizaciones en tiempo real
+  const { incidencias, isConnected: incidenciasConnected } = useIncidencias({
+    esModerador: true,
+    autoConnect: true
+  });
+
+  const { proyectos, isConnected: proyectosConnected } = useProyectos({
+    autoConnect: true
+  });
+
+  // Suscribirse a notificaciones en tiempo real
+  useEffect(() => {
+    const unsubscribe = notificationService.onNotification((notification: any) => {
+      setNotificaciones(prev => [
+        {
+          id: notification.id || `notif-${Date.now()}`,
+          tipo: 'mensaje' as const,
+          titulo: notification.data?.titulo || 'Nueva notificación',
+          subtitulo: notification.data?.mensaje || '',
+          tiempo: 'Ahora'
+        },
+        ...prev.slice(0, 9) // Mantener máximo 10 notificaciones
+      ]);
+    });
+
+    // Cleanup al desmontar
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  // Actualizar estadísticas cuando lleguen nuevas incidencias
+  useEffect(() => {
+    if (incidencias.length > 0 && stats) {
+      const incidenciasPendientes = incidencias.filter(i => i.estado === 'pendiente').length;
+      setStats(prev => ({
+        ...prev!,
+        totalIncidencias: incidencias.length,
+        incidenciasPendientes
+      }));
+    }
+  }, [incidencias, stats]);
+
+  // Actualizar estadísticas cuando lleguen nuevos proyectos
+  useEffect(() => {
+    if (proyectos.length > 0 && stats) {
+      setStats(prev => ({
+        ...prev!,
+        totalProyectos: proyectos.length
+      }));
+    }
+  }, [proyectos, stats]);
 
   useEffect(() => {
     cargarEstadisticasDetalladas();
@@ -114,7 +186,12 @@ export const ModeratorDashboard = () => {
               <div className="stat-card__icon stat-card__icon--projects">
                 <FolderKanban size={24} />
               </div>
-              <span className="stat-card__label">Total Projects</span>
+              <span className="stat-card__label">
+                Total Projects
+                {proyectosConnected && (
+                  <span className="ws-status-inline" title="WebSocket conectado">●</span>
+                )}
+              </span>
             </div>
             <h2 className="stat-card__value">{stats?.totalProyectos.toLocaleString() || '0'}</h2>
             <div className="stat-card__badge stat-card__badge--success">
@@ -129,7 +206,12 @@ export const ModeratorDashboard = () => {
               <div className="stat-card__icon stat-card__icon--incidents">
                 <AlertCircle size={24} />
               </div>
-              <span className="stat-card__label">Total Incidents</span>
+              <span className="stat-card__label">
+                Total Incidents
+                {incidenciasConnected && (
+                  <span className="ws-status-inline" title="WebSocket conectado">●</span>
+                )}
+              </span>
             </div>
             <h2 className="stat-card__value">{stats?.totalIncidencias || '0'}</h2>
             <div className="stat-card__badge stat-card__badge--danger">

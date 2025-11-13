@@ -21,5 +21,16 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false
-  }
+  },
+  "include": [
+    "src/**/*",
+    "chat/**/*",
+    "mensaje/**/*",
+    "notificacion/**/*",
+    "proyecto/**/*",
+    "avances/**/*",
+    "incidencias/**/*",
+    "valoraciones/**/*"
+  ],
+  "exclude": ["node_modules", "dist", "test"]
 }
