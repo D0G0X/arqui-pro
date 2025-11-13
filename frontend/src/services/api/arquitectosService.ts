@@ -3,16 +3,6 @@ import axiosInstance from './axiosInstance'
 import { CacheService } from '../../utils/cacheService'
 import type { Arquitecto, UpdateArquitectoDto } from '../../types/arquitecto.types'
 
-export interface ArquitectosList {
-  arquitectos: Arquitecto[]
-  meta?: {
-    current_page: number
-    total_pages: number
-    total_count: number
-    per_page: number
-  }
-}
-
 export interface ArquitectoFilters {
   especialidad?: string
   verificado?: boolean
@@ -24,15 +14,7 @@ export interface ArquitectoFilters {
 const CACHE_DURATION = 5 * 60 * 1000 // 5 minutos
 
 class ArquitectosService {
-  async getAll(filters?: ArquitectoFilters): Promise<ArquitectosList> {
-    // Intentar obtener del caché
-    const cacheKey = 'arquitectos_all_cache'
-    const cached = CacheService.get<ArquitectosList>(cacheKey, filters, CACHE_DURATION)
-    if (cached) {
-      console.log('📦 Usando datos de arquitectos desde caché')
-      return cached
-    }
-
+  async getAll(filters?: ArquitectoFilters): Promise<Arquitecto[]> {
     const params = new URLSearchParams()
     
     if (filters?.especialidad) params.append('especialidad', filters.especialidad)
@@ -45,16 +27,7 @@ class ArquitectosService {
     const response = await axiosInstance.get(`/arquitectos?${params.toString()}`)
     
     // Si la respuesta es un array directamente, envuélvelo en el formato esperado
-    let result: ArquitectosList
-    if (Array.isArray(response.data)) {
-      result = { arquitectos: response.data }
-    } else {
-      result = response.data
-    }
-
-    // Guardar en caché
-    CacheService.set(cacheKey, result, filters)
-    
+    const result= response.data
     return result
   }
 
@@ -94,10 +67,10 @@ class ArquitectosService {
   }
 
 
-  async getVerificados(): Promise<ArquitectosList> {
+  async getVerificados(): Promise<Arquitecto[]> {
     // Intentar obtener del caché
     const cacheKey = 'arquitectos_verificados_cache'
-    const cached = CacheService.get<ArquitectosList>(cacheKey, undefined, CACHE_DURATION)
+    const cached = CacheService.get<Arquitecto[]>(cacheKey, undefined, CACHE_DURATION)
     if (cached) {
       console.log('📦 Usando arquitectos verificados desde caché')
       return cached
@@ -112,10 +85,10 @@ class ArquitectosService {
     return response.data
   }
 
-  async search(query: string): Promise<ArquitectosList> {
+  async search(query: string): Promise<Arquitecto[]> {
     // Intentar obtener del caché
     const cacheKey = 'arquitectos_search_cache'
-    const cached = CacheService.get<ArquitectosList>(cacheKey, { query }, CACHE_DURATION)
+    const cached = CacheService.get<Arquitecto[]>(cacheKey, { query }, CACHE_DURATION)
     if (cached) {
       console.log(`📦 Usando búsqueda "${query}" desde caché`)
       return cached

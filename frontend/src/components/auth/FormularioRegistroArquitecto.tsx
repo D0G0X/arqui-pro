@@ -1,7 +1,7 @@
-import React, { useState, type FormEvent } from "react";
+import React, { useState, useEffect, useRef, type FormEvent } from "react";
 import { 
     Eye, EyeOff, Lock, User, Mail, Smartphone, CornerDownRight, 
-    MapPin, Briefcase, FileText
+    MapPin, FileText
 } from "lucide-react";
 import type { RegistroUsuarioInput } from "../../types/usuario.types";
 import "../../styles/auth/registro/FormularioRegistroArquitecto.css"
@@ -15,7 +15,7 @@ interface ArquitectoFormData{
     passwordConfirmation: string;
     cedula: string; 
     descripcion: string;
-    especialidades: string;
+    especialidades: string[];
     ubicacion: string;
 }
 
@@ -41,12 +41,31 @@ export default function FormularioRegistroArquitecto({ onSubmit, onApiError, onR
         passwordConfirmation: "",
         cedula: "", 
         descripcion: "",
-        especialidades: "",
+        especialidades: [],
         ubicacion: "",       
     });
 
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [showEspecialidadesDropdown, setShowEspecialidadesDropdown] = useState(false);
+    const especialidadesRef = useRef<HTMLDivElement>(null);
+    
+    // Cerrar dropdown al hacer clic afuera
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (especialidadesRef.current && !especialidadesRef.current.contains(event.target as Node)) {
+                setShowEspecialidadesDropdown(false)
+            }
+        }
+
+        if (showEspecialidadesDropdown) {
+            document.addEventListener('mousedown', handleClickOutside)
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside)
+        }
+    }, [showEspecialidadesDropdown])
     
     // Este estado se usará para errores locales Y los errores de la API
     const [generalError, setGeneralError] = useState<string | null>(null); 
@@ -97,7 +116,21 @@ export default function FormularioRegistroArquitecto({ onSubmit, onApiError, onR
                 return newErrors;
             });
         }
+
+        // Cerrar dropdown cuando escribes en otros campos
+        if (showEspecialidadesDropdown) setShowEspecialidadesDropdown(false);
     };
+
+    const SPECIALIDADES = [
+        'Diseño Urbano',
+        'Arquitectura Sostenible',
+        'Comercial',
+        'Paisajismo y Urbanismo',
+        'Residencial',
+        'Restauración Patrimonial',
+        'Conservación',
+        'Arquitectura Bioclimática'
+    ] as const
     
     const handleCedulaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         let value = e.target.value;
@@ -123,7 +156,8 @@ export default function FormularioRegistroArquitecto({ onSubmit, onApiError, onR
         setGeneralError(null);
         setFieldErrors({});
 
-        const { nombre, apellido, email, password, passwordConfirmation, cedula, descripcion, especialidades, ubicacion } = formData;
+    const { nombre, apellido, email, password, passwordConfirmation, cedula, descripcion, ubicacion } = formData;
+    const especialidadesArr = formData.especialidades || []
 
         // --- Validaciones locales ---
         if (password.length < 6) {
@@ -147,8 +181,8 @@ export default function FormularioRegistroArquitecto({ onSubmit, onApiError, onR
         }
         
         // Asumiendo que especialidades y ubicacion son obligatorios para un arquitecto
-        if(especialidades.trim().length === 0){
-             setGeneralError("Debes especificar al menos una especialidad.");
+        if(especialidadesArr.length === 0){
+             setGeneralError("Debes especificar al menos una especialidad (máximo 4).");
             return;
         }
         if(ubicacion.trim().length === 0){
@@ -168,8 +202,8 @@ export default function FormularioRegistroArquitecto({ onSubmit, onApiError, onR
             arquitecto_attributes: {
                 cedula,
                 descripcion,
-                // Podríamos dividir especialidades por coma, pero por ahora se envía como string
-                especialidades, 
+                // Convertir array de especialidades a string separado por ", "
+                especialidades: especialidadesArr.join(', '),
                 ubicacion,
             }
         };
@@ -315,20 +349,55 @@ export default function FormularioRegistroArquitecto({ onSubmit, onApiError, onR
 
                 {/* 3ra Fila: Especialidades y Ubicación */}
                 <div className="fra-input-row fra-input-row-half">
-                    <div className="fra-input-group">
-                        <label htmlFor="especialidades" className="fra-input-label">Especialidades</label>
-                        <div className="fra-input-with-icon">
-                            <Briefcase className="fra-input-start-icon" size={20} color="#adb5bd"/>
-                            <input
-                                className="fra-form-input"
-                                type="text"
-                                id="especialidades"
-                                placeholder="Ej. Residencial, Comercial, Diseño de Interiores"
-                                value={formData.especialidades}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
+                    <div className="fra-input-group fra-especialidades-wrapper" ref={especialidadesRef}>
+                        <label className="fra-input-label">Especialidades (máx. 4)</label>
+                        
+                        {/* Botón para abrir dropdown */}
+                        <button
+                            type="button"
+                            className="fra-especialidades-button"
+                            onClick={() => setShowEspecialidadesDropdown(!showEspecialidadesDropdown)}
+                        >
+                            <span className="fra-especialidades-button-text">
+                                {formData.especialidades.length === 0 
+                                    ? 'Elija las especialidades' 
+                                    : `${formData.especialidades.length} seleccionada${formData.especialidades.length > 1 ? 's' : ''}`}
+                            </span>
+                            <span className={`fra-dropdown-arrow ${showEspecialidadesDropdown ? 'open' : ''}`}>
+                                ▼
+                            </span>
+                        </button>
+
+                        {/* Dropdown flotante */}
+                        {showEspecialidadesDropdown && (
+                            <div className="fra-especialidades-dropdown">
+                                {SPECIALIDADES.map((s) => (
+                                    <label key={s} className={`fra-especialidad-item ${formData.especialidades.includes(s) ? 'selected' : ''}`}>
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.especialidades.includes(s)}
+                                            disabled={!formData.especialidades.includes(s) && formData.especialidades.length >= 4}
+                                            onChange={() => {
+                                                if (formData.especialidades.includes(s)) {
+                                                    setFormData(prev => ({
+                                                        ...prev,
+                                                        especialidades: prev.especialidades.filter(e => e !== s)
+                                                    }))
+                                                } else if (formData.especialidades.length < 4) {
+                                                    setFormData(prev => ({
+                                                        ...prev,
+                                                        especialidades: [...prev.especialidades, s]
+                                                    }))
+                                                }
+                                            }}
+                                        />
+                                        <span className="fra-especialidad-name">{s}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        )}
+
+                        <small className="fra-char-count">Seleccionadas: {formData.especialidades.length} / 4</small>
                     </div>
                     <div className="fra-input-group">
                         <label htmlFor="ubicacion" className="fra-input-label">Ubicación</label>

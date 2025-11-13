@@ -32,7 +32,7 @@ export default function ArchitectOwnProfile() {
         // Buscar el arquitecto por usuario_id
         // Primero intentamos obtener todos y filtrar, o mejor aún, crear un endpoint específico
         const response = await arquitectosService.getAll();
-        const arquitectoEncontrado = response.arquitectos.find(
+        const arquitectoEncontrado = response.find(
           (arq) => arq.usuario_id === user.id || arq.usuario?.id === user.id
         );
 

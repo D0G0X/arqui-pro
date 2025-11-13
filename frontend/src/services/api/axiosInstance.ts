@@ -31,15 +31,10 @@ axiosInstance.interceptors.request.use(
         const user = JSON.parse(userData)
         if (user.id) {
           config.headers['X-User-ID'] = user.id
-          console.log('🔑 Agregando X-User-ID al request:', user.id, 'URL:', config.url)
-        } else {
-          console.warn('⚠️ user.id no encontrado en user_data')
         }
       } catch (error) {
-        console.error('❌ Error parsing user_data:', error)
+        // parsing error ignored intentionally to avoid noisy console output
       }
-    } else {
-      console.warn('⚠️ No hay user_data en localStorage')
     }
     
     return config
@@ -55,21 +50,15 @@ axiosInstance.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       const errorMessage = error.response?.data?.error || '';
-      console.error('❌ Error 401:', errorMessage, 'URL:', error.config?.url);
-      
       // Solo desloguear si el token es realmente inválido o expirado
       if (errorMessage.includes('Token inválido') || 
           errorMessage.includes('Token expirado') || 
           errorMessage.includes('Token revocado') ||
           errorMessage.includes('Token de autorización requerido')) {
-        console.warn('🚪 Token inválido, redirigiendo al login...');
         localStorage.removeItem('auth_token');
         localStorage.removeItem('user_data');
         window.location.href = '/login';
       }
-    } else if (error.response?.status === 403) {
-      // Error de permisos, no desloguear
-      console.error('🚫 Acceso prohibido:', error.response?.data?.error);
     }
     return Promise.reject(error)
   }

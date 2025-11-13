@@ -7,7 +7,16 @@ class Api::V1::ValoracionesController < ApplicationController
   before_action :require_valoracion_ownership!, only: %i[update destroy]
 
   def index
-    @valoraciones = Valoracion.includes(cliente: :usuario, proyecto: :arquitecto).all
+    @valoraciones = if params[:proyecto_id]
+                      Valoracion.where(proyecto_id: params[:proyecto_id])
+                    elsif params[:cliente_id]
+                      Valoracion.where(cliente_id: params[:cliente_id])
+                    else
+                      Valoracion.all
+                    end
+
+    @valoraciones = @valoraciones.includes(cliente: :usuario, proyecto: :arquitecto)
+
     render json: @valoraciones.as_json(
       include: {
         cliente: {

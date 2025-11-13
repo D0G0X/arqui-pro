@@ -21,7 +21,7 @@ const ArchitectDashboard = () => {
         
         // Obtener el arquitecto actual
         const response = await arquitectosService.getAll();
-        const arquitectoEncontrado = response.arquitectos.find(
+        const arquitectoEncontrado = response.find(
           (arq) => arq.usuario_id === user?.id || arq.usuario?.id === user?.id
         );
 

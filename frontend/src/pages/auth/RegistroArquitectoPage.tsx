@@ -4,6 +4,7 @@ import { registroUsuario } from "../../services/api/auth/authService";
 import FormularioRegistroArquitecto from "../../components/auth/FormularioRegistroArquitecto";
 import { useNavigate } from "react-router-dom";
 import verificacionService from "../../services/api/verificacionService"
+import arquitectosService from "../../services/api/arquitectosService";
 import { axiosPublic } from "../../services/api/axiosInstance"
 
 export default function RegistroArquitectoPage(){
@@ -27,15 +28,16 @@ export default function RegistroArquitectoPage(){
         // No limpiamos setApiError(null) aquí para que el formulario pueda mostrar un estado de "cargando" si lo tuviera.
         
         try {
-            const nuevoUsuario: Usuario = await registroUsuario(data);
+            const nuevoUsuario = await registroUsuario(data);
 
             console.log("Arquitecto registrado:", nuevoUsuario);
                 // Intentar crear una verificación pendiente asignada a un moderador aleatorio existente
                 try {
                     // Obtener el arquitecto creado (búsqueda por usuario_id)
-                    const arquitectosResp = await axiosPublic.get('/arquitectos')
-                    const arquitectos = Array.isArray(arquitectosResp.data) ? arquitectosResp.data : arquitectosResp.data?.arquitectos || []
-                    const arquitectoDelUsuario = arquitectos.find((arq: any) => arq.usuario_id === nuevoUsuario.id)
+                    const arquitectosResp = await arquitectosService.getAll();
+                    console.log(arquitectosResp)
+                    console.log(nuevoUsuario.id)
+                    const arquitectoDelUsuario = arquitectosResp.find((ar)=>ar.usuario?.id === nuevoUsuario.id);
                     
                     if (!arquitectoDelUsuario) {
                         throw new Error('No se encontró el arquitecto creado para este usuario')
@@ -50,6 +52,12 @@ export default function RegistroArquitectoPage(){
                         // Usar el id del moderador aleatorio
                         moderadorId = moderators[randomIndex]?.id || null
                     }
+
+                    console.log({
+                        estado: 'pendiente',
+                        arquitecto_id: arquitectoDelUsuario.id,
+                        moderador_id: moderadorId
+                    })
 
                     await verificacionService.create({
                         estado: 'pendiente',

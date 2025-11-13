@@ -12,3 +12,20 @@ export interface Valoracion {
   cliente?: Cliente
   proyecto?: Proyecto
 }
+
+
+export interface CreateValoracionDto{
+  calificacion: number
+  comentario: string | null
+  fecha: string
+  cliente_id: string
+  proyecto_id: string
+}
+
+export interface UpdateValoracionDto{
+  calificacion?: number
+  comentario?: string | null
+  fecha?: string
+  cliente_id?: string
+  proyecto_id?: string
+}

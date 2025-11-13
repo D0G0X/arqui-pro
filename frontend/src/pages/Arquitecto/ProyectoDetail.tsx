@@ -2,19 +2,27 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { Calendar, Star, User, Building2 } from 'lucide-react'
 import proyectosService from '../../services/api/proyectosService'
+import clienteService from '../../services/api/clienteService'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import ErrorMessage from '../../components/common/ErrorMessage'
 import ImageGallery from '../../components/proyecto/ImageGallery'
 import ProjectProgress from '../../components/proyecto/ProjectProgress'
+import ValoracionForm from '../../components/proyecto/ValoracionForm'
+import ValoracionesList from '../../components/proyecto/ValoracionesList'
+import { useAuth } from '../../contexts/AuthContext'
 import type { Proyecto } from '../../types'
+import type { Cliente } from '../../types/cliente.types'
 import '../../styles/ProyectoDetail.css'
 
 function ProyectoDetail() {
   const { id } = useParams<{ id: string }>()
+  const { user } = useAuth()
   const [proyecto, setProyecto] = useState<Proyecto | null>(null)
+  const [cliente, setCliente] = useState<Cliente | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'gallery' | 'progress'>('gallery')
+  const [activeTab, setActiveTab] = useState<'gallery' | 'progress' | 'valoraciones'>('gallery')
+  const [refreshValoraciones, setRefreshValoraciones] = useState(0)
 
   useEffect(() => {
     const fetchProyecto = async () => {
@@ -36,6 +44,36 @@ function ProyectoDetail() {
 
     fetchProyecto()
   }, [id])
+
+  // Obtener datos del cliente logeado si es cliente
+  useEffect(() => {
+    const fetchCliente = async () => {
+      if (user?.rol !== 'cliente' || !user?.id) {
+        setCliente(null)
+        return
+      }
+
+      try {
+        console.log('Buscando cliente del usuario:', user.id)
+        // Obtener todos los clientes y filtrar por usuario_id
+        const clientes = await clienteService.getAll()
+        const clienteLogeado = clientes.find((c) => c.usuario?.id === user.id)
+        if (clienteLogeado) {
+          setCliente(clienteLogeado)
+          console.log('Cliente encontrado:', clienteLogeado)
+        }
+      } catch (err) {
+        console.error('Error al obtener cliente logeado:', err)
+      }
+    }
+
+    fetchCliente()
+  }, [user])
+
+  const handleValoracionCreada = () => {
+    // Trigger refresh de la lista de valoraciones
+    setRefreshValoraciones((prev) => prev + 1)
+  }
 
   if (loading) {
     return (
@@ -132,7 +170,7 @@ function ProyectoDetail() {
                 {proyecto.valoracion_promedio.toFixed(1)}
               </span>
               <span className="rating-reviews">
-                ({proyecto.valoracion_promedio >= 4 ? '12' : '0'} Reviews)
+                {/* ({proyecto.valoracion_promedio >= 4 ? '12' : '0'} Reviews) */}
               </span>
             </div>
           </div>
@@ -152,14 +190,25 @@ function ProyectoDetail() {
           >
             Progreso del Proyecto (Avances)
           </button>
+          <button
+            className={`tab-button ${activeTab === 'valoraciones' ? 'active' : ''}`}
+            onClick={() => setActiveTab('valoraciones')}
+          >
+            Valoraciones
+          </button>
         </div>
 
         {/* Tab Content */}
         <div className="tab-content">
           {activeTab === 'gallery' ? (
             <ImageGallery proyecto={proyecto} />
-          ) : (
+          ) : activeTab === 'progress' ? (
             <ProjectProgress avances={proyecto.avances || []} />
+          ) : (
+            <>
+              <ValoracionForm proyecto={proyecto} cliente={cliente} onValoracionCreada={handleValoracionCreada} />
+              <ValoracionesList proyectoId={proyecto.id} cliente={cliente} refreshTrigger={refreshValoraciones} />
+            </>
           )}
         </div>
       </div>
