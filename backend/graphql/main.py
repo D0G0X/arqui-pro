@@ -17,6 +17,7 @@ from graphql_types.estadisticas_arquitecto import EstadisticasArquitecto
 from graphql_types.kpis_plataforma import KPIsPlataforma
 from graphql_types.metricas_proyecto import MetricasProyecto
 from graphql_types.arquitecto_busqueda import ArquitectoBusqueda
+from graphql_types.reporte_incidencias import ReporteIncidencias
 
 # Importar resolvers de queries - Grupo 1: Información Agregada
 from queries.agregacion.perfil_completo_arquitecto import resolver_perfil_completo_arquitecto
@@ -32,6 +33,7 @@ from queries.metricas.metricas_proyecto import resolver_metricas_proyecto
 from queries.busqueda.buscar_arquitectos import resolver_buscar_arquitectos
 from queries.busqueda.buscar_proyectos import resolver_buscar_proyectos
 from queries.busqueda.buscar_conversaciones import resolver_buscar_conversaciones
+from queries.busqueda.buscar_incidencias import resolver_buscar_incidencias
 
 
 @strawberry.type
@@ -117,6 +119,14 @@ class Query:
         arquitecto_id: Optional[strawberry.ID] = None
     ) -> List[HistorialConversacion]:
         return await resolver_buscar_conversaciones(proyecto_id, cliente_id, arquitecto_id)
+    
+    @strawberry.field(description="Búsqueda de incidencias con filtros (estado, límite)")
+    async def buscar_incidencias(
+        self,
+        estado: Optional[str] = None,
+        limite: Optional[int] = None
+    ) -> List[ReporteIncidencias]:
+        return await resolver_buscar_incidencias(estado, limite)
 
 
 # Schema sin mutaciones

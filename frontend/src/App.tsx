@@ -20,7 +20,8 @@ import ArchitectChat from './pages/Arquitecto/ArchitectChat'
 import CreateProject from './pages/Arquitecto/CreateProject'
 import ArchitectProjectDetail from './pages/Arquitecto/ArchitectProjectDetail'
 import ArquitectoProfile from './pages/Arquitecto/ArquitectoProfile'
-import { ModeratorDashboard, Verificaciones, Incidencias } from './pages/Moderator'
+import { ModeratorDashboard, Verificaciones, Incidencias, Reportes } from './pages/Moderator'
+import { ReporteViewer } from './pages/Moderator/ReporteViewer'
 import ClienteLayout from './components/layout/Cliente/ClienteLayout'
 import ArquitectoLayout from './components/layout/Arquitecto/ArquitectoLayout'
 import MainLayout from './components/layout/MainLayout'
@@ -133,6 +134,18 @@ function App() {
                     <Incidencias />
                   </ProtectedRoute>
                 } 
+              />
+              <Route 
+                path="/moderador/reportes" 
+                element={
+                  <ProtectedRoute requiredRole="moderador">
+                    <Reportes />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/reports/:id" 
+                element={<ReporteViewer />} 
               />
             </Routes>
           </Router>
