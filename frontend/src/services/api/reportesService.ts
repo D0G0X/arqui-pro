@@ -249,35 +249,41 @@ class ReportesService {
             <strong>Fecha de Generación:</strong> ${fecha}
           </div>
         </div>
-        <button class="download-btn" onclick="window.downloadReporte()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="7 10 12 15 17 10"></polyline>
-            <line x1="12" y1="15" x2="12" y2="3"></line>
-          </svg>
-          Guardar Reporte
-        </button>
+
       </div>
     <div class="content">
       <pre id="reporte-data">${this.formatearReporte(reporte)}</pre>
     </div>
   </div>
   <script>
-    (function() {
-      window.downloadReporte = function() {
-        const fullHtml = document.documentElement.outerHTML;
-        const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        const fecha = new Date().toISOString().split('T')[0];
-        link.download = '${nombreArchivo}_' + fecha + '.html';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-      };
-    })();
+    document.addEventListener('DOMContentLoaded', function() {
+      const downloadBtn = document.getElementById('download-btn');
+      if (downloadBtn) {
+        downloadBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          try {
+            const fullHtml = document.documentElement.outerHTML;
+            const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            const fecha = new Date().toISOString().split('T')[0];
+            link.download = '${nombreArchivo}_' + fecha + '.html';
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            setTimeout(() => {
+              document.body.removeChild(link);
+              URL.revokeObjectURL(url);
+            }, 100);
+          } catch(error) {
+            console.error('Error descargando reporte:', error);
+            alert('Error al descargar el reporte: ' + error.message);
+          }
+        });
+      }
+    });
+  </script>
   </script>
 </body>
 </html>
