@@ -47,7 +47,7 @@ const ClienteHome = () => {
         })
         
         // Ordenar por valoración promedio descendente
-        const arquitectosOrdenados = [...(arquitectosData.arquitectos || [])]
+        const arquitectosOrdenados = [...(arquitectosData || [])]
           .sort((a, b) => (b.valoracion_prom_proyecto || 0) - (a.valoracion_prom_proyecto || 0))
           .slice(0, 3)
         

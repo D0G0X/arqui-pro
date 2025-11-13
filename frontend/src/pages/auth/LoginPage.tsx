@@ -58,15 +58,20 @@ export default function LoginPage(){
             }
             
         } catch(error: any){
-            console.error('Error en login:', error);
-            
-            // Mensajes de error más específicos
+            // No imprimir el objeto error completo para evitar ruido en la consola
+            // Manejar mensajes de error esperados y mostrar al usuario
             if (error.response?.status === 401) {
                 setError("Email o contraseña incorrectos");
             } else if (error.response?.status === 404) {
                 setError("Usuario no encontrado");
+            } else if (error.response?.status === 403) {
+                // Acceso prohibido: puede ser cuenta suspendida o arquitecto no verificado
+                const msg = error.response?.data?.status?.message || error.response?.data?.message || 'Acceso prohibido';
+                setError(msg);
             } else if (error.response?.data?.error) {
                 setError(error.response.data.error);
+            } else if (error.response?.data?.status?.message) {
+                setError(error.response.data.status.message);
             } else {
                 setError("Ocurrió un error inesperado al intentar iniciar sesión");
             }

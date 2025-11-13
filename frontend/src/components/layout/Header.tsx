@@ -52,14 +52,14 @@ function Header() {
                 className="signin-btn"
                 aria-label="Registrarse como cliente"
               >
-                SIGN IN
+                SIGN UP
               </button>
               <button 
                 onClick={() => navigate('/login')} 
                 className="login-btn"
                 aria-label="Iniciar sesión"
               >
-                LOG IN
+                SIGN IN
               </button>
             </>
           )}

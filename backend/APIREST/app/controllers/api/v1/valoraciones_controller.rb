@@ -7,8 +7,26 @@ class Api::V1::ValoracionesController < ApplicationController
   before_action :require_valoracion_ownership!, only: %i[update destroy]
 
   def index
-    @valoraciones = Valoracion.all
-    render json: @valoraciones
+    @valoraciones = if params[:proyecto_id]
+                      Valoracion.where(proyecto_id: params[:proyecto_id])
+                    elsif params[:cliente_id]
+                      Valoracion.where(cliente_id: params[:cliente_id])
+                    else
+                      Valoracion.all
+                    end
+
+    @valoraciones = @valoraciones.includes(cliente: :usuario, proyecto: :arquitecto)
+
+    render json: @valoraciones.as_json(
+      include: {
+        cliente: {
+          include: {
+            usuario: { only: [:id, :nombre, :apellido, :email] }
+          }
+        },
+        proyecto: { only: [:id, :titulo_proyecto, :tipo_proyecto] }
+      }
+    )
   end
 
   def create
@@ -21,7 +39,16 @@ class Api::V1::ValoracionesController < ApplicationController
   end
 
   def show
-    render json: @valoracion
+    render json: @valoracion.as_json(
+      include: {
+        cliente: {
+          include: {
+            usuario: { only: [:id, :nombre, :apellido, :email] }
+          }
+        },
+        proyecto: { only: [:id, :titulo_proyecto, :tipo_proyecto] }
+      }
+    )
   end
 
   def update

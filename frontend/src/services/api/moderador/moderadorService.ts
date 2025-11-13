@@ -1,10 +1,14 @@
 import axiosInstance from '../axiosInstance'
 import { logger } from '../../../utils/logger'
 import type { 
-  Verificacion, 
-  Incidencia,
+  Verificacion 
+} from '../../../types/verificacion.types'
+import type { 
+  Incidencia 
+} from '../../../types/incidencia.types'
+import type { 
   AccionModeracion 
-} from '../../../types/moderator.types'
+} from '../../../types/moderador.types'
 
 // Base URL para endpoints de moderador (axiosInstance ya incluye /api/v1)
 const MODERADOR_BASE_URL = ''

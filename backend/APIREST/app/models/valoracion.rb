@@ -1,5 +1,9 @@
 class Valoracion < ApplicationRecord
   before_create :set_fecha
+  after_create :update_proyecto_valoracion_promedio
+  after_update :update_proyecto_valoracion_promedio
+  after_destroy :update_proyecto_valoracion_promedio
+
   # Una valoracion le pertence a un cliente
   belongs_to :cliente
 
@@ -20,6 +24,7 @@ class Valoracion < ApplicationRecord
 
   private
   
+
   def set_fecha()
     self.fecha ||= Time.current
   end
@@ -72,5 +77,18 @@ class Valoracion < ApplicationRecord
     
     arquitecto.update_column(:valoracion_prom_proyecto, promedio)
     WebsocketNotifier.notify_valoracion_promedio_actualizado(arquitecto)
+  end
+  def update_proyecto_valoracion_promedio
+    return unless proyecto
+
+    # Calcular el promedio de todas las valoraciones del proyecto
+    valoraciones = proyecto.valoraciones
+    
+    if valoraciones.any?
+      promedio = valoraciones.average(:calificacion).to_f.round(2)
+      proyecto.update(valoracion_promedio: promedio)
+    else
+      proyecto.update(valoracion_promedio: 0.0)
+    end
   end
 end

@@ -20,7 +20,7 @@ async def resolver_buscar_proyectos(
     estado: Optional[str] = None
 ) -> List[DashboardProyecto]:
     """
-    Búsqueda avanzada de proyectos:
+    Búsqueda avanzada de proyectos (optimizado):
     - Filtro por tipo de proyecto
     - Filtro por arquitecto
     - Filtro por estado
@@ -29,9 +29,38 @@ async def resolver_buscar_proyectos(
     try:
         # Obtener todos los proyectos
         proyectos_data = await rest_client.get_proyectos()
-        resultados = []
         
-        for proy in proyectos_data:
+        # Obtener todos los datos necesarios en batch para optimizar
+        arquitectos_data = await rest_client.get_arquitectos()
+        clientes_data = await rest_client.get_clientes()
+        avances_data = await rest_client.get_avances()
+        valoraciones_data = await rest_client.get_valoraciones()
+        
+        # Crear diccionarios para acceso rápido O(1)
+        arquitectos_dict = {str(a.get("id")): a for a in arquitectos_data}
+        clientes_dict = {str(c.get("id")): c for c in clientes_data}
+        avances_dict = {}
+        valoraciones_dict = {}
+        
+        # Agrupar avances y valoraciones por proyecto_id
+        for av in avances_data:
+            proy_id = str(av.get("proyecto_id"))
+            if proy_id not in avances_dict:
+                avances_dict[proy_id] = []
+            avances_dict[proy_id].append(av)
+        
+        for val in valoraciones_data:
+            proy_id = str(val.get("proyecto_id"))
+            if proy_id not in valoraciones_dict:
+                valoraciones_dict[proy_id] = []
+            valoraciones_dict[proy_id].append(val)
+        
+        resultados = []
+        limite_proyectos = 50  # Limitar a 50 proyectos máximo para optimizar
+        
+        for idx, proy in enumerate(proyectos_data):
+            if idx >= limite_proyectos:
+                break
             # Aplicar filtro de tipo
             if tipo_proyecto and proy.get("tipo_proyecto"):
                 if tipo_proyecto.lower() not in proy.get("tipo_proyecto").lower():
@@ -47,9 +76,13 @@ async def resolver_buscar_proyectos(
                 if estado.lower() not in proy.get("tipo_proyecto").lower():
                     continue
             
-            # Obtener datos del arquitecto
+            # Obtener datos del arquitecto desde el diccionario (optimizado)
+            arq_id = str(proy.get("arquitecto_id"))
+            arq_data = arquitectos_dict.get(arq_id)
+            if not arq_data:
+                continue  # Saltar si no se encuentra el arquitecto
+            
             try:
-                arq_data = await rest_client.get_arquitecto(str(proy.get("arquitecto_id")))
                 arq_usuario_data = arq_data.get("usuario", {})
                 
                 arquitecto = ArquitectoType(
@@ -74,16 +107,16 @@ async def resolver_buscar_proyectos(
                     fecha_registro=arq_usuario_data.get("fecha_registro"),
                     foto_perfil=arq_usuario_data.get("foto_perfil"),
                 )
-            except:
-                continue  # Saltar proyecto si no se puede obtener arquitecto
+            except Exception as e:
+                print(f"⚠️ Error al procesar arquitecto {arq_id}: {e}")
+                continue  # Saltar proyecto si no se puede procesar
             
-            # Obtener avances
-            avances_data = await rest_client.get_avances(params={"proyecto_id": str(proy.get("id"))})
-            avances = [a for a in avances_data if str(a.get("proyecto_id")) == str(proy.get("id"))]
+            # Obtener avances desde el diccionario (optimizado)
+            proy_id = str(proy.get("id"))
+            avances = avances_dict.get(proy_id, [])
             
-            # Obtener valoraciones
-            val_data = await rest_client.get_valoraciones(params={"proyecto_id": str(proy.get("id"))})
-            valoraciones = [v for v in val_data if str(v.get("proyecto_id")) == str(proy.get("id"))]
+            # Obtener valoraciones desde el diccionario (optimizado)
+            valoraciones = valoraciones_dict.get(proy_id, [])
             val_prom = sum(v.get("calificacion", 0.0) for v in valoraciones) / len(valoraciones) if valoraciones else 0.0
             
             
@@ -125,32 +158,34 @@ async def resolver_buscar_proyectos(
                 for v in valoraciones
             ]
             
-            # Obtener cliente si existe
+            # Obtener cliente desde el diccionario si existe (optimizado)
             cliente = None
             cliente_usuario = None
             if proy.get("cliente_id"):
-                try:
-                    cli_data = await rest_client.get_cliente(str(proy.get("cliente_id")))
-                    cli_usuario_data = cli_data.get("usuario", {})
-                    
-                    cliente = ClienteType(
-                        id=cli_data.get("id"),
-                        cedula=cli_data.get("cedula"),
-                        usuario_id=cli_usuario_data.get("id"),
-                    )
-                    
-                    cliente_usuario = UsuarioType(
-                        id=cli_usuario_data.get("id"),
-                        nombre=cli_usuario_data.get("nombre"),
-                        apellido=cli_usuario_data.get("apellido"),
-                        email=cli_usuario_data.get("email"),
-                        estado_cuenta=cli_usuario_data.get("estado_cuenta"),
-                        rol=cli_usuario_data.get("rol"),
-                        fecha_registro=cli_usuario_data.get("fecha_registro"),
-                        foto_perfil=cli_usuario_data.get("foto_perfil"),
-                    )
-                except:
-                    pass
+                cli_id = str(proy.get("cliente_id"))
+                cli_data = clientes_dict.get(cli_id)
+                if cli_data:
+                    try:
+                        cli_usuario_data = cli_data.get("usuario", {})
+                        
+                        cliente = ClienteType(
+                            id=cli_data.get("id"),
+                            cedula=cli_data.get("cedula"),
+                            usuario_id=cli_usuario_data.get("id"),
+                        )
+                        
+                        cliente_usuario = UsuarioType(
+                            id=cli_usuario_data.get("id"),
+                            nombre=cli_usuario_data.get("nombre"),
+                            apellido=cli_usuario_data.get("apellido"),
+                            email=cli_usuario_data.get("email"),
+                            estado_cuenta=cli_usuario_data.get("estado_cuenta"),
+                            rol=cli_usuario_data.get("rol"),
+                            fecha_registro=cli_usuario_data.get("fecha_registro"),
+                            foto_perfil=cli_usuario_data.get("foto_perfil"),
+                        )
+                    except:
+                        pass
             
             # Construir dashboard
             dashboard = DashboardProyecto(

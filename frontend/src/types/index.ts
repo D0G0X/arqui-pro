@@ -10,7 +10,7 @@ export type { Arquitecto } from './arquitecto.types'
 export type { Cliente } from './cliente.types'
 
 // Moderador
-export type { Moderador } from './moderador.types'
+export type { Moderador, Reporte, ModeratorStats, NotificacionModerador, AccionModeracion, RegistroModeradorAttributesInput } from './moderador.types'
 
 // Proyecto
 export type { Proyecto, CreateProyectoDto, UpdateProyectoDto } from './proyecto.types'

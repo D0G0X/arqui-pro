@@ -3,14 +3,34 @@ class Api::V1::ProyectosController < ApplicationController
 
   # Solo arquitectos autenticados pueden crear/actualizar/eliminar
   before_action :authenticate_usuario!, only: %i[create update destroy add_imagenes]
-  # Solo arquitectos pueden crear/actualizar/eliminar
-  before_action :require_arquitecto!, only: %i[create update destroy add_imagenes]
+  # Solo arquitectos pueden crear/eliminar
+  before_action :require_arquitecto!, only: %i[create destroy add_imagenes]
   # Solo arquitecto dueño pueden actualizar/eliminar
   before_action :require_proyecto_ownership!, only: %i[update destroy add_imagenes]
 
   def index
-    @proyectos = Proyecto.all
-    render json: @proyectos
+    @proyectos = Proyecto.includes(:arquitecto, :cliente, :imagenes).all
+    
+    # Filtrar por tipo_proyecto si se proporciona
+    if params[:tipo_proyecto].present?
+      @proyectos = @proyectos.where(tipo_proyecto: params[:tipo_proyecto])
+    end
+    
+    render json: @proyectos.as_json(
+      include: {
+        arquitecto: {
+          include: {
+            usuario: { only: [:id, :nombre, :apellido] }
+          }
+        },
+        cliente: {
+          include: {
+            usuario: { only: [:id, :nombre, :apellido] }
+          }
+        },
+        imagenes: { only: [:id, :imagen_url] }
+      }
+    )
   end
 
   def create
@@ -116,14 +136,17 @@ class Api::V1::ProyectosController < ApplicationController
   def require_proyecto_ownership!
     return not_found_response!("proyecto") unless @proyecto
     
-    Rails.logger.info "🔒 [PROYECTO OWNERSHIP] Proyecto arquitecto_id: #{@proyecto.arquitecto_id}, Current arquitecto_id: #{current_arquitecto&.id}"
-    
-    unless @proyecto.arquitecto_id == current_arquitecto&.id
-      Rails.logger.error "    ❌ No autorizado: IDs no coinciden"
+    Rails.logger.info "🔒 [PROYECTO OWNERSHIP] Proyecto arquitecto_id: #{@proyecto.arquitecto_id}, cliente_id: #{@proyecto.cliente_id}, Current arquitecto_id: #{current_arquitecto&.id}, Current cliente_id: #{current_cliente&.id}"
+
+    # Permitir acción si el arquitecto autenticado es dueño del proyecto
+    # o si el cliente autenticado es el dueño del proyecto
+    unless @proyecto.arquitecto_id == current_arquitecto&.id || @proyecto.cliente_id == current_cliente&.id
+      Rails.logger.error "    ❌ No autorizado: ni arquitecto ni cliente coinciden con el propietario"
       render json: { error: "No autorizado" }, status: :forbidden and return
     end
-    
-    Rails.logger.info "    ✅ Autorizado: Arquitecto es dueño del proyecto"
+
+    Rails.logger.info "    ✅ Autorizado: propietario (arquitecto o cliente) coincide con el proyecto"
   end
+
 
 end

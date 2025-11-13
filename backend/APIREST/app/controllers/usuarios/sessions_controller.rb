@@ -7,6 +7,19 @@ class Usuarios::SessionsController < ApplicationController
     usuario = Usuario.find_for_database_authentication(email: email)
     
     if usuario && usuario.valid_password?(password)
+      # Rechazar si la cuenta está suspendida
+      if usuario.estado_cuenta == 'suspendido'
+        render json: { status: { code: 403, message: 'Cuenta suspendida. No puedes iniciar sesion.' } }, status: :forbidden and return
+      end
+
+      # Si es arquitecto, además debe estar verificado
+      if usuario.rol == 'arquitecto'
+        arquitecto = usuario.arquitecto
+        unless arquitecto.present? && arquitecto.verificado == true
+          render json: { status: { code: 403, message: 'Cuenta de arquitecto no verificada. No puede iniciar sesión.' } }, status: :forbidden and return
+        end
+      end
+
       # Generar token JWT manualmente sin usar sesiones
       payload = {
         sub: usuario.id,

@@ -1,7 +1,13 @@
-# Integración Rails → WebSocket de NestJS
+# 🔌 Integración WebSocket - ArquiPro
 
-## Descripción
-Sistema de notificaciones en tiempo real que permite a Rails enviar eventos al servidor WebSocket de NestJS para notificar a los clientes conectados.
+## 📋 Descripción
+
+Sistema de comunicación en tiempo real que conecta:
+- **Rails Backend** → Envía eventos HTTP al servidor WebSocket
+- **NestJS WebSocket Server** → Recibe eventos y los emite a clientes conectados
+- **Frontend React** → Recibe notificaciones y mensajes en tiempo real
+
+> **Ver:** [Frontend WebSocket Implementation](../frontend/FRONTEND_IMPLEMENTATION.md#websocket-implementation) para detalles de uso en React.
 
 ## Arquitectura
 
@@ -208,7 +214,50 @@ Para tener notificaciones **persistentes** en la base de datos:
 2. O Rails crea la notificación en DB **antes** de enviar al WebSocket
 3. Los clientes offline recibirán notificaciones al reconectarse consultando `/api/v1/notificaciones`
 
-## Troubleshooting
+## 🎨 Integración en Frontend
+
+### Configuración del Cliente
+
+**Archivo:** `frontend/src/services/websocket/notificationService.ts`
+
+```typescript
+import { io } from "socket.io-client"
+
+const WS_URL = import.meta.env.VITE_WS_URL || "http://localhost:3006"
+
+const socket = io(`${WS_URL}/notificacion`, {
+  transports: ["websocket", "polling"],
+  reconnection: true,
+  extraHeaders: {
+    Authorization: `Bearer ${token}`
+  }
+})
+
+socket.on("proyecto:creado", (data) => {
+  console.log("Nuevo proyecto:", data)
+})
+```
+
+### Hook Personalizado
+
+```typescript
+import { useNotifications } from '../hooks/useNotifications'
+
+const Component = () => {
+  const { notificaciones, unreadCount } = useNotifications({
+    usuarioId: user?.id,
+    autoConnect: true
+  })
+  
+  return <div>Notificaciones: {unreadCount}</div>
+}
+```
+
+Ver documentación completa: [Frontend WebSocket Implementation](../frontend/FRONTEND_IMPLEMENTATION.md#websocket-implementation)
+
+---
+
+## 🐛 Troubleshooting
 
 ### El WebSocket no recibe eventos de Rails
 

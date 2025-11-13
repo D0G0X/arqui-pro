@@ -1,12 +1,13 @@
 import { API_CONFIG, setAuthToken, getAuthToken, removeAuthToken} from "../../../config/api.config"
 import axiosInstance from "../axiosInstance"
 import type { Usuario, RegistroUsuarioInput, AuthResponse, LoginInput } from "../../../types/usuario.types"
+import { removeFragmentSpreadFromDocument } from "@apollo/client/utilities";
 
 // Registro de usuarios
 export async function registroUsuario(usuarioData: RegistroUsuarioInput): Promise<Usuario>{
     try{
         const response = await axiosInstance.post(`${API_CONFIG.REST_API_URL}/usuarios`, { usuario: usuarioData });
-        return response.data; // si todo sale bien retorna los datos del usurio registrado
+        return response.data.data; // si todo sale bien retorna los datos del usurio registrado
     } catch(error){
         throw error; // si sale mal lanza este error
     }

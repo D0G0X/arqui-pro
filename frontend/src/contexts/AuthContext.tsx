@@ -85,8 +85,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
         throw new Error('Respuesta de login inválida')
       }
       
-    } catch (error) {
-      logger.error('Error en login', error)
+    } catch (error: any) {
+      // Evitar imprimir trazas completas para errores esperados (401/403)
+      const status = error?.response?.status
+      // Para errores de autenticación/permiso esperados no logueamos la traza completa
+      if (status === 401 || status === 403) {
+        // Intencionalmente silencioso para evitar ruido en consola durante intentos de login fallidos
+      } else {
+        logger.error('Error en login', error)
+      }
       throw error
     } finally {
       setIsLoading(false)

@@ -189,3 +189,159 @@ export const GET_INCIDENCIAS = gql`
     }
   }
 `
+
+// Consultas para Reportes del Moderador
+export const REPORTE_KPIS_PLATAFORMA = gql`
+  query ReporteKPIsPlataforma {
+    kpisPlataforma {
+      totalUsuarios
+      totalProyectos
+      arquitectosVerificados
+      totalIncidencias
+      totalArquitectos
+      totalClientes
+      usuariosPorRol {
+        rol
+        cantidad
+      }
+    }
+  }
+`
+
+export const REPORTE_ARQUITECTOS = gql`
+  query ReporteArquitectos(
+    $especialidad: String
+    $verificado: Boolean
+    $valoracionMinima: Float
+    $limite: Int
+  ) {
+    buscarArquitectos(
+      especialidad: $especialidad
+      verificado: $verificado
+      valoracionMinima: $valoracionMinima
+      limite: $limite
+    ) {
+      id
+      cedula
+      especialidades
+      descripcion
+      valoracionPromedioProyecto
+      verificado
+      usuario {
+        id
+        nombre
+        apellido
+        email
+        fotoPerfil
+      }
+      proyectos {
+        id
+        tituloProyecto
+        valoracionPromedio
+      }
+    }
+  }
+`
+
+export const REPORTE_PROYECTOS = gql`
+  query ReporteProyectos(
+    $tipoProyecto: String
+    $arquitectoId: ID
+    $estado: String
+  ) {
+    buscarProyectos(
+      tipoProyecto: $tipoProyecto
+      arquitectoId: $arquitectoId
+      estado: $estado
+    ) {
+      proyecto {
+        id
+        tituloProyecto
+        descripcion
+        tipoProyecto
+        fechaPublicacion
+        arquitectoId
+        clienteId
+        valoracionPromedio
+      }
+      arquitecto {
+        id
+        cedula
+        especialidades
+      }
+      arquitectoUsuario {
+        id
+        nombre
+        apellido
+        email
+      }
+      cliente {
+        id
+      }
+      clienteUsuario {
+        id
+        nombre
+        apellido
+        email
+      }
+      avances {
+        id
+        descripcion
+        fecha
+      }
+      valoraciones {
+        id
+        calificacion
+        comentario
+      }
+      totalAvances
+      valoracionPromedio
+    }
+  }
+`
+
+export const REPORTE_INCIDENCIAS = gql`
+  query ReporteIncidencias(
+    $estado: String
+    $limite: Int
+  ) {
+    buscarIncidencias(
+      estado: $estado
+      limite: $limite
+    ) {
+      incidencia {
+        id
+        descripcion
+        estado
+        fecha
+        usuarioEmisorId
+        usuarioInfractorId
+        moderadorId
+      }
+      emisor {
+        id
+        nombre
+        apellido
+        email
+        estadoCuenta
+        rol
+      }
+      infractor {
+        id
+        nombre
+        apellido
+        email
+        estadoCuenta
+        rol
+      }
+      moderador {
+        id
+        nombre
+        apellido
+        email
+        estadoCuenta
+        rol
+      }
+    }
+  }
+`

@@ -22,13 +22,6 @@ interface Estadisticas {
   verificacionesPendientes: number;
 }
 
-interface NotificacionUI {
-  id: string | number;
-  tipo: 'verificacion' | 'mensaje' | 'incidencia';
-  titulo: string;
-  subtitulo?: string;
-  tiempo: string;
-}
 
 export const ModeratorDashboard = () => {
   // Usar GraphQL para obtener KPIs de la plataforma
@@ -243,28 +236,26 @@ export const ModeratorDashboard = () => {
           </div>
         </div>
 
-        {/* Notificaciones Recientes */}
-        <div className="dashboard-notifications">
-          <h2 className="notifications-title">Notificaciones Recientes</h2>
-          <div className="notifications-list">
-            {notificaciones.map((notif) => (
-              <div key={notif.id} className="notification-item">
-                <div className={`notification-icon notification-icon--${notif.tipo}`}>
-                  {notif.tipo === 'verificacion' && <CheckCircle size={20} />}
-                  {notif.tipo === 'mensaje' && <Users size={20} />}
-                  {notif.tipo === 'incidencia' && <AlertCircle size={20} />}
-                </div>
-                <div className="notification-content">
-                  <p className="notification-title">
-                    {notif.titulo}
-                    {notif.subtitulo && (
-                      <> <span className="notification-subtitle">{notif.subtitulo}</span></>
-                    )}
-                  </p>
-                </div>
-                <span className="notification-time">{notif.tiempo}</span>
+        {/* Estadísticas Adicionales */}
+        <div className="dashboard-additional-stats">
+          <div className="additional-stat-card">
+            <div className="additional-stat-header">
+              <h3>Resumen de Actividad</h3>
+            </div>
+            <div className="additional-stat-content">
+              <div className="stat-row">
+                <span className="stat-label">Proyectos Nuevos (mes)</span>
+                <span className="stat-value">{stats?.proyectosNuevos || 0}</span>
               </div>
-            ))}
+              <div className="stat-row">
+                <span className="stat-label">Incidencias Pendientes</span>
+                <span className="stat-value">{stats?.incidenciasPendientes || 0}</span>
+              </div>
+              <div className="stat-row">
+                <span className="stat-label">Verificaciones Pendientes</span>
+                <span className="stat-value">{stats?.verificacionesPendientes || 0}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

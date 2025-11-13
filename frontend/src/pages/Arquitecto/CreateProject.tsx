@@ -41,9 +41,9 @@ export default function CreateProject() {
         setLoadingArquitecto(true);
         console.log('🔍 Buscando arquitecto para usuario:', user.id);
         const response = await arquitectosService.getAll();
-        console.log('📦 Arquitectos obtenidos:', response.arquitectos.length);
+        console.log('📦 Arquitectos obtenidos:', response.length);
         
-        const arquitectoActual = response.arquitectos.find(
+        const arquitectoActual = response.find(
           (arq) => arq.usuario?.id === user.id || arq.usuario_id === user.id
         );
         

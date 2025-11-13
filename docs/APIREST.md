@@ -1,6 +1,8 @@
-# API REST - ArquiPro
+# 🔌 API REST - ArquiPro
 
 Servicio REST desarrollado en **Ruby on Rails 8.0.3** que proporciona endpoints para la gestión de usuarios, proyectos arquitectónicos, conversaciones, valoraciones y más.
+
+> **Nota:** Este servicio maneja todas las operaciones CRUD básicas. Para consultas complejas y agregaciones, usa el [GraphQL Gateway](./graphql.md).
 
 ## 📋 Tabla de Contenidos
 
@@ -287,7 +289,14 @@ DELETE /api/v1/usuarios/:id
 
 ## 🔐 Autenticación
 
-El sistema usa **Devise** para autenticación de usuarios.
+El sistema usa **Devise** para autenticación de usuarios con tokens JWT.
+
+### Flujo de Autenticación
+
+1. **Registro/Login** → Obtener token JWT
+2. **Almacenar token** → `localStorage.setItem('auth_token', token)`
+3. **Incluir en requests** → Header `Authorization: Bearer <token>`
+4. **Validación automática** → Rails valida el token en cada request protegido
 
 ### Registro de Usuario
 
@@ -450,12 +459,44 @@ heroku run rails db:migrate
 
 ---
 
+## 🔄 Integración con Frontend
+
+### Uso desde React
+
+```typescript
+import axiosInstance from './services/api/axiosInstance'
+
+// GET request
+const proyectos = await axiosInstance.get('/proyectos')
+
+// POST request
+const nuevoProyecto = await axiosInstance.post('/proyectos', {
+  proyecto: {
+    titulo_proyecto: "Casa Moderna",
+    descripcion: "...",
+    tipo_proyecto: "contratado"
+  }
+})
+```
+
+### Servicios Disponibles en Frontend
+
+- `proyectosService.ts` - Gestión de proyectos
+- `valoracionesService.ts` - Gestión de valoraciones
+- `arquitectosService.ts` - Gestión de arquitectos
+- `moderador/moderadorService.ts` - Operaciones de moderador
+
+Ver: [Frontend Implementation Guide](../frontend/FRONTEND_IMPLEMENTATION.md)
+
+---
+
 ## 📚 Documentación Adicional
 
 - [Guía de Rails API](https://guides.rubyonrails.org/api_app.html)
 - [Devise para APIs](https://github.com/heartcombo/devise)
 - [Active Model Serializers](https://github.com/rails-api/active_model_serializers)
 - [Kamal Deploy](https://kamal-deploy.org/)
+- [Frontend REST Implementation](../frontend/FRONTEND_IMPLEMENTATION.md#rest-api-implementation)
 
 ---
 
