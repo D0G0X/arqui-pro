@@ -81,20 +81,20 @@ export default function LoginPage(){
     };
 
     return (
-        <div className="login-page-container">
-            {/* Lado izquierdo para la imagen */}
-            <div className="image-side">
-                {/* Puedes colocar una etiqueta <img> o un componente aquí */}
-                <img className="login-illustration" src={imagenLogin} alt="imagen de login" />
-                {loading && <div className="login-loading-message">Cargando...</div>}
-                {error && <div className="login-error-message">{error}</div>}
-            </div>
+        <div className="lp-login-page-center-container">
+            <div className="lp-login-page-container">
+                {/* Lado izquierdo para la imagen */}
+                <div className="lp-image-side">
+                    <img className="lp-login-illustration" src={imagenLogin} alt="imagen de login" />
+                    {loading && <div className="lp-login-loading-message">Cargando...</div>}
+                    {error && <div className="lp-login-error-message">{error}</div>}
+                </div>
 
-            {/* Lado derecho para el formulario de Login (la "tarjeta" blanca) */}
-            <div className="form-side">
-                {/* El componente FormularioLogin ya incluye toda la estructura interna (logo, títulos, form) */}
-                <FormularioLogin onSubmit={handleLogin} />
+                {/* Lado derecho para el formulario de Login (centrado) */}
+                <div className="lp-form-side">
+                    <FormularioLogin onSubmit={handleLogin} />
+                </div>
             </div>
-        </div>     
+        </div>
     );
 }

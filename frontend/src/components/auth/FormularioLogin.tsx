@@ -26,28 +26,28 @@ export default function FormularioLogin({onSubmit}: Props){
     }
 
     return (
-        <div className="login-card"> {/* Contenedor principal para la tarjeta */}
-            <div className="logo-section">
-                <span className="logo-color-box"></span>
-                <span className="logo-text">ArquiPro</span>
+        <div className="flc-login-card"> {/* Contenedor principal para la tarjeta */}
+            <div className="flc-logo-section">
+                <span className="flc-logo-color-box"></span>
+                <span className="flc-logo-text">ArquiPro</span>
             </div>
             
-            <h1 className="welcome-title">Welcome Back</h1>
-            <p className="subtitle">Sign in to your account to continue</p>
+            <h1 className="flc-welcome-title">Bienvenido</h1>
+            <p className="flc-subtitle">Inicia sesión para continuar</p>
 
-            <form onSubmit={handleSubmit} className="login-form">
+            <form onSubmit={handleSubmit} className="flc-login-form">
                 
                 {/* Campo de Correo Electrónico */}
-                <div className="input-group">
-                    <label htmlFor="email" className="input-label">Email Address</label>
-                    <div className="input-with-icon">
+                <div className="flc-input-group">
+                    <label htmlFor="email" className="flc-input-label">Correo electrónico</label>
+                    <div className="flc-input-with-icon">
                         {/* Icono de Usuario (User) - se agrega al lado derecho */}
-                        <User className="input-start-icon" size={20} color="#adb5bd"/>
+                        <User className="flc-input-start-icon" size={20} color="#adb5bd"/>
                         <input 
-                            className="form-input"
+                            className="flc-form-input"
                             type="email"
                             id="email"
-                            placeholder="Enter your email"
+                            placeholder="Introduce tu correo"
                             value={email}
                             onChange={(e)=> setEmail(e.target.value)}
                             required
@@ -56,19 +56,19 @@ export default function FormularioLogin({onSubmit}: Props){
                 </div>
                 
                 {/* Campo de Contraseña */}
-                <div className="input-group">
-                    <div className="password-header">
-                        <label htmlFor="password" className="input-label">Password</label>
-                        <a href="/forgot-password" className="forgot-password-link">Forgot Password?</a>
+                <div className="flc-input-group">
+                    <div className="flc-password-header">
+                        <label htmlFor="password" className="flc-input-label">Contraseña</label>
+                        <a href="/forgot-password" className="flc-forgot-password-link">¿Olvidaste tu contraseña?</a>
                     </div>
-                    <div className="input-with-icon">
-                        <Lock className="input-start-icon" size={20} color="#adb5bd"></Lock>
+                    <div className="flc-input-with-icon">
+                        <Lock className="flc-input-start-icon" size={20} color="#adb5bd"></Lock>
                         <input 
-                            className="form-input"
+                            className="flc-form-input"
                             // Alterna el tipo entre 'password' y 'text'
                             type={showPassword ? "text" : "password"} 
                             id="password"
-                            placeholder="Enter your password"
+                            placeholder="Introduce tu contraseña"
                             value={password}
                             onChange={(e)=> setPassword(e.target.value)}
                             required
@@ -76,14 +76,14 @@ export default function FormularioLogin({onSubmit}: Props){
                         {/* Icono de Ojo (Eye/EyeOff) para alternar visibilidad */}
                         {showPassword ? (
                             <EyeOff 
-                                className="password-toggle-icon" 
+                                className="flc-password-toggle-icon" 
                                 size={20} 
                                 color="#adb5bd" 
                                 onClick={togglePasswordVisibility}
                             />
                         ) : (
                             <Eye 
-                                className="password-toggle-icon" 
+                                className="flc-password-toggle-icon" 
                                 size={20} 
                                 color="#adb5bd" 
                                 onClick={togglePasswordVisibility}
@@ -91,17 +91,17 @@ export default function FormularioLogin({onSubmit}: Props){
                         )}
                         
                         {/* Opcional: Icono de candado (Lock) si deseas que aparezca también */}
-                        {/* <Lock className="input-start-icon" size={20} color="#adb5bd"/> */} 
+                        {/* <Lock className="flc-input-start-icon" size={20} color="#adb5bd"/> */} 
                     </div>
                 </div>
 
                 {/* Botón de Login */}
-                <button type="submit" className="login-button">Sign In</button>
+                <button type="submit" className="flc-login-button">Iniciar sesión</button>
             </form>
             
             {/* Sección de Sign Up */}
-            <p className="signup-text">
-                Don't have an account? <a href="/registro-cliente" className="signup-link">Sign Up</a>
+            <p className="flc-signup-text">
+                ¿No tienes una cuenta? <a href="/registro-cliente" className="flc-signup-link">Regístrate</a>
             </p>
         </div>
     );

@@ -6,66 +6,66 @@ function AboutUs() {
 
       <main className="about-content">
         <section className="about-hero">
-          <h1 className="about-title">About ArquiPro</h1>
+          <h1 className="about-title">Acerca de ArquiPro</h1>
           <p className="about-subtitle">
-            Connecting visionary architects with ambitious clients
+            Conectando arquitectos visionarios con clientes ambiciosos
           </p>
         </section>
 
         <section className="about-sections">
           <div className="about-card">
             <div className="card-icon">🏛️</div>
-            <h2>Our Mission</h2>
+            <h2>Nuestra misión</h2>
             <p>
-              ArquiPro is a professional platform designed to bridge the gap between talented 
-              architects and clients seeking exceptional design solutions. We provide a trusted 
-              space where creativity meets opportunity, enabling architects to showcase their 
-              portfolios and clients to discover the perfect professional for their projects.
+              ArquiPro es una plataforma profesional diseñada para cerrar la brecha entre arquitectos
+              talentosos y clientes que buscan soluciones de diseño excepcionales. Brindamos un espacio
+              confiable donde la creatividad se encuentra con la oportunidad, permitiendo a los
+              arquitectos mostrar sus portafolios y a los clientes descubrir al profesional perfecto para sus proyectos.
             </p>
           </div>
 
           <div className="about-card">
             <div className="card-icon">✨</div>
-            <h2>What We Offer</h2>
+            <h2>Qué ofrecemos</h2>
             <ul className="features-list">
-              <li><strong>Verified Professionals:</strong> All architects undergo a verification process to ensure credibility and expertise.</li>
-              <li><strong>Portfolio Showcase:</strong> Architects can display their completed projects with detailed descriptions and images.</li>
-              <li><strong>Real-time Communication:</strong> Built-in messaging system for seamless client-architect collaboration.</li>
-              <li><strong>Project Management:</strong> Track project progress with milestones and updates.</li>
-              <li><strong>Rating System:</strong> Transparent reviews and ratings from previous clients.</li>
+              <li><strong>Profesionales verificados:</strong> Todos los arquitectos pasan por un proceso de verificación para garantizar credibilidad y experiencia.</li>
+              <li><strong>Portafolios:</strong> Los arquitectos pueden mostrar sus proyectos completos con descripciones e imágenes.</li>
+              <li><strong>Comunicación en tiempo real:</strong> Sistema de mensajería integrado para una colaboración fluida entre cliente y arquitecto.</li>
+              <li><strong>Gestión de proyectos:</strong> Seguimiento del progreso del proyecto con hitos y actualizaciones.</li>
+              <li><strong>Sistema de valoraciones:</strong> Reseñas y calificaciones transparentes de clientes anteriores.</li>
             </ul>
           </div>
 
           <div className="about-card">
             <div className="card-icon">🎯</div>
-            <h2>How It Works</h2>
+            <h2>Cómo funciona</h2>
             <div className="steps">
               <div className="step">
                 <span className="step-number">1</span>
                 <div className="step-content">
-                  <h3>Search & Filter</h3>
-                  <p>Browse architects by specialty, location, and ratings.</p>
+                  <h3>Buscar y filtrar</h3>
+                  <p>Explora arquitectos por especialidad, ubicación y valoraciones.</p>
                 </div>
               </div>
               <div className="step">
                 <span className="step-number">2</span>
                 <div className="step-content">
-                  <h3>Review Portfolios</h3>
-                  <p>Explore past projects and read client testimonials.</p>
+                  <h3>Revisar portafolios</h3>
+                  <p>Explora proyectos anteriores y lee testimonios de clientes.</p>
                 </div>
               </div>
               <div className="step">
                 <span className="step-number">3</span>
                 <div className="step-content">
-                  <h3>Connect & Collaborate</h3>
-                  <p>Send project requests and communicate directly with architects.</p>
+                  <h3>Conectar y colaborar</h3>
+                  <p>Envía solicitudes de proyecto y comunícate directamente con los arquitectos.</p>
                 </div>
               </div>
               <div className="step">
                 <span className="step-number">4</span>
                 <div className="step-content">
-                  <h3>Build Together</h3>
-                  <p>Work together to bring your architectural vision to life.</p>
+                  <h3>Construir juntos</h3>
+                  <p>Trabaja en conjunto para traer tu visión arquitectónica a la realidad.</p>
                 </div>
               </div>
             </div>
@@ -73,36 +73,36 @@ function AboutUs() {
 
           <div className="about-card">
             <div className="card-icon">🌟</div>
-            <h2>Why Choose ArquiPro?</h2>
+            <h2>Por qué elegir ArquiPro</h2>
             <div className="benefits-grid">
               <div className="benefit">
-                <strong>🔒 Secure Platform</strong>
-                <p>Your data and communications are protected with industry-standard security.</p>
+                <strong>🔒 Plataforma segura</strong>
+                <p>Tus datos y comunicaciones están protegidos con medidas de seguridad estándar de la industria.</p>
               </div>
               <div className="benefit">
-                <strong>📊 Transparent Pricing</strong>
-                <p>No hidden fees. Clear project proposals and budget discussions.</p>
+                <strong>📊 Precios transparentes</strong>
+                <p>Sin cargos ocultos. Propuestas de proyecto y discusiones presupuestarias claras.</p>
               </div>
               <div className="benefit">
-                <strong>⚡ Fast Response</strong>
-                <p>Real-time notifications keep you updated on project developments.</p>
+                <strong>⚡ Respuesta rápida</strong>
+                <p>Notificaciones en tiempo real que te mantienen al tanto del desarrollo del proyecto.</p>
               </div>
               <div className="benefit">
-                <strong>🏆 Quality Assurance</strong>
-                <p>Only verified professionals with proven track records.</p>
+                <strong>🏆 Garantía de calidad</strong>
+                <p>Sólo profesionales verificados con trayectoria comprobada.</p>
               </div>
             </div>
           </div>
 
           <div className="about-card cta-card">
-            <h2>Ready to Start Your Project?</h2>
-            <p>Join thousands of satisfied clients who found their perfect architect on ArquiPro.</p>
+            <h2>¿Listo para comenzar tu proyecto?</h2>
+            <p>Únete a miles de clientes satisfechos que encontraron a su arquitecto ideal en ArquiPro.</p>
             <div className="cta-buttons">
               <button className="au-btn-primary" onClick={() => window.location.href = '/architects'}>
-                Find Architects
+                Buscar arquitectos
               </button>
               <button className="au-btn-secondary" onClick={() => window.location.href = '/register'}>
-                Register as Architect
+                Registrarse como arquitecto
               </button>
             </div>
           </div>

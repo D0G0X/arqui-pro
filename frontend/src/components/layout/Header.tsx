@@ -27,8 +27,8 @@ function Header() {
         
         <nav className="nav-menu">
           <Link to="/" className={`nav-link ${isActive('/')}`}>Home</Link>
-          <Link to="/architects" className={`nav-link ${isActive('/architects')}`}>Find Architects</Link>
-          <Link to="/about" className={`nav-link ${isActive('/about')}`}>About Us</Link>
+          <Link to="/architects" className={`nav-link ${isActive('/architects')}`}>Buscar arquitectos</Link>
+          <Link to="/about" className={`nav-link ${isActive('/about')}`}>Sobre nosotros</Link>
           {isAuthenticated && user?.rol === 'moderador' && (
             <Link to="/moderador/dashboard" className={`nav-link ${isActive('/moderador/dashboard')}`}>
               Moderador
@@ -40,9 +40,9 @@ function Header() {
           {isAuthenticated ? (
             <>
               <NotificacionesDropdown />
-              <span className="user-greeting">Hi, {user?.nombre}!</span>
+              <span className="user-greeting">¡Hola, {user?.nombre}!</span>
               <button onClick={handleLogout} className="login-btn">
-                LOG OUT
+                CERRAR SESIÓN
               </button>
             </>
           ) : (
@@ -52,14 +52,14 @@ function Header() {
                 className="signin-btn"
                 aria-label="Registrarse como cliente"
               >
-                SIGN UP
+                REGISTRARSE
               </button>
               <button 
                 onClick={() => navigate('/login')} 
                 className="login-btn"
                 aria-label="Iniciar sesión"
               >
-                SIGN IN
+                INICIAR SESIÓN
               </button>
             </>
           )}
