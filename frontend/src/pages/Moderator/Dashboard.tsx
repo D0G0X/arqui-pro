@@ -52,6 +52,37 @@ export const ModeratorDashboard = () => {
     autoConnect: true
   });
 
+  // Cargar datos iniciales para el WebSocket
+  useEffect(() => {
+    const cargarDatosIniciales = async () => {
+      try {
+        const proyectosService = (await import('../../services/api/proyectosService')).default;
+        const incidenciasService = (await import('../../services/api/incidenciasService')).default;
+        
+        const [proyectos, incidencias] = await Promise.all([
+          proyectosService.getAll(),
+          incidenciasService.getAll()
+        ]);
+        
+        // Validar que sean arrays antes de inicializar
+        const proyectosArray = Array.isArray(proyectos) ? proyectos : [];
+        const incidenciasArray = Array.isArray(incidencias) ? incidencias : [];
+        
+        console.log('📊 Datos iniciales cargados:', {
+          proyectos: proyectosArray.length,
+          incidencias: incidenciasArray.length
+        });
+        
+        dashboard.initializeData(proyectosArray, incidenciasArray);
+      } catch (error) {
+        console.error('Error al cargar datos iniciales:', error);
+      }
+    };
+    
+    cargarDatosIniciales();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Solo ejecutar una vez al montar
+
   // Suscribirse a notificaciones en tiempo real
   useEffect(() => {
     const unsubscribe = notificationService.onNotification((notification: any) => {
@@ -73,57 +104,34 @@ export const ModeratorDashboard = () => {
     };
   }, []);
 
-  // Sincronizar stats del dashboard con las estadísticas locales
-  // Este efecto solo se usa cuando NO hay datos de GraphQL todavía
-  useEffect(() => {
-    if (!kpisData && (dashboard.stats.totalProyectos > 0 || dashboard.stats.totalIncidencias > 0)) {
-      setStats(prev => {
-        if (!prev) return prev;
-        
-        return {
-          ...prev,
-          totalProyectos: dashboard.stats.totalProyectos,
-          proyectosNuevos: dashboard.stats.proyectosNuevos,
-          totalIncidencias: dashboard.stats.totalIncidencias,
-          incidenciasPendientes: dashboard.stats.incidenciasPendientes,
-        };
-      });
-    }
-  }, [dashboard.stats.totalProyectos, dashboard.stats.proyectosNuevos, dashboard.stats.totalIncidencias, dashboard.stats.incidenciasPendientes, kpisData]);
-
   useEffect(() => {
     cargarEstadisticasDetalladas();
   }, []);
 
-  // Combinar datos de GraphQL (KPIs) con datos de REST (detalles)
+  // Combinar datos de GraphQL (KPIs) con datos de WebSocket (tiempo real)
   useEffect(() => {
     if (kpisData?.kpisPlataforma) {
       const kpis = kpisData.kpisPlataforma;
+      
+      // Inicializar el contador de verificaciones con el valor de GraphQL
+      if (kpis.arquitectosVerificados > 0 && dashboard.stats.arquitectosVerificados === 0) {
+        dashboard.initializeData(undefined, undefined, kpis.arquitectosVerificados);
+      }
+      
       setStats(prevStats => {
-        // Si ya tenemos datos del WebSocket, usar esos en lugar de los de GraphQL
-        const totalProyectos = dashboard.stats.totalProyectos > 0 
-          ? dashboard.stats.totalProyectos 
-          : kpis.totalProyectos || 0;
-        
-        const totalIncidencias = dashboard.stats.totalIncidencias > 0
-          ? dashboard.stats.totalIncidencias
-          : kpis.totalIncidencias || 0;
-        
-        const proyectosNuevos = dashboard.stats.proyectosNuevos > 0
-          ? dashboard.stats.proyectosNuevos
-          : Math.floor((kpis.totalProyectos || 0) * 0.15);
-        
-        const incidenciasPendientes = dashboard.stats.incidenciasPendientes > 0
-          ? dashboard.stats.incidenciasPendientes
-          : Math.floor((kpis.totalIncidencias || 0) * 0.3);
+        // Priorizar datos del WebSocket cuando existan, sino usar GraphQL
+        const totalProyectos = dashboard.stats.totalProyectos || kpis.totalProyectos || 0;
+        const totalIncidencias = dashboard.stats.totalIncidencias || kpis.totalIncidencias || 0;
+        const proyectosNuevos = dashboard.stats.proyectosNuevos || Math.floor((kpis.totalProyectos || 0) * 0.15);
+        const incidenciasPendientes = dashboard.stats.incidenciasPendientes || Math.floor((kpis.totalIncidencias || 0) * 0.3);
+        const arquitectosVerificados = dashboard.stats.arquitectosVerificados || kpis.arquitectosVerificados || 0;
         
         return {
           ...prevStats,
           totalUsuarios: kpis.totalUsuarios || 0,
           totalProyectos,
-          arquitectosVerificados: kpis.arquitectosVerificados || 0,
+          arquitectosVerificados,
           totalIncidencias,
-          // Valores por defecto para datos adicionales
           totalArquitectos: Math.floor((kpis.totalUsuarios || 0) * 0.3),
           totalClientes: Math.floor((kpis.totalUsuarios || 0) * 0.68),
           totalModeradores: Math.floor((kpis.totalUsuarios || 0) * 0.02),
@@ -134,7 +142,7 @@ export const ModeratorDashboard = () => {
       });
       setLoading(false);
     }
-  }, [kpisData, dashboard.stats.totalProyectos, dashboard.stats.totalIncidencias, dashboard.stats.proyectosNuevos, dashboard.stats.incidenciasPendientes]);
+  }, [kpisData, dashboard.stats.totalProyectos, dashboard.stats.totalIncidencias, dashboard.stats.proyectosNuevos, dashboard.stats.incidenciasPendientes, dashboard.stats.arquitectosVerificados]);
 
   const cargarEstadisticasDetalladas = async () => {
     try {

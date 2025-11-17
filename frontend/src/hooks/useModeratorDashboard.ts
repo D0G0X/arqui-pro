@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useProyectos } from './useProyectos';
 import { useIncidencias } from './useIncidencias';
+import { useVerificaciones } from './useVerificaciones';
 
 interface UseModeratorDashboardOptions {
   moderadorId?: string;
@@ -14,6 +15,7 @@ interface DashboardStats {
   incidenciasPendientes: number;
   incidenciasEnProceso: number;
   incidenciasResueltas: number;
+  arquitectosVerificados: number;
   totalNotificaciones: number;
   notificacionesSinLeer: number;
 }
@@ -31,6 +33,7 @@ export const useModeratorDashboard = (options: UseModeratorDashboardOptions = {}
     incidenciasPendientes: 0,
     incidenciasEnProceso: 0,
     incidenciasResueltas: 0,
+    arquitectosVerificados: 0,
     totalNotificaciones: 0,
     notificacionesSinLeer: 0,
   });
@@ -45,22 +48,32 @@ export const useModeratorDashboard = (options: UseModeratorDashboardOptions = {}
     autoConnect,
   });
 
+  const verificacionesWS = useVerificaciones({
+    autoConnect,
+  });
+
   // Sincronizar proyectos
   useEffect(() => {
-    if (proyectosWS.proyectos.length > 0) {
+    if (Array.isArray(proyectosWS.proyectos)) {
       setProyectos(proyectosWS.proyectos);
     }
   }, [proyectosWS.proyectos]);
 
   // Sincronizar incidencias
   useEffect(() => {
-    if (incidenciasWS.incidencias.length > 0) {
+    if (Array.isArray(incidenciasWS.incidencias)) {
       setIncidencias(incidenciasWS.incidencias);
     }
   }, [incidenciasWS.incidencias]);
 
   // Calcular estadísticas en tiempo real
   const calcularEstadisticas = useCallback(() => {
+    // Validar que proyectos e incidencias sean arrays
+    if (!Array.isArray(proyectos) || !Array.isArray(incidencias)) {
+      console.warn('Proyectos o incidencias no son arrays válidos');
+      return;
+    }
+
     // Proyectos del último mes
     const unMesAtras = new Date();
     unMesAtras.setMonth(unMesAtras.getMonth() - 1);
@@ -90,10 +103,11 @@ export const useModeratorDashboard = (options: UseModeratorDashboardOptions = {}
       incidenciasPendientes,
       incidenciasEnProceso,
       incidenciasResueltas,
+      arquitectosVerificados: verificacionesWS.arquitectosVerificados,
       totalNotificaciones: 0,
       notificacionesSinLeer: 0,
     });
-  }, [proyectos, incidencias]);
+  }, [proyectos, incidencias, verificacionesWS.arquitectosVerificados]);
 
   // Recalcular estadísticas cuando cambien los datos
   useEffect(() => {
@@ -103,20 +117,26 @@ export const useModeratorDashboard = (options: UseModeratorDashboardOptions = {}
   // Función para inicializar datos desde API
   const initializeData = useCallback((
     initialProyectos?: any[],
-    initialIncidencias?: any[]
+    initialIncidencias?: any[],
+    initialArquitectosVerificados?: number
   ) => {
     if (initialProyectos) setProyectos(initialProyectos);
     if (initialIncidencias) setIncidencias(initialIncidencias);
-  }, []);
+    if (initialArquitectosVerificados !== undefined) {
+      verificacionesWS.setArquitectosVerificados(initialArquitectosVerificados);
+    }
+  }, [verificacionesWS]);
 
   // Estado de conexión consolidado
   const isConnected = 
     proyectosWS.isConnected || 
-    incidenciasWS.isConnected;
+    incidenciasWS.isConnected ||
+    verificacionesWS.isConnected;
 
   const allConnected =
     proyectosWS.isConnected &&
-    incidenciasWS.isConnected;
+    incidenciasWS.isConnected &&
+    verificacionesWS.isConnected;
 
   return {
     // Datos
@@ -130,6 +150,7 @@ export const useModeratorDashboard = (options: UseModeratorDashboardOptions = {}
     connections: {
       proyectos: proyectosWS.isConnected,
       incidencias: incidenciasWS.isConnected,
+      verificaciones: verificacionesWS.isConnected,
     },
     
     // Funciones
@@ -141,6 +162,7 @@ export const useModeratorDashboard = (options: UseModeratorDashboardOptions = {}
     sockets: {
       proyectos: proyectosWS.socket,
       incidencias: incidenciasWS.socket,
+      verificaciones: verificacionesWS.socket,
     },
   };
 };

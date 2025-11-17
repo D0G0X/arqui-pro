@@ -29,22 +29,18 @@ class WebsocketNotifier
     end
     
     # Notificar cuando un arquitecto es verificado
-    def notify_arquitecto_verificado(arquitecto)
+    def notify_arquitecto_verificado(arquitecto, verificacion_id, moderador_id)
       return unless arquitecto.present?
       
+      uri = URI("#{WS_SERVER_URL}/api/verificaciones/emit/aprobada")
       payload = {
-        evento: 'arquitecto:verificado',
-        data: {
-          arquitecto_id: arquitecto.id,
-          usuario_id: arquitecto.usuario_id,
-          nombre: arquitecto.nombre,
-          apellido: arquitecto.apellido,
-          verificado: arquitecto.verificado,
-          timestamp: Time.now.iso8601
-        }
+        arquitecto_id: arquitecto.id.to_s,
+        verificacion_id: verificacion_id.to_s,
+        moderador_id: moderador_id.to_s,
+        fecha_verificacion: Time.now.iso8601
       }
       
-      send_notification(payload, arquitecto.usuario_id)
+      send_to_endpoint(uri, payload, "arquitecto verificado")
     rescue => e
       Rails.logger.error "❌ Error notificando arquitecto verificado: #{e.message}"
     end
