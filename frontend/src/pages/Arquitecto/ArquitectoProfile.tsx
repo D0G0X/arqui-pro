@@ -9,6 +9,7 @@ import imagenesService from '../../services/api/imagenesService'
 import supabaseStorage from '../../services/supabaseStorage'
 import axiosInstance from '../../services/api/axiosInstance'
 import { useAuth } from '../../contexts/AuthContext'
+import { useValoraciones } from '../../hooks/useValoraciones'
 import ReportIncidenceModal from '../../components/common/ReportIncidenceModal'
 import { useQuery } from '@apollo/client'
 import { PERFIL_COMPLETO_ARQUITECTO } from '../../services/graphql/queries'
@@ -37,6 +38,12 @@ function ArquitectoProfile() {
   const [error, setError] = useState<string | null>(null)
   const [creatingConversation, setCreatingConversation] = useState(false)
   const [arquitectoIdReal, setArquitectoIdReal] = useState<string | null>(null) // ID de la tabla arquitectos
+
+  // Hook para actualizaciones en tiempo real de valoraciones
+  const { promedio, totalValoraciones, isConnected: valoracionesConnected } = useValoraciones({
+    arquitectoId: id,
+    autoConnect: !!id
+  });
 
   useEffect(() => {
     // Usamos la consulta GraphQL en lugar de los servicios REST para obtener el perfil completo.
@@ -469,8 +476,17 @@ function ArquitectoProfile() {
           <div className="profile-stats">
             <div className="stat-item">
               <Star className="stat-icon" size={28} />
-              <span className="stat-value">{arquitecto.valoracion_prom_proyecto.toFixed(1)}</span>
-              <span className="stat-label">Valoración</span>
+              <span className="stat-value">
+                {promedio && promedio > 0 
+                  ? promedio.toFixed(1) 
+                  : arquitecto.valoracion_prom_proyecto.toFixed(1)}
+              </span>
+              <span className="stat-label">
+                Valoración
+                {valoracionesConnected && (
+                  <span className="ws-status ws-connected" title="Actualización en tiempo real activa">●</span>
+                )}
+              </span>
             </div>
             <div className="stat-item">
               <FolderKanban className="stat-icon" size={28} />

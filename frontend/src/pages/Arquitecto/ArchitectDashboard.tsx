@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { useProyectos } from '../../hooks/useProyectos';
-import { useAvances } from '../../hooks/useAvances';
-import { useValoraciones } from '../../hooks/useValoraciones';
+import { useArchitectDashboard } from '../../hooks/useArchitectDashboard';
 import { logger } from '../../utils/logger';
 import arquitectosService from '../../services/api/arquitectosService';
 import proyectosService from '../../services/api/proyectosService';
-import type { Arquitecto, Proyecto } from '../../types';
+import incidenciasService from '../../services/api/incidenciasService';
+import type { Arquitecto, Proyecto, Incidencia } from '../../types';
 import '../../styles/ArchitectDashboard.css';
 
 const ArchitectDashboard = () => {
@@ -17,19 +16,9 @@ const ArchitectDashboard = () => {
   const [proyectosRecientes, setProyectosRecientes] = useState<Proyecto[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // WebSocket hooks para actualizaciones en tiempo real
-  const { proyectos: proyectosWS, isConnected: proyectosConnected } = useProyectos({
-    arquitectoId: arquitecto?.id,
-    autoConnect: !!arquitecto?.id
-  });
-
-  const { avances, isConnected: avancesConnected } = useAvances({
-    arquitectoId: arquitecto?.id,
-    autoConnect: !!arquitecto?.id
-  });
-
-  const { promedio, isConnected: valoracionesConnected } = useValoraciones({
-    arquitectoId: arquitecto?.id,
+  // Hook consolidado para actualizaciones en tiempo real del dashboard
+  const dashboard = useArchitectDashboard({
+    arquitectoId: arquitecto?.id || '',
     autoConnect: !!arquitecto?.id
   });
 
@@ -47,12 +36,26 @@ const ArchitectDashboard = () => {
         if (arquitectoEncontrado) {
           setArquitecto(arquitectoEncontrado);
 
-          // Cargar proyectos del arquitecto
+          // Cargar datos iniciales
           const allProyectos = await proyectosService.getAll();
           const proyectosArquitecto = allProyectos.filter(
             p => String(p.arquitecto_id) === String(arquitectoEncontrado.id)
           );
           setProyectosRecientes(proyectosArquitecto.slice(0, 4));
+
+          // Inicializar el dashboard con los datos cargados
+          dashboard.initializeData(proyectosArquitecto);
+
+          // Cargar incidencias del arquitecto (opcional)
+          try {
+            const allIncidencias = await incidenciasService.getAll();
+            const incidenciasArquitecto = allIncidencias.filter(
+              (inc: Incidencia) => inc.usuario_id === arquitectoEncontrado.usuario_id
+            );
+            dashboard.setIncidencias(incidenciasArquitecto);
+          } catch (error) {
+            logger.warn('No se pudieron cargar las incidencias:', error);
+          }
         }
 
         logger.info('Datos del dashboard del arquitecto cargados exitosamente');
@@ -68,16 +71,10 @@ const ArchitectDashboard = () => {
 
   // Actualizar proyectos cuando lleguen desde WebSocket
   useEffect(() => {
-    if (proyectosWS.length > 0) {
-      setProyectosRecientes(prev => {
-        const nuevosProyectos = [...proyectosWS, ...prev];
-        const proyectosUnicos = Array.from(
-          new Map(nuevosProyectos.map(p => [p.id, p])).values()
-        ) as Proyecto[];
-        return proyectosUnicos.slice(0, 4);
-      });
+    if (dashboard.proyectos.length > 0) {
+      setProyectosRecientes(dashboard.proyectos.slice(0, 4));
     }
-  }, [proyectosWS]);
+  }, [dashboard.proyectos]);
 
   if (loading) {
     return (
@@ -88,13 +85,16 @@ const ArchitectDashboard = () => {
     );
   }
 
-  // Separar proyectos en progreso y completados
-  const proyectosEnProgreso = proyectosRecientes.filter(
-    p => !p.valoracion_promedio || p.valoracion_promedio === 0
-  );
-  const proyectosCompletados = proyectosRecientes.filter(
-    p => p.valoracion_promedio && p.valoracion_promedio > 0
-  );
+  // Usar las estadísticas calculadas en tiempo real
+  const {
+    totalProyectos,
+    proyectosEnProgreso,
+    proyectosCompletados,
+    totalAvances,
+    promedio,
+    incidenciasPendientes,
+    totalIncidencias,
+  } = dashboard.stats;
 
   return (
     <div className="arquitecto-dashboard">
@@ -176,8 +176,13 @@ const ArchitectDashboard = () => {
                   </svg>
                 </div>
                 <div className="estadistica-info">
-                  <span className="estadistica-numero">{proyectosRecientes.length}</span>
-                  <span className="estadistica-texto">Total Proyectos</span>
+                  <span className="estadistica-numero">{totalProyectos}</span>
+                  <span className="estadistica-texto">
+                    Total Proyectos
+                    {dashboard.connections.proyectos && (
+                      <span className="ws-status ws-connected" title="WebSocket conectado">●</span>
+                    )}
+                  </span>
                 </div>
               </div>
 
@@ -189,7 +194,7 @@ const ArchitectDashboard = () => {
                   </svg>
                 </div>
                 <div className="estadistica-info">
-                  <span className="estadistica-numero">{proyectosEnProgreso.length}</span>
+                  <span className="estadistica-numero">{proyectosEnProgreso}</span>
                   <span className="estadistica-texto">En Progreso</span>
                 </div>
               </div>
@@ -202,7 +207,7 @@ const ArchitectDashboard = () => {
                   </svg>
                 </div>
                 <div className="estadistica-info">
-                  <span className="estadistica-numero">{proyectosCompletados.length}</span>
+                  <span className="estadistica-numero">{proyectosCompletados}</span>
                   <span className="estadistica-texto">Completados</span>
                 </div>
               </div>
@@ -215,7 +220,7 @@ const ArchitectDashboard = () => {
                 </div>
                 <div className="estadistica-info">
                   <span className="estadistica-numero">
-                    {promedio !== null && promedio > 0
+                    {promedio > 0
                       ? promedio.toFixed(1)
                       : arquitecto?.valoracion_prom_proyecto 
                       ? arquitecto.valoracion_prom_proyecto.toFixed(1) 
@@ -223,7 +228,7 @@ const ArchitectDashboard = () => {
                   </span>
                   <span className="estadistica-texto">
                     Valoración Promedio
-                    {valoracionesConnected && (
+                    {dashboard.connections.valoraciones && (
                       <span className="ws-status ws-connected" title="WebSocket conectado">●</span>
                     )}
                   </span>
@@ -239,22 +244,68 @@ const ArchitectDashboard = () => {
                   </svg>
                 </div>
                 <div className="estadistica-info">
-                  <span className="estadistica-numero">{avances.length}</span>
+                  <span className="estadistica-numero">{totalAvances}</span>
                   <span className="estadistica-texto">
                     Avances Registrados
-                    {avancesConnected && (
+                    {dashboard.connections.avances && (
                       <span className="ws-status ws-connected" title="WebSocket conectado">●</span>
                     )}
                   </span>
                 </div>
               </div>
+
+              {/* Incidencias - NUEVO */}
+              <div className="estadistica-item">
+                <div className="estadistica-icono incidencias">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                </div>
+                <div className="estadistica-info">
+                  <span className="estadistica-numero">
+                    {incidenciasPendientes}
+                    {incidenciasPendientes > 0 && <span className="badge-alert">!</span>}
+                  </span>
+                  <span className="estadistica-texto">
+                    Incidencias Pendientes
+                    {dashboard.connections.incidencias && (
+                      <span className="ws-status ws-connected" title="WebSocket conectado">●</span>
+                    )}
+                  </span>
+                </div>
+              </div>
+
+              {/* Total de Incidencias */}
+              <div className="estadistica-item">
+                <div className="estadistica-icono incidencias-total">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                    <polyline points="10 9 9 9 8 9" />
+                  </svg>
+                </div>
+                <div className="estadistica-info">
+                  <span className="estadistica-numero">{totalIncidencias}</span>
+                  <span className="estadistica-texto">Total Incidencias</span>
+                </div>
+              </div>
             </div>
 
             {/* Indicador de conexión WebSocket */}
-            {(proyectosConnected || avancesConnected || valoracionesConnected) && (
+            {dashboard.allConnected && (
               <div className="ws-indicator">
                 <span className="ws-indicator-dot"></span>
                 <span className="ws-indicator-text">Actualizaciones en tiempo real activas</span>
+              </div>
+            )}
+            {dashboard.isConnected && !dashboard.allConnected && (
+              <div className="ws-indicator ws-partial">
+                <span className="ws-indicator-dot"></span>
+                <span className="ws-indicator-text">Conectando servicios...</span>
               </div>
             )}
           </section>

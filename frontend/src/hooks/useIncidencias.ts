@@ -1,22 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
+import type { Incidencia } from '../types/incidencia.types';
 
 const SOCKET_URL = 'http://localhost:3006/incidencias';
-
-interface Incidencia {
-  id: string;
-  titulo: string;
-  descripcion: string;
-  estado: 'pendiente' | 'en_proceso' | 'resuelto' | 'cerrado';
-  prioridad?: 'baja' | 'media' | 'alta' | 'urgente';
-  tipo?: string;
-  usuario_id: string;
-  moderador_id?: string;
-  proyecto_id?: string;
-  imagenes?: string[];
-  created_at: string;
-  updated_at: string;
-}
 
 interface UseIncidenciasOptions {
   usuarioId?: string;

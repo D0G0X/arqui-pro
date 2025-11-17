@@ -4,8 +4,7 @@ import { Users, FolderKanban, AlertCircle, CheckCircle, TrendingUp, TrendingDown
 import { ModeratorLayout } from '../../components/Moderator/ModeratorLayout';
 import { moderadorService } from '../../services/api/moderador/moderadorService';
 import { notificationService } from '../../services/websocket/notificationService';
-import { useIncidencias } from '../../hooks/useIncidencias';
-import { useProyectos } from '../../hooks/useProyectos';
+import { useModeratorDashboard } from '../../hooks/useModeratorDashboard';
 import { GET_MODERATOR_STATS } from '../../services/graphql/queries';
 import '../../styles/Moderator/Dashboard.css';
 
@@ -48,13 +47,8 @@ export const ModeratorDashboard = () => {
     }
   ]);
 
-  // WebSocket hooks para actualizaciones en tiempo real
-  const { incidencias, isConnected: incidenciasConnected } = useIncidencias({
-    esModerador: true,
-    autoConnect: true
-  });
-
-  const { proyectos, isConnected: proyectosConnected } = useProyectos({
+  // Hook consolidado para actualizaciones en tiempo real del dashboard
+  const dashboard = useModeratorDashboard({
     autoConnect: true
   });
 
@@ -79,27 +73,23 @@ export const ModeratorDashboard = () => {
     };
   }, []);
 
-  // Actualizar estadísticas cuando lleguen nuevas incidencias
+  // Sincronizar stats del dashboard con las estadísticas locales
+  // Este efecto solo se usa cuando NO hay datos de GraphQL todavía
   useEffect(() => {
-    if (incidencias.length > 0 && stats) {
-      const incidenciasPendientes = incidencias.filter(i => i.estado === 'pendiente').length;
-      setStats(prev => ({
-        ...prev!,
-        totalIncidencias: incidencias.length,
-        incidenciasPendientes
-      }));
+    if (!kpisData && (dashboard.stats.totalProyectos > 0 || dashboard.stats.totalIncidencias > 0)) {
+      setStats(prev => {
+        if (!prev) return prev;
+        
+        return {
+          ...prev,
+          totalProyectos: dashboard.stats.totalProyectos,
+          proyectosNuevos: dashboard.stats.proyectosNuevos,
+          totalIncidencias: dashboard.stats.totalIncidencias,
+          incidenciasPendientes: dashboard.stats.incidenciasPendientes,
+        };
+      });
     }
-  }, [incidencias, stats]);
-
-  // Actualizar estadísticas cuando lleguen nuevos proyectos
-  useEffect(() => {
-    if (proyectos.length > 0 && stats) {
-      setStats(prev => ({
-        ...prev!,
-        totalProyectos: proyectos.length
-      }));
-    }
-  }, [proyectos, stats]);
+  }, [dashboard.stats.totalProyectos, dashboard.stats.proyectosNuevos, dashboard.stats.totalIncidencias, dashboard.stats.incidenciasPendientes, kpisData]);
 
   useEffect(() => {
     cargarEstadisticasDetalladas();
@@ -109,23 +99,42 @@ export const ModeratorDashboard = () => {
   useEffect(() => {
     if (kpisData?.kpisPlataforma) {
       const kpis = kpisData.kpisPlataforma;
-      setStats(prevStats => ({
-        ...prevStats,
-        totalUsuarios: kpis.totalUsuarios || 0,
-        totalProyectos: kpis.totalProyectos || 0,
-        arquitectosVerificados: kpis.arquitectosVerificados || 0,
-        totalIncidencias: kpis.totalIncidencias || 0,
-        // Valores por defecto para datos adicionales
-        totalArquitectos: Math.floor((kpis.totalUsuarios || 0) * 0.3),
-        totalClientes: Math.floor((kpis.totalUsuarios || 0) * 0.68),
-        totalModeradores: Math.floor((kpis.totalUsuarios || 0) * 0.02),
-        proyectosNuevos: Math.floor((kpis.totalProyectos || 0) * 0.15),
-        incidenciasPendientes: Math.floor((kpis.totalIncidencias || 0) * 0.3),
-        verificacionesPendientes: Math.floor(kpis.arquitectosVerificados * 0.05)
-      }));
+      setStats(prevStats => {
+        // Si ya tenemos datos del WebSocket, usar esos en lugar de los de GraphQL
+        const totalProyectos = dashboard.stats.totalProyectos > 0 
+          ? dashboard.stats.totalProyectos 
+          : kpis.totalProyectos || 0;
+        
+        const totalIncidencias = dashboard.stats.totalIncidencias > 0
+          ? dashboard.stats.totalIncidencias
+          : kpis.totalIncidencias || 0;
+        
+        const proyectosNuevos = dashboard.stats.proyectosNuevos > 0
+          ? dashboard.stats.proyectosNuevos
+          : Math.floor((kpis.totalProyectos || 0) * 0.15);
+        
+        const incidenciasPendientes = dashboard.stats.incidenciasPendientes > 0
+          ? dashboard.stats.incidenciasPendientes
+          : Math.floor((kpis.totalIncidencias || 0) * 0.3);
+        
+        return {
+          ...prevStats,
+          totalUsuarios: kpis.totalUsuarios || 0,
+          totalProyectos,
+          arquitectosVerificados: kpis.arquitectosVerificados || 0,
+          totalIncidencias,
+          // Valores por defecto para datos adicionales
+          totalArquitectos: Math.floor((kpis.totalUsuarios || 0) * 0.3),
+          totalClientes: Math.floor((kpis.totalUsuarios || 0) * 0.68),
+          totalModeradores: Math.floor((kpis.totalUsuarios || 0) * 0.02),
+          proyectosNuevos,
+          incidenciasPendientes,
+          verificacionesPendientes: Math.floor(kpis.arquitectosVerificados * 0.05)
+        };
+      });
       setLoading(false);
     }
-  }, [kpisData]);
+  }, [kpisData, dashboard.stats.totalProyectos, dashboard.stats.totalIncidencias, dashboard.stats.proyectosNuevos, dashboard.stats.incidenciasPendientes]);
 
   const cargarEstadisticasDetalladas = async () => {
     try {
@@ -188,7 +197,7 @@ export const ModeratorDashboard = () => {
               </div>
               <span className="stat-card__label">
                 Total Projects
-                {proyectosConnected && (
+                {dashboard.connections.proyectos && (
                   <span className="ws-status-inline" title="WebSocket conectado">●</span>
                 )}
               </span>
@@ -208,7 +217,7 @@ export const ModeratorDashboard = () => {
               </div>
               <span className="stat-card__label">
                 Total Incidents
-                {incidenciasConnected && (
+                {dashboard.connections.incidencias && (
                   <span className="ws-status-inline" title="WebSocket conectado">●</span>
                 )}
               </span>
@@ -258,6 +267,20 @@ export const ModeratorDashboard = () => {
             </div>
           </div>
         </div>
+
+        {/* Indicador de conexión en tiempo real */}
+        {dashboard.allConnected && (
+          <div className="realtime-indicator realtime-indicator--success">
+            <span className="realtime-indicator__dot"></span>
+            <span className="realtime-indicator__text">Actualizaciones en tiempo real activas</span>
+          </div>
+        )}
+        {dashboard.isConnected && !dashboard.allConnected && (
+          <div className="realtime-indicator realtime-indicator--partial">
+            <span className="realtime-indicator__dot"></span>
+            <span className="realtime-indicator__text">Conectando servicios...</span>
+          </div>
+        )}
       </div>
     </ModeratorLayout>
   );

@@ -73,12 +73,42 @@ export class IncidenciasGateway implements OnGatewayConnection, OnGatewayDisconn
   }
 
   /**
+   * Unirse a la sala de un arquitecto para recibir incidencias de sus proyectos
+   */
+  @SubscribeMessage('join_arquitecto')
+  handleJoinArquitecto(
+    @MessageBody() payload: { arquitecto_id: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const room = `arquitecto:${payload.arquitecto_id}`;
+    client.join(room);
+    this.logger.log(`👨‍💼 Cliente ${client.id} se unió a sala de incidencias ${room}`);
+    return { status: 'ok', room };
+  }
+
+  /**
+   * Unirse a la sala de un proyecto para recibir sus incidencias
+   */
+  @SubscribeMessage('join_proyecto')
+  handleJoinProyecto(
+    @MessageBody() payload: { proyecto_id: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const room = `proyecto:${payload.proyecto_id}`;
+    client.join(room);
+    this.logger.log(`📁 Cliente ${client.id} se unió a sala de incidencias ${room}`);
+    return { status: 'ok', room };
+  }
+
+  /**
    * Emitir evento de nueva incidencia
    */
   emitNuevaIncidencia(
     usuario_emisor_id: string,
     usuario_infractor_id: string,
     incidencia: any,
+    arquitecto_id?: string,
+    proyecto_id?: string,
   ) {
     this.logger.log(`📢 Emitiendo nueva incidencia: ${incidencia.id}`);
     
@@ -90,6 +120,17 @@ export class IncidenciasGateway implements OnGatewayConnection, OnGatewayDisconn
     
     // Notificar a todos los moderadores
     this.server.to('moderadores').emit('incidencia:nueva', incidencia);
+    
+    // Si la incidencia está relacionada con un proyecto, notificar al arquitecto
+    if (arquitecto_id) {
+      this.logger.log(`   📢 Notificando al arquitecto: ${arquitecto_id}`);
+      this.server.to(`arquitecto:${arquitecto_id}`).emit('incidencia:nueva', incidencia);
+    }
+    
+    // Notificar a todos los que siguen el proyecto
+    if (proyecto_id) {
+      this.server.to(`proyecto:${proyecto_id}`).emit('incidencia:nueva', incidencia);
+    }
   }
 
   /**
@@ -100,6 +141,8 @@ export class IncidenciasGateway implements OnGatewayConnection, OnGatewayDisconn
     usuario_emisor_id: string,
     usuario_infractor_id: string,
     data: any,
+    arquitecto_id?: string,
+    proyecto_id?: string,
   ) {
     this.logger.log(`📢 Emitiendo cambio de estado de incidencia: ${incidencia_id}`);
     this.logger.log(`   Estado: ${data.estado_anterior} → ${data.estado_nuevo}`);
@@ -115,6 +158,17 @@ export class IncidenciasGateway implements OnGatewayConnection, OnGatewayDisconn
     
     // Notificar a moderadores
     this.server.to('moderadores').emit('incidencia:estado_cambiado', data);
+    
+    // Notificar al arquitecto si la incidencia está en su proyecto
+    if (arquitecto_id) {
+      this.logger.log(`   📢 Notificando cambio de estado al arquitecto: ${arquitecto_id}`);
+      this.server.to(`arquitecto:${arquitecto_id}`).emit('incidencia:estado_cambiado', data);
+    }
+    
+    // Notificar a la sala del proyecto
+    if (proyecto_id) {
+      this.server.to(`proyecto:${proyecto_id}`).emit('incidencia:estado_cambiado', data);
+    }
   }
 
   /**
@@ -137,6 +191,8 @@ export class IncidenciasGateway implements OnGatewayConnection, OnGatewayDisconn
     usuario_emisor_id: string,
     usuario_infractor_id: string,
     incidencia: any,
+    arquitecto_id?: string,
+    proyecto_id?: string,
   ) {
     this.logger.log(`📢 Emitiendo incidencia resuelta: ${incidencia_id}`);
     
@@ -144,5 +200,16 @@ export class IncidenciasGateway implements OnGatewayConnection, OnGatewayDisconn
     this.server.to(`usuario:${usuario_emisor_id}`).emit('incidencia:resuelta', incidencia);
     this.server.to(`usuario:${usuario_infractor_id}`).emit('incidencia:resuelta', incidencia);
     this.server.to('moderadores').emit('incidencia:resuelta', incidencia);
+    
+    // Notificar al arquitecto si la incidencia está en su proyecto
+    if (arquitecto_id) {
+      this.logger.log(`   📢 Notificando resolución al arquitecto: ${arquitecto_id}`);
+      this.server.to(`arquitecto:${arquitecto_id}`).emit('incidencia:resuelta', incidencia);
+    }
+    
+    // Notificar a la sala del proyecto
+    if (proyecto_id) {
+      this.server.to(`proyecto:${proyecto_id}`).emit('incidencia:resuelta', incidencia);
+    }
   }
 }

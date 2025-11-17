@@ -292,3 +292,61 @@
     font-size: 14px;
   }
 }
+
+/* Real-time Indicator */
+.realtime-indicator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  margin-top: 24px;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.realtime-indicator--success {
+  background: linear-gradient(135deg, #dcfce7 0%, #d1fae5 100%);
+  color: #047857;
+  border: 1px solid #86efac;
+}
+
+.realtime-indicator--partial {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #92400e;
+  border: 1px solid #fcd34d;
+}
+
+.realtime-indicator__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: pulse-realtime 2s infinite;
+}
+
+.realtime-indicator--success .realtime-indicator__dot {
+  background-color: #10b981;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+}
+
+.realtime-indicator--partial .realtime-indicator__dot {
+  background-color: #f59e0b;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
+}
+
+@keyframes pulse-realtime {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.1);
+  }
+}
+
+.realtime-indicator__text {
+  font-weight: 500;
+}

@@ -56,9 +56,15 @@ export const useValoraciones = (options: UseValoracionesOptions = {}) => {
   }, []);
 
   // Callback para promedio actualizado
-  const handlePromedioActualizado = useCallback((data: PromedioActualizado) => {
-    setPromedio(data.promedio);
-    setTotalValoraciones(data.total_valoraciones);
+  const handlePromedioActualizado = useCallback((data: PromedioActualizado | { valoracion_promedio: number; total_valoraciones: number }) => {
+    // Soportar ambos formatos: { promedio } o { valoracion_promedio }
+    const promedio = 'promedio' in data ? data.promedio : data.valoracion_promedio;
+    const total = data.total_valoraciones;
+    
+    setPromedio(promedio);
+    setTotalValoraciones(total);
+    
+    console.log('📊 Promedio actualizado:', { promedio, total_valoraciones: total });
   }, []);
 
   useEffect(() => {
