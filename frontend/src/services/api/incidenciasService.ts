@@ -13,13 +13,14 @@ const incidenciasService = {
   /**
    * Obtener todas las incidencias
    */
-  getAll: async (page: number = 1, per_page: number = 10, estado?: string) => {
+  getAll: async (page: number = 1, per_page: number = 1000, estado?: string) => {
     const params = { page, per_page }
     if (estado) {
       Object.assign(params, { estado })
     }
     const response = await axiosInstance.get('/incidencias', { params })
-    return response.data
+    // La API devuelve { incidencias: [...], total, page, per_page }
+    return response.data.incidencias || []
   },
 
   /**

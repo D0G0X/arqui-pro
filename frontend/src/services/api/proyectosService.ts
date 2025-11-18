@@ -63,8 +63,8 @@ class ProyectosService {
   }
 
   async update(id: string, proyecto: UpdateProyectoDto): Promise<Proyecto> {
-    console.log(`Actualizando proyecto ${id} en API REST`)
-    const response = await axiosInstance.put(`/proyectos/${id}`, proyecto)
+    console.log(`Actualizando proyecto ${id} en API REST`, proyecto)
+    const response = await axiosInstance.put(`/proyectos/${id}`, { proyecto })
     this.clearCache()
     return response.data
   }

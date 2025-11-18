@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Search } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { ROUTES } from '../config/constants'
@@ -91,9 +92,9 @@ function Home() {
         {/* Hero Section with Background Image */}
         <section className="hero-banner">
           <div className="hero-overlay">
-            <h1 className="hero-main-title">Bring Your Architectural Vision to Life</h1>
+            <h1 className="hero-main-title">Da vida a tu visión arquitectónica</h1>
             <p className="hero-main-subtitle">
-              ArquiPro seamlessly connects clients with professional architects to create extraordinary spaces.
+              ArquiPro conecta a clientes con arquitectos profesionales para crear espacios extraordinarios.
             </p>
             <div className="hero-buttons">
               <button 
@@ -101,14 +102,14 @@ function Home() {
                 className="home-btn-primary"
                 aria-label="Comenzar - Registrarse como cliente"
               >
-                Get Started
+                Comenzar
               </button>
               <button 
                 onClick={() => navigate(ROUTES.ARCHITECTS)} 
                 className="home-btn-secondary"
-                aria-label="Ver arquitectos disponibles"
+                aria-label="Buscar arquitectos disponibles"
               >
-                Find Architects
+                Buscar arquitectos
               </button>
             </div>
           </div>
@@ -116,15 +117,16 @@ function Home() {
 
         {/* Search Section */}
         <section className="search-section">
-          <h2 className="search-title">Find the Perfect Architect for Your Project</h2>
-          <p className="search-subtitle">Start your search below to discover talented professionals.</p>
+          <h2 className="search-title">Encuentra al arquitecto perfecto para tu proyecto</h2>
+          <p className="search-subtitle">Comienza tu búsqueda abajo para descubrir profesionales talentosos.</p>
           
-          <div className="search-box">
-            <span className="search-icon" aria-hidden="true">🔍</span>
+          <div className="search-box" style={{position: 'relative', display: 'flex', alignItems: 'center'}}>
+            <Search className="search-icon" aria-hidden="true" />
             <input
               type="text"
-              placeholder="Search by location, project type, or specialty"
+              placeholder="Buscar por ubicación, tipo de proyecto o especialidad"
               className="search-input-main"
+              style={{paddingLeft: '2.5rem'}}
               onKeyPress={(e) => {
                 if (e.key === 'Enter') {
                   handleSearch()
@@ -137,52 +139,52 @@ function Home() {
 
         {/* Features Section */}
         <section className="features-section">
-          <h2 className="features-title">Everything You Need to Collaborate and Create</h2>
+          <h2 className="features-title">Todo lo que necesitas para colaborar y crear</h2>
           <p className="features-subtitle">
-            Discover a suite of tools designed to make your architectural journey smoother from start to finish.
+Descubre un conjunto de herramientas diseñadas para hacer que tu viaje arquitectónico sea más fluido de principio a fin.
           </p>
           
           <div className="features-grid">
             <div className="feature-card">
               <div className="feature-icon">🔍</div>
-              <h3>Advanced Search</h3>
-              <p>Filter architects by specialty, location, and project type to find the perfect match.</p>
+              <h3>Búsqueda avanzada</h3>
+              <p>Filtra arquitectos por especialidad, ubicación y tipo de proyecto para encontrar la mejor opción.</p>
             </div>
             <div className="feature-card">
               <div className="feature-icon">📁</div>
-              <h3>Project Portfolios</h3>
-              <p>Browse stunning portfolios to see the quality and style of each architect's work.</p>
+              <h3>Portafolios</h3>
+              <p>Explora portafolios impresionantes para ver la calidad y el estilo del trabajo de cada arquitecto.</p>
             </div>
             <div className="feature-card">
               <div className="feature-icon">💬</div>
-              <h3>Direct Messaging</h3>
-              <p>Communicate directly and securely with architects right on our platform.</p>
+              <h3>Mensajería directa</h3>
+              <p>Comunícate de forma directa y segura con los arquitectos desde la plataforma.</p>
             </div>
           </div>
         </section>
 
         {/* How It Works Section */}
         <section className="how-it-works-section">
-          <h2 className="section-title-large">How It Works</h2>
+          <h2 className="section-title-large">Cómo funciona</h2>
           <p className="section-subtitle-large">
-            A simple, streamlined process to bring your project to life.
+            Un proceso sencillo y eficiente para llevar tu proyecto a la realidad.
           </p>
           
           <div className="steps-grid">
             <div className="step-card">
               <div className="step-icon">🔍</div>
-              <h3>1. Search & Discover</h3>
-              <p>Browse profiles, check reviews to find the right architect for your vision and budget.</p>
+              <h3>1. Buscar y descubrir</h3>
+              <p>Explora perfiles y reseñas para encontrar al arquitecto adecuado para tu visión y presupuesto.</p>
             </div>
             <div className="step-card">
               <div className="step-icon">🤝</div>
-              <h3>2. Connect & Collaborate</h3>
-              <p>Use our secure messaging to discuss your project, share files, and align on the details.</p>
+              <h3>2. Conectar y colaborar</h3>
+              <p>Usa nuestra mensajería segura para discutir tu proyecto, compartir archivos y alinear detalles.</p>
             </div>
             <div className="step-card">
               <div className="step-icon">🏗️</div>
-              <h3>3. Build Your Dream</h3>
-              <p>Once you've hired your architect, begin the exciting journey of turning your ideas into reality.</p>
+              <h3>3. Construye tu proyecto</h3>
+              <p>Una vez que contrates a tu arquitecto, comienza el emocionante proceso de hacer realidad tus ideas.</p>
             </div>
           </div>
         </section>
@@ -284,10 +286,10 @@ function Home() {
 
         {/* CTA Section */}
         <section className="cta-section">
-          <h2 className="cta-title">Ready to Start Your Next Project?</h2>
+          <h2 className="cta-title">¿Listo para empezar tu próximo proyecto?</h2>
           <p className="cta-subtitle">
-            Join ArquiPro today and take the first step towards creating your perfect space. 
-            Find an architect or find your next client.
+            Únete a ArquiPro hoy y da el primer paso para crear tu espacio ideal. 
+            Encuentra un arquitecto o consigue tu próximo cliente.
           </p>
           <div className="cta-buttons">
             <button 
@@ -295,14 +297,14 @@ function Home() {
               className="btn-cta-primary"
               aria-label="Buscar tu arquitecto ideal"
             >
-              Find Your Architect
+              Encuentra tu arquitecto
             </button>
             <button 
               onClick={() => navigate(ROUTES.ARCHITECTS)} 
               className="btn-cta-secondary"
               aria-label="Registrarte como arquitecto"
             >
-              Join as an Architect
+              Únete como arquitecto
             </button>
           </div>
         </section>

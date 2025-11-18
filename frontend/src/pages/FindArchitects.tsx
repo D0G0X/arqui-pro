@@ -36,9 +36,9 @@ function FindArchitects() {
     <div className="find-architects-container">
       <main className="main-content">
         <section className="hero-section">
-          <h1 className="hero-title">Find Your Perfect Architect</h1>
+          <h1 className="hero-title">Encuentra al arquitecto perfecto</h1>
           <p className="hero-subtitle">
-            Browse our verified professionals and discover the ideal architect for your project.
+            Explora nuestros profesionales verificados y descubre el arquitecto ideal para tu proyecto.
           </p>
           
           <SearchBar
@@ -54,25 +54,25 @@ function FindArchitects() {
 
         {error && (
           <ErrorMessage 
-            message="Error loading architects. Please try again later."
+            message="Error al cargar arquitectos. Por favor, inténtalo de nuevo más tarde."
             onRetry={() => refetch()}
           />
         )}
 
         {loading ? (
-          <LoadingSpinner message="Loading architects..." />
+          <LoadingSpinner message="Cargando arquitectos..." />
         ) : arquitectos.length === 0 ? (
           <div className="no-results">
             <div className="no-results-icon" aria-hidden="true">🔍</div>
-            <h2>No architects found</h2>
-            <p>Try adjusting your filters or search criteria.</p>
+            <h2>No se encontraron arquitectos</h2>
+            <p>Prueba ajustando tus filtros o criterios de búsqueda.</p>
             {hasActiveFilters && (
               <button 
                 onClick={handleResetFilters} 
                 className="reset-btn"
-                aria-label="Reset all filters"
+                aria-label="Restablecer filtros"
               >
-                Reset Filters
+                Restablecer filtros
               </button>
             )}
           </div>
@@ -80,7 +80,7 @@ function FindArchitects() {
           <>
             <section className="results-header">
               <p className="results-count">
-                Showing <strong>{arquitectos.length}</strong> verified architects
+                Mostrando <strong>{arquitectos.length}</strong> arquitectos verificados
               </p>
             </section>
 

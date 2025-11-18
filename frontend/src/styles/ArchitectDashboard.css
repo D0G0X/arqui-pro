@@ -95,6 +95,37 @@
   box-shadow: 0 4px 12px rgba(255, 107, 53, 0.35);
 }
 
+.btn-ver-todos {
+  background: transparent;
+  color: #ff6b35;
+  border: 2px solid #ff6b35;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-ver-todos:hover {
+  background: #ff6b35;
+  color: white;
+  transform: translateX(5px);
+}
+
+.ws-status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #27ae60;
+  font-weight: 600;
+  padding: 0.4rem 0.8rem;
+  background: rgba(39, 174, 96, 0.1);
+  border-radius: 20px;
+  margin-left: 1rem;
+}
+
 /* PROYECTOS */
 .seccion-proyectos {
   background: transparent;
@@ -254,6 +285,21 @@
 
 .estadistica-icono.valoracion {
   background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+  color: white;
+}
+
+.estadistica-icono.avances {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: white;
+}
+
+.estadistica-icono.incidencias {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+.estadistica-icono.incidencias-total {
+  background: linear-gradient(135deg, #64748b 0%, #475569 100%);
   color: white;
 }
 
@@ -705,6 +751,87 @@
 .ad-btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
+}
+
+/* WebSocket Status Indicators */
+.ws-status {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.ws-status.ws-connected {
+  background-color: #10b981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+  animation: pulse-ws 2s infinite;
+}
+
+@keyframes pulse-ws {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.ws-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: linear-gradient(135deg, #dcfce7 0%, #d1fae5 100%);
+  border-radius: 8px;
+  margin-top: 16px;
+  font-size: 0.875rem;
+  color: #047857;
+}
+
+.ws-indicator.ws-partial {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #92400e;
+}
+
+.ws-indicator.ws-partial .ws-indicator-dot {
+  background-color: #f59e0b;
+}
+
+.ws-indicator-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #10b981;
+  animation: pulse-ws 2s infinite;
+}
+
+.ws-indicator-text {
+  font-weight: 500;
+}
+
+/* Badge for alerts */
+.badge-alert {
+  display: inline-block;
+  background-color: #ef4444;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 10px;
+  margin-left: 4px;
+  vertical-align: super;
+  animation: blink 1.5s infinite;
+}
+
+@keyframes blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
 }
 
 /* Responsive Design */

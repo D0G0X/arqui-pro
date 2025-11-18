@@ -144,6 +144,61 @@
   line-height: 1.5;
 }
 
+/* WebSocket Status Indicators */
+.ws-status {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.ws-status.ws-connected {
+  background-color: #10b981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+  animation: pulse-ws 2s infinite;
+}
+
+@keyframes pulse-ws {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.ws-indicator-small {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #dcfce7 0%, #d1fae5 100%);
+  border-radius: 6px;
+  margin-top: 12px;
+  font-size: 0.8125rem;
+  color: #047857;
+}
+
+.ws-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #10b981;
+  animation: pulse-ws 2s infinite;
+}
+
+.ws-text {
+  font-weight: 500;
+}
+
+.seccion-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 /* RESPONSIVE */
 @media (max-width: 1200px) {
   .cliente-home-grid {

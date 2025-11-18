@@ -223,30 +223,119 @@
 }
 
 /* RESPONSIVE */
-@media (max-width: 768px) {
-  .cliente-sidebar {
-    width: 70px;
-  }
+.hamburger-btn {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  color: #1a202c;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
 
-  .cliente-main {
-    margin-left: 70px;
-  }
+.hamburger-btn:hover {
+  background: #f3f4f6;
+}
 
-  .logo-text,
-  .nav-label,
-  .cliente-user-info {
-    display: none;
-  }
+.sidebar-overlay {
+  display: none;
+}
 
-  .cliente-nav-item {
+.sidebar-close-btn {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  color: #6b7280;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.sidebar-close-btn:hover {
+  background: #f3f4f6;
+  color: #1a202c;
+}
+
+.sidebar-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@media (max-width: 1024px) {
+  .hamburger-btn {
+    display: flex;
+    align-items: center;
     justify-content: center;
   }
 
+  .sidebar-close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    backdrop-filter: blur(2px);
+  }
+
+  .sidebar-overlay.active {
+    display: block;
+  }
+
+  .cliente-sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 1000;
+    box-shadow: none;
+  }
+
+  .cliente-sidebar.sidebar-open {
+    transform: translateX(0);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+  }
+
+  .cliente-main {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .cliente-sidebar + .sidebar-overlay {
+    display: block;
+  }
+}
+
+@media (max-width: 768px) {
   .cliente-header-content {
     padding: 12px 16px;
   }
 
-  .cliente-content {
+  .cliente-user-info {
+    display: none;
+  }
+
+  .cliente-content > *:not(.client-chat-page) {
     padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .cliente-sidebar {
+    width: 280px;
+    max-width: 85vw;
+  }
+
+  .cliente-user-email {
+    font-size: 0.75rem;
   }
 }

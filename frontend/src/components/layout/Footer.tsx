@@ -8,7 +8,7 @@ function Footer() {
           <span className="logo-icon">🏛️</span>
           <span className="logo-text">ArquiPro</span>
         </div>
-        <p className="footer-text">© 2025 ArquiPro. All rights reserved.</p>
+        <p className="footer-text">© 2025 ArquiPro. Todos los derechos reservados.</p>
       </div>
     </footer>
   )

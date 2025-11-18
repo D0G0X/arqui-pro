@@ -3,6 +3,8 @@ import { useQuery } from '@apollo/client';
 import { Users, FolderKanban, AlertCircle, CheckCircle, TrendingUp, TrendingDown, Clock } from 'lucide-react';
 import { ModeratorLayout } from '../../components/Moderator/ModeratorLayout';
 import { moderadorService } from '../../services/api/moderador/moderadorService';
+import { notificationService } from '../../services/websocket/notificationService';
+import { useModeratorDashboard } from '../../hooks/useModeratorDashboard';
 import { GET_MODERATOR_STATS } from '../../services/graphql/queries';
 import '../../styles/Moderator/Dashboard.css';
 
@@ -28,32 +30,133 @@ export const ModeratorDashboard = () => {
 
   const [stats, setStats] = useState<Estadisticas | null>(null);
   const [loading, setLoading] = useState(true);
+  const [notificaciones, setNotificaciones] = useState<NotificacionUI[]>([
+    {
+      id: 1,
+      tipo: 'verificacion',
+      titulo: 'Nueva verificación pendiente',
+      subtitulo: 'Revisión de documentos arquitecto',
+      tiempo: 'hace 5 min'
+    },
+    {
+      id: 2,
+      tipo: 'incidencia',
+      titulo: 'Nueva incidencia reportada',
+      subtitulo: 'Error en proyecto',
+      tiempo: 'hace 30 min'
+    }
+  ]);
+
+  // Hook consolidado para actualizaciones en tiempo real del dashboard
+  const dashboard = useModeratorDashboard({
+    autoConnect: true
+  });
+
+  // Cargar datos iniciales para el WebSocket
+  useEffect(() => {
+    const cargarDatosIniciales = async () => {
+      try {
+        const proyectosService = (await import('../../services/api/proyectosService')).default;
+        const incidenciasService = (await import('../../services/api/incidenciasService')).default;
+        
+        const [proyectos, incidencias] = await Promise.all([
+          proyectosService.getAll(),
+          incidenciasService.getAll()
+        ]);
+        
+        // Validar que sean arrays antes de inicializar
+        const proyectosArray = Array.isArray(proyectos) ? proyectos : [];
+        const incidenciasArray = Array.isArray(incidencias) ? incidencias : [];
+        
+        console.log('📊 Datos iniciales cargados:', {
+          proyectos: proyectosArray.length,
+          incidencias: incidenciasArray.length
+        });
+        
+        dashboard.initializeData(proyectosArray, incidenciasArray);
+      } catch (error) {
+        console.error('Error al cargar datos iniciales:', error);
+      }
+    };
+    
+    cargarDatosIniciales();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Solo ejecutar una vez al montar
+
+  // Suscribirse a notificaciones en tiempo real
+  useEffect(() => {
+    const unsubscribe = notificationService.onNotification((notification: any) => {
+      setNotificaciones(prev => [
+        {
+          id: notification.id || `notif-${Date.now()}`,
+          tipo: 'mensaje' as const,
+          titulo: notification.data?.titulo || 'Nueva notificación',
+          subtitulo: notification.data?.mensaje || '',
+          tiempo: 'Ahora'
+        },
+        ...prev.slice(0, 9) // Mantener máximo 10 notificaciones
+      ]);
+    });
+
+    // Cleanup al desmontar
+    return () => {
+      unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     cargarEstadisticasDetalladas();
   }, []);
 
-  // Combinar datos de GraphQL (KPIs) con datos de REST (detalles)
+  // Combinar datos de GraphQL (KPIs) con datos de WebSocket (tiempo real)
   useEffect(() => {
     if (kpisData?.kpisPlataforma) {
       const kpis = kpisData.kpisPlataforma;
-      setStats(prevStats => ({
-        ...prevStats,
-        totalUsuarios: kpis.totalUsuarios || 0,
-        totalProyectos: kpis.totalProyectos || 0,
-        arquitectosVerificados: kpis.arquitectosVerificados || 0,
-        totalIncidencias: kpis.totalIncidencias || 0,
-        // Valores por defecto para datos adicionales
-        totalArquitectos: Math.floor((kpis.totalUsuarios || 0) * 0.3),
-        totalClientes: Math.floor((kpis.totalUsuarios || 0) * 0.68),
-        totalModeradores: Math.floor((kpis.totalUsuarios || 0) * 0.02),
-        proyectosNuevos: Math.floor((kpis.totalProyectos || 0) * 0.15),
-        incidenciasPendientes: Math.floor((kpis.totalIncidencias || 0) * 0.3),
-        verificacionesPendientes: Math.floor(kpis.arquitectosVerificados * 0.05)
-      }));
+      
+      // Inicializar el contador de verificaciones con el valor de GraphQL solo la primera vez
+      if (kpis.arquitectosVerificados > 0 && dashboard.stats.arquitectosVerificados === 0) {
+        dashboard.initializeData(undefined, undefined, kpis.arquitectosVerificados);
+      }
+      
+      setStats(prevStats => {
+        // Siempre usar datos del WebSocket si están disponibles (no solo cuando > 0)
+        const totalProyectos = dashboard.stats.totalProyectos !== undefined && dashboard.stats.totalProyectos !== null
+          ? dashboard.stats.totalProyectos 
+          : kpis.totalProyectos || 0;
+          
+        const totalIncidencias = dashboard.stats.totalIncidencias !== undefined && dashboard.stats.totalIncidencias !== null
+          ? dashboard.stats.totalIncidencias 
+          : kpis.totalIncidencias || 0;
+          
+        const proyectosNuevos = dashboard.stats.proyectosNuevos !== undefined && dashboard.stats.proyectosNuevos !== null
+          ? dashboard.stats.proyectosNuevos 
+          : Math.floor((kpis.totalProyectos || 0) * 0.15);
+          
+        const incidenciasPendientes = dashboard.stats.incidenciasPendientes !== undefined && dashboard.stats.incidenciasPendientes !== null
+          ? dashboard.stats.incidenciasPendientes 
+          : Math.floor((kpis.totalIncidencias || 0) * 0.3);
+          
+        const arquitectosVerificados = dashboard.stats.arquitectosVerificados !== undefined && dashboard.stats.arquitectosVerificados !== null
+          ? dashboard.stats.arquitectosVerificados 
+          : kpis.arquitectosVerificados || 0;
+        
+        return {
+          ...prevStats,
+          totalUsuarios: kpis.totalUsuarios || 0,
+          totalProyectos,
+          arquitectosVerificados,
+          totalIncidencias,
+          totalArquitectos: Math.floor((kpis.totalUsuarios || 0) * 0.3),
+          totalClientes: Math.floor((kpis.totalUsuarios || 0) * 0.68),
+          totalModeradores: Math.floor((kpis.totalUsuarios || 0) * 0.02),
+          proyectosNuevos,
+          incidenciasPendientes,
+          verificacionesPendientes: Math.floor(kpis.arquitectosVerificados * 0.05)
+        };
+      });
       setLoading(false);
     }
-  }, [kpisData]);
+  }, [kpisData, dashboard.stats.totalProyectos, dashboard.stats.totalIncidencias, dashboard.stats.proyectosNuevos, dashboard.stats.incidenciasPendientes, dashboard.stats.arquitectosVerificados]);
 
   const cargarEstadisticasDetalladas = async () => {
     try {
@@ -114,7 +217,12 @@ export const ModeratorDashboard = () => {
               <div className="stat-card__icon stat-card__icon--projects">
                 <FolderKanban size={24} />
               </div>
-              <span className="stat-card__label">Total Projects</span>
+              <span className="stat-card__label">
+                Total Projects
+                {dashboard.connections.proyectos && (
+                  <span className="ws-status-inline" title="WebSocket conectado">●</span>
+                )}
+              </span>
             </div>
             <h2 className="stat-card__value">{stats?.totalProyectos.toLocaleString() || '0'}</h2>
             <div className="stat-card__badge stat-card__badge--success">
@@ -129,7 +237,12 @@ export const ModeratorDashboard = () => {
               <div className="stat-card__icon stat-card__icon--incidents">
                 <AlertCircle size={24} />
               </div>
-              <span className="stat-card__label">Total Incidents</span>
+              <span className="stat-card__label">
+                Total Incidents
+                {dashboard.connections.incidencias && (
+                  <span className="ws-status-inline" title="WebSocket conectado">●</span>
+                )}
+              </span>
             </div>
             <h2 className="stat-card__value">{stats?.totalIncidencias || '0'}</h2>
             <div className="stat-card__badge stat-card__badge--danger">
@@ -176,6 +289,20 @@ export const ModeratorDashboard = () => {
             </div>
           </div>
         </div>
+
+        {/* Indicador de conexión en tiempo real */}
+        {dashboard.allConnected && (
+          <div className="realtime-indicator realtime-indicator--success">
+            <span className="realtime-indicator__dot"></span>
+            <span className="realtime-indicator__text">Actualizaciones en tiempo real activas</span>
+          </div>
+        )}
+        {dashboard.isConnected && !dashboard.allConnected && (
+          <div className="realtime-indicator realtime-indicator--partial">
+            <span className="realtime-indicator__dot"></span>
+            <span className="realtime-indicator__text">Conectando servicios...</span>
+          </div>
+        )}
       </div>
     </ModeratorLayout>
   );

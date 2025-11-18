@@ -2,7 +2,7 @@ import { useState } from "react";
 import FormularioRegistroClientes from "../../components/auth/FormularioRegistroCliente";
 import { useNavigate } from "react-router-dom";
 import { registroUsuario } from "../../services/api/auth/authService";
-import "../../styles/auth/registro/FormularioRegistroCliente.css"
+import "../../styles/auth/registro/RegistroClientePage.css"
 import type { RegistroUsuarioInput } from "../../types/usuario.types";
 import type { Usuario } from "../../types/usuario.types";
 
@@ -40,8 +40,8 @@ export default function RegistroClientePage(){
     };
 
     return (
-        <div className="registro-page-container">
-            <div className="form-side">
+        <div className="rcp-registro-page-container">
+            <div className="rcp-form-side">
                 <FormularioRegistroClientes onSubmit={handleRegistroSubmit} onRegisterAsArquitecto={handleRegisterAsArquitecto}/>
             </div>
         </div>

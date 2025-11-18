@@ -16,25 +16,36 @@ export const ReporteViewer = () => {
       return;
     }
 
-    // Intentar obtener el HTML del reporte desde sessionStorage
-    const storedHtml = sessionStorage.getItem(`reporte-${id}`);
-    
-    if (storedHtml) {
-      setHtmlContent(storedHtml);
-      setLoading(false);
-      return;
-    }
+    try {
+      // Intentar obtener el HTML del reporte desde sessionStorage
+      const storedHtml = sessionStorage.getItem(`reporte-${id}`);
+      
+      if (storedHtml) {
+        setHtmlContent(storedHtml);
+        setLoading(false);
+        return;
+      }
 
-    // Si no está en sessionStorage, intentar obtenerlo del servicio
-    const reporte = reportesService.obtenerReporte(id);
-    
-    if (reporte) {
-      const html = reportesService.generarHTMLReporte(reporte);
-      setHtmlContent(html);
-      sessionStorage.setItem(`reporte-${id}`, html);
-      setLoading(false);
-    } else {
-      setError('Reporte no encontrado o ha expirado. Los reportes expiran después de 24 horas.');
+      // Si no está en sessionStorage, intentar obtenerlo del servicio
+      const reporte = reportesService.obtenerReporte(id);
+      
+      if (reporte) {
+        const html = reportesService.generarHTMLReporte(reporte);
+        setHtmlContent(html);
+        // Intentar guardar en sessionStorage, pero continuar si falla
+        try {
+          sessionStorage.setItem(`reporte-${id}`, html);
+        } catch (storageError) {
+          console.warn('No se pudo guardar en sessionStorage:', storageError);
+        }
+        setLoading(false);
+      } else {
+        setError('❌ Reporte no encontrado o ha expirado.\n\nPosibles causas:\n• Los reportes expiran después de 24 horas\n• El reporte se generó en otra pestaña/ventana\n• Se limpió el caché del navegador\n\n💡 Solución: Vuelve a la página de reportes y genera el reporte nuevamente.');
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('Error al cargar reporte:', error);
+      setError('❌ Error al cargar el reporte.\n\nPor favor, intenta generarlo nuevamente desde la página de reportes.');
       setLoading(false);
     }
   }, [id]);

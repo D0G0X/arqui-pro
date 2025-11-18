@@ -1,4 +1,5 @@
 import { memo, useCallback } from 'react'
+import { Search } from 'lucide-react'
 import { ESPECIALIDADES, RATINGS } from '../../config/constants'
 import '../../styles/SearchBar.css'
 
@@ -25,19 +26,20 @@ const SearchBar = memo(function SearchBar({ onSearch, filters }: SearchBarProps)
 
   return (
     <div className="search-bar">
-      <div className="search-input-container">
-        <span className="search-icon" aria-hidden="true">🔍</span>
+      <div className="search-box" style={{position: 'relative', display: 'flex', alignItems: 'center'}}>
+        <Search className="search-icon" aria-hidden="true" />
         <input
           type="text"
-          placeholder="Search by name, specialty, or location..."
-          className="search-input"
-          aria-label="Search architects"
+          placeholder="Buscar por ubicación, tipo de proyecto o especialidad"
+          className="search-input-main"
+          style={{paddingLeft: '2.5rem'}}
+          aria-label="Buscar arquitectos por ubicación, tipo de proyecto o especialidad"
         />
       </div>
 
       <div className="filters-container">
         <label className="filter-label" htmlFor="especialidad-filter">
-          Filters:
+          Filtros:
         </label>
         
         <select
@@ -71,9 +73,9 @@ const SearchBar = memo(function SearchBar({ onSearch, filters }: SearchBarProps)
         <button 
           onClick={onSearch} 
           className="apply-btn"
-          aria-label="Apply filters"
+          aria-label="Aplicar filtros"
         >
-          Apply
+          Aplicar
         </button>
       </div>
     </div>

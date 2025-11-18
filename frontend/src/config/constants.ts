@@ -5,26 +5,26 @@
 
 // Especialidades de arquitectos
 export const ESPECIALIDADES = [
-  { value: '', label: 'Specialty' },
-  { value: 'Arquitectura Residencial', label: 'Arquitectura Residencial' },
-  { value: 'Diseño Sostenible', label: 'Diseño Sostenible' },
-  { value: 'Comercial', label: 'Comercial' },
-  { value: 'Diseño de Interiores', label: 'Diseño de Interiores' },
-  { value: 'Restauración', label: 'Restauración' },
-  { value: 'Arquitectura Industrial', label: 'Arquitectura Industrial' },
+  { value: '', label: 'Especialidad' },
   { value: 'Diseño Urbano', label: 'Diseño Urbano' },
-  { value: 'Arquitectura Sostenible', label: 'Arquitectura Sostenible' },
+  { value: 'Arquitectura Sostenible', label: 'Arquitectura Sostenible'},
+  { value: 'Comercial', label: 'Comercial' },
+  { value: 'Paisajismo y Urbanismo', label: 'Paisajismo y Urbanismo' },
+  { value: 'Residencial', label: 'Residencial'},
+  { value: 'Restauración Patrimonial', label: 'Restauración Patrimonial' },
+  { value: 'Conservación', label: 'Conservación' },
+  { value: 'Arquitectura Bioclimática', label: 'Arquitectura Bioclimática' }
 ] as const
 
 // Ratings disponibles para filtro
 export const RATINGS = [
-  { value: '', label: 'Rating' },
+  { value: '', label: 'Calificaciones' },
   { value: '5', label: '5 ⭐⭐⭐⭐⭐' },
   { value: '4', label: '4+ ⭐⭐⭐⭐' },
   { value: '3', label: '3+ ⭐⭐⭐' },
   { value: '2', label: '2+ ⭐⭐' },
   { value: '1', label: '1+ ⭐' },
-  { value: '0', label: 'All Ratings' },
+  { value: '0', label: 'Todas las calificaciones' },
 ] as const
 
 // Estados de verificaciones

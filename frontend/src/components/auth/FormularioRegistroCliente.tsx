@@ -94,47 +94,47 @@ export default function FormularioRegistroClientes({ onSubmit, onRegisterAsArqui
     };
 
     return (
-        <div className="register-card">
+        <div className="frcc-register-card">
             {/* Logo Section */}
-            <div className="logo-section">
-                <div className="logo-color-box"></div>
-                <span className="logo-text">ArquiPro</span>
+            <div className="frcc-logo-section">
+                <div className="frcc-logo-color-box"></div>
+                <span className="frcc-logo-text">ArquiPro</span>
             </div>
 
             {/* Títulos */}
-            <h1 className="welcome-title">Create Your Client Account</h1>
-            <p className="subtitle">Sign up to start browsing portfolios and connecting with top professionals.</p>
+            <h1 className="frcc-welcome-title">Crea tu cuenta de cliente</h1>
+            <p className="frcc-subtitle">Regístrate para empezar a ver portafolios y conectar con profesionales.</p>
 
-            {error && <div className="validation-error">{error}</div>}
+            {error && <div className="frcc-validation-error">{error}</div>}
 
-            <form className="register-form" onSubmit={handleSubmit}>
+            <form className="frcc-register-form" onSubmit={handleSubmit}>
                 
                 {/* Nombre y Apellido (Fila) */}
-                <div className="input-row">
-                    <div className="input-group">
-                        <label htmlFor="nombre" className="input-label">Nombre</label>
-                        <div className="input-with-icon">
-                            <User className="input-start-icon" size={20} color="#adb5bd"/>
+                <div className="frcc-input-row">
+                    <div className="frcc-input-group">
+                        <label htmlFor="nombre" className="frcc-input-label">Nombre</label>
+                        <div className="frcc-input-with-icon">
+                            <User className="frcc-input-start-icon" size={20} color="#adb5bd"/>
                             <input
-                                className="form-input"
+                                className="frcc-form-input"
                                 type="text"
                                 id="nombre"
-                                placeholder="Enter your first name"
+                                placeholder="Introduce tu nombre"
                                 value={formData.nombre}
                                 onChange={handleChange}
                                 required
                             />
                         </div>
                     </div>
-                    <div className="input-group">
-                        <label htmlFor="apellido" className="input-label">Apellido</label>
-                        <div className="input-with-icon">
-                            <User className="input-start-icon" size={20} color="#adb5bd"/>
+                    <div className="frcc-input-group">
+                        <label htmlFor="apellido" className="frcc-input-label">Apellido</label>
+                        <div className="frcc-input-with-icon">
+                            <User className="frcc-input-start-icon" size={20} color="#adb5bd"/>
                             <input
-                                className="form-input"
+                                className="frcc-form-input"
                                 type="text"
                                 id="apellido"
-                                placeholder="Enter your last name"
+                                placeholder="Introduce tu apellido"
                                 value={formData.apellido}
                                 onChange={handleChange}
                                 required
@@ -144,15 +144,15 @@ export default function FormularioRegistroClientes({ onSubmit, onRegisterAsArqui
                 </div>
 
                 {/* Email */}
-                <div className="input-group">
-                    <label htmlFor="email" className="input-label">Email</label>
-                    <div className="input-with-icon">
-                        <Mail className="input-start-icon" size={20} color="#adb5bd"/>
+                <div className="frcc-input-group">
+                    <label htmlFor="email" className="frcc-input-label">Correo electrónico</label>
+                    <div className="frcc-input-with-icon">
+                        <Mail className="frcc-input-start-icon" size={20} color="#adb5bd"/>
                         <input 
-                            className="form-input"
+                            className="frcc-form-input"
                             type="email"
                             id="email"
-                            placeholder="Enter your email address"
+                            placeholder="Introduce tu correo electrónico"
                             value={formData.email}
                             onChange={handleChange}
                             required
@@ -161,15 +161,15 @@ export default function FormularioRegistroClientes({ onSubmit, onRegisterAsArqui
                 </div>
 
                 {/* Contraseña */}
-                <div className="input-group">
-                    <label htmlFor="password" className="input-label">Contraseña</label>
-                    <div className="input-with-icon">
-                        <Lock className="input-start-icon" size={20} color="#adb5bd"/>
+                <div className="frcc-input-group">
+                    <label htmlFor="password" className="frcc-input-label">Contraseña</label>
+                    <div className="frcc-input-with-icon">
+                        <Lock className="frcc-input-start-icon" size={20} color="#adb5bd"/>
                         <input
-                            className="form-input"
+                            className="frcc-form-input"
                             type={showPassword ? "text" : "password"}
                             id="password"
-                            placeholder="Create a password"
+                            placeholder="Crea una contraseña"
                             value={formData.password}
                             onChange={handleChange}
                             required
@@ -177,7 +177,7 @@ export default function FormularioRegistroClientes({ onSubmit, onRegisterAsArqui
                         />
                         <button
                             type="button"
-                            className="password-toggle-icon"
+                            className="frcc-password-toggle-icon"
                             onClick={() => setShowPassword(!showPassword)}
                             aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                         >
@@ -187,15 +187,15 @@ export default function FormularioRegistroClientes({ onSubmit, onRegisterAsArqui
                 </div>
                 
                 {/* Confirmar Contraseña */}
-                <div className="input-group">
-                    <label htmlFor="passwordConfirmation" className="input-label">Confirmar Contraseña</label>
-                    <div className="input-with-icon">
-                        <CornerDownRight className="input-start-icon" size={20} color="#adb5bd"/>
+                <div className="frcc-input-group">
+                    <label htmlFor="passwordConfirmation" className="frcc-input-label">Confirmar contraseña</label>
+                    <div className="frcc-input-with-icon">
+                        <CornerDownRight className="frcc-input-start-icon" size={20} color="#adb5bd"/>
                         <input
-                            className="form-input"
+                            className="frcc-form-input"
                             type={showConfirmPassword ? "text" : "password"}
                             id="passwordConfirmation"
-                            placeholder="Confirm your password"
+                            placeholder="Confirma tu contraseña"
                             value={formData.passwordConfirmation}
                             onChange={handleChange}
                             required
@@ -203,7 +203,7 @@ export default function FormularioRegistroClientes({ onSubmit, onRegisterAsArqui
                         />
                          <button
                             type="button"
-                            className="password-toggle-icon"
+                            className="frcc-password-toggle-icon"
                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                             aria-label={showConfirmPassword ? "Ocultar confirmación de contraseña" : "Mostrar confirmación de contraseña"}
                         >
@@ -213,15 +213,15 @@ export default function FormularioRegistroClientes({ onSubmit, onRegisterAsArqui
                 </div>
 
                 {/* Cédula */}
-                <div className="input-group">
-                    <label htmlFor="cedula" className="input-label">Cédula</label>
-                    <div className="input-with-icon">
-                        <Smartphone className="input-start-icon" size={20} color="#adb5bd"/>
+                <div className="frcc-input-group">
+                    <label htmlFor="cedula" className="frcc-input-label">Cédula</label>
+                    <div className="frcc-input-with-icon">
+                        <Smartphone className="frcc-input-start-icon" size={20} color="#adb5bd"/>
                         <input
-                            className="form-input"
+                            className="frcc-form-input"
                             type="tel"
                             id="cedula"
-                            placeholder="Enter your ID number"
+                            placeholder="Introduce tu número de cédula"
                             value={formData.cedula}
                             onChange={handleCedulaChange}
                             required
@@ -233,23 +233,23 @@ export default function FormularioRegistroClientes({ onSubmit, onRegisterAsArqui
                 {/* Botón de Registro */}
                 <button
                     type="submit"
-                    className="register-button"
+                    className="frcc-register-button"
                 >
-                    Create Account
+                    Crear cuenta
                 </button>
             </form>
 
             {/* Sección de "Already have an account?" */}
-            <div className="signup-text">
-                Already have an account? <a href="/login" className="signup-link">Sign in</a>
+            <div className="frcc-signup-text">
+                ¿Ya tienes una cuenta? <a href="/login" className="frcc-signup-link">Inicia sesión</a>
             </div>
             
             {/* Botón de "Register as Architect" */}
-            <div className="architect-register-container">
-                <button className="architect-register-button"
+            <div className="frcc-architect-register-container">
+                <button className="frcc-architect-register-button"
                     onClick={onRegisterAsArquitecto}
                 >
-                    Register as Architect <CornerDownRight size={20} style={{marginLeft: '8px'}}/>
+                    Registrarme como arquitecto <CornerDownRight size={20} style={{marginLeft: '8px'}}/>
                 </button>
             </div>
         </div>

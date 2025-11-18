@@ -9,7 +9,7 @@ interface ErrorMessageProps {
 }
 
 const ErrorMessage = memo(function ErrorMessage({ 
-  title = 'Oops! Something went wrong',
+  title = '¡Ups! Algo salió mal',
   message, 
   onRetry,
   showIcon = true 
@@ -20,8 +20,8 @@ const ErrorMessage = memo(function ErrorMessage({
       <h2 className="error-title">{title}</h2>
       <p className="error-text">{message}</p>
       {onRetry && (
-        <button onClick={onRetry} className="error-retry-btn">
-          Try Again
+        <button onClick={onRetry} className="error-retry-btn" aria-label="Reintentar">
+          Reintentar
         </button>
       )}
     </div>

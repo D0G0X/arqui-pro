@@ -125,8 +125,17 @@ class Api::V1::ProyectosController < ApplicationController
   private
 
   def proyecto_params
-    params.require(:proyecto).permit(:titulo_proyecto, :valoracion_promedio, :descripcion, :tipo_proyecto, :fecha_publicacion, :arquitecto_id,
-    :conversacion_id, :cliente_id, :solicitud_proyecto_id)
+    params.require(:proyecto).permit(
+      :titulo_proyecto, 
+      :valoracion_promedio, 
+      :descripcion, 
+      :tipo_proyecto, 
+      :fecha_publicacion, 
+      :arquitecto_id,
+      :conversacion_id, 
+      :cliente_id, 
+      :solicitud_proyecto_id
+    )
   end
 
   def set_proyecto
