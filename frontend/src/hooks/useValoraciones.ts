@@ -70,29 +70,50 @@ export const useValoraciones = (options: UseValoracionesOptions = {}) => {
   useEffect(() => {
     if (!autoConnect) return;
 
+    console.log('🔄 Intentando conectar a WebSocket:', SOCKET_URL);
+
     const socketInstance = io(SOCKET_URL, {
-      transports: ['websocket'],
+      transports: ['websocket', 'polling'],
       reconnection: true,
-      reconnectionAttempts: 5,
+      reconnectionAttempts: 10,
       reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      timeout: 20000,
     });
 
     socketInstance.on('connect', () => {
       console.log('✅ Conectado al namespace /valoraciones');
+      console.log('   Socket ID:', socketInstance.id);
       setIsConnected(true);
 
       // Unirse a las salas correspondientes
       if (arquitectoId) {
+        console.log('🔗 Uniéndose a sala arquitecto:', arquitectoId);
         socketInstance.emit('join_arquitecto', { arquitecto_id: arquitectoId });
       }
       if (proyectoId) {
+        console.log('🔗 Uniéndose a sala proyecto:', proyectoId);
         socketInstance.emit('join_proyecto', { proyecto_id: proyectoId });
       }
     });
 
-    socketInstance.on('disconnect', () => {
+    socketInstance.on('connect_error', (error) => {
+      console.error('❌ Error de conexión WebSocket:', error.message);
+      console.error('   URL:', SOCKET_URL);
+    });
+
+    socketInstance.on('disconnect', (reason) => {
       console.log('❌ Desconectado del namespace /valoraciones');
+      console.log('   Razón:', reason);
       setIsConnected(false);
+    });
+
+    socketInstance.on('reconnect_attempt', (attemptNumber) => {
+      console.log('🔄 Intento de reconexión #' + attemptNumber);
+    });
+
+    socketInstance.on('reconnect', (attemptNumber) => {
+      console.log('✅ Reconectado después de', attemptNumber, 'intentos');
     });
 
     // Escuchar eventos de valoraciones
@@ -104,6 +125,7 @@ export const useValoraciones = (options: UseValoracionesOptions = {}) => {
     setSocket(socketInstance);
 
     return () => {
+      console.log('🔌 Desconectando socket de valoraciones');
       socketInstance.off('valoracion:nueva', handleNuevaValoracion);
       socketInstance.off('valoracion:actualizada', handleValoracionActualizada);
       socketInstance.off('valoracion:eliminada', handleValoracionEliminada);
@@ -114,15 +136,28 @@ export const useValoraciones = (options: UseValoracionesOptions = {}) => {
 
   const joinArquitecto = useCallback((id: string) => {
     if (socket && isConnected) {
+      console.log('🔗 Enviando solicitud para unirse a sala arquitecto:', id);
       socket.emit('join_arquitecto', { arquitecto_id: id });
+    } else {
+      console.warn('⚠️ No se puede unir: socket no conectado', { socket: !!socket, isConnected });
     }
   }, [socket, isConnected]);
 
   const joinProyecto = useCallback((id: string) => {
     if (socket && isConnected) {
+      console.log('🔗 Enviando solicitud para unirse a sala proyecto:', id);
       socket.emit('join_proyecto', { proyecto_id: id });
+    } else {
+      console.warn('⚠️ No se puede unir: socket no conectado', { socket: !!socket, isConnected });
     }
   }, [socket, isConnected]);
+
+  // Función para inicializar el promedio con datos de la API
+  const initializePromedio = useCallback((promedioInicial: number, totalInicial: number) => {
+    console.log('🔧 Inicializando promedio:', { promedioInicial, totalInicial });
+    setPromedio(promedioInicial);
+    setTotalValoraciones(totalInicial);
+  }, []);
 
   return {
     socket,
@@ -133,5 +168,6 @@ export const useValoraciones = (options: UseValoracionesOptions = {}) => {
     setValoraciones,
     joinArquitecto,
     joinProyecto,
+    initializePromedio,
   };
 };

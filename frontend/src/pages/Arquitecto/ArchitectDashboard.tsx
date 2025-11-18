@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useArchitectoDashboardRealtime } from '../../hooks/useArchitectoDashboardRealtime';
 import { logger } from '../../utils/logger';
 import arquitectosService from '../../services/api/arquitectosService';
 import proyectosService from '../../services/api/proyectosService';
@@ -18,6 +19,12 @@ const ArchitectDashboard = () => {
   const [avances, setAvances] = useState<Avance[]>([]);
   const [valoraciones, setValoraciones] = useState<Valoracion[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Hook de tiempo real para el dashboard
+  const { stats, isConnected, initialize } = useArchitectoDashboardRealtime({
+    arquitectoId: arquitecto?.id?.toString(),
+    autoConnect: !!arquitecto?.id,
+  });
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -39,18 +46,66 @@ const ArchitectDashboard = () => {
             p => String(p.arquitecto_id) === String(arquitectoEncontrado.id)
           );
           setProyectos(proyectosArquitecto);
-          setProyectosRecientes(proyectosArquitecto.slice(0, 4));
 
-          // Cargar avances
+          // Cargar avances para determinar actividad reciente
+          let avancesArquitecto: Avance[] = [];
           try {
             const allAvances = await avancesService.getAll();
-            const avancesArquitecto = allAvances.filter(
+            avancesArquitecto = allAvances.filter(
               (avance: Avance) => proyectosArquitecto.some(p => p.id === avance.proyecto_id)
             );
             setAvances(avancesArquitecto);
           } catch (error) {
             logger.warn('No se pudieron cargar los avances:', error);
           }
+
+          // Ordenar proyectos por actividad reciente
+          const proyectosConActividad = proyectosArquitecto.map(proyecto => {
+            // Fecha de creación del proyecto
+            const fechaCreacion = new Date(proyecto.created_at || proyecto.fecha_inicio || 0);
+            
+            // Fecha del último avance
+            const avancesProyecto = avancesArquitecto.filter(a => a.proyecto_id === proyecto.id);
+            const fechaUltimoAvance = avancesProyecto.length > 0
+              ? new Date(Math.max(...avancesProyecto.map(a => new Date(a.created_at || a.fecha || 0).getTime())))
+              : new Date(0);
+            
+            // Fecha de última imagen (si existe)
+            const fechaUltimaImagen = proyecto.imagenes && proyecto.imagenes.length > 0
+              ? new Date(Math.max(...proyecto.imagenes.map(img => new Date(img.created_at || 0).getTime())))
+              : new Date(0);
+            
+            // Obtener la fecha más reciente
+            const fechaMasReciente = new Date(Math.max(
+              fechaCreacion.getTime(),
+              fechaUltimoAvance.getTime(),
+              fechaUltimaImagen.getTime()
+            ));
+            
+            return {
+              ...proyecto,
+              ultimaActividad: fechaMasReciente,
+            };
+          });
+
+          // Ordenar por última actividad (más reciente primero) y tomar los primeros 4
+          const proyectosOrdenados = proyectosConActividad.sort((a, b) => 
+            b.ultimaActividad.getTime() - a.ultimaActividad.getTime()
+          );
+          
+          setProyectosRecientes(proyectosOrdenados.slice(0, 4));
+
+          // Inicializar el hook de tiempo real con los datos cargados
+          const proyectosEnProgreso = proyectosArquitecto.filter(p => p.estado === 'en_progreso').length;
+          const proyectosCompletados = proyectosArquitecto.filter(p => p.estado === 'completado').length;
+          
+          initialize({
+            totalProyectos: proyectosArquitecto.length,
+            proyectosEnProgreso,
+            proyectosCompletados,
+            promedioValoracion: arquitectoEncontrado.valoracion_prom_proyecto || 0,
+            totalAvances: avancesArquitecto.length,
+          });
 
           // Cargar valoraciones
           try {
@@ -73,7 +128,7 @@ const ArchitectDashboard = () => {
     };
 
     cargarDatos();
-  }, [user]);
+  }, [user, initialize]);
 
   if (loading) {
     return (
@@ -84,14 +139,28 @@ const ArchitectDashboard = () => {
     );
   }
 
-  // Calcular estadísticas
-  const totalProyectos = proyectos.length;
-  const proyectosEnProgreso = proyectos.filter(p => p.estado === 'en_progreso').length;
-  const proyectosCompletados = proyectos.filter(p => p.estado === 'completado').length;
-  const totalAvances = avances.length;
-  const promedio = valoraciones.length > 0
-    ? valoraciones.reduce((sum, val) => sum + (val.puntuacion || 0), 0) / valoraciones.length
-    : 0;
+  // Usar datos en tiempo real si están disponibles, sino usar los datos estáticos
+  const totalProyectos = isConnected && stats.totalProyectos !== undefined 
+    ? stats.totalProyectos 
+    : proyectos.length;
+    
+  const proyectosEnProgreso = isConnected && stats.proyectosEnProgreso !== undefined
+    ? stats.proyectosEnProgreso
+    : proyectos.filter(p => p.estado === 'en_progreso').length;
+    
+  const proyectosCompletados = isConnected && stats.proyectosCompletados !== undefined
+    ? stats.proyectosCompletados
+    : proyectos.filter(p => p.estado === 'completado').length;
+    
+  const totalAvances = isConnected && stats.totalAvances !== undefined
+    ? stats.totalAvances
+    : avances.length;
+    
+  const promedio = isConnected && stats.promedioValoracion !== undefined
+    ? stats.promedioValoracion
+    : (valoraciones.length > 0
+        ? valoraciones.reduce((sum, val) => sum + (val.puntuacion || 0), 0) / valoraciones.length
+        : arquitecto?.valoracion_prom_proyecto || 0);
 
   return (
     <div className="arquitecto-dashboard">
@@ -105,15 +174,15 @@ const ArchitectDashboard = () => {
       <div className="arquitecto-dashboard-grid">
         {/* Columna Principal */}
         <div className="arquitecto-dashboard-main">
-          {/* Proyectos Recientes */}
+          {/* Proyectos con Actividad Reciente */}
           <section className="seccion-proyectos">
             <div className="seccion-header">
-              <h2 className="seccion-titulo">Mis Proyectos</h2>
+              <h2 className="seccion-titulo">Actividad Reciente</h2>
               <button 
-                onClick={() => navigate('/arquitecto/create-project')} 
-                className="btn-crear-proyecto"
+                onClick={() => navigate('/arquitecto/mis-proyectos')} 
+                className="btn-ver-todos"
               >
-                + Crear Proyecto
+                Ver todos los proyectos →
               </button>
             </div>
             <div className="proyectos-grid">
@@ -164,7 +233,14 @@ const ArchitectDashboard = () => {
         {/* Sidebar Derecho - Estadísticas */}
         <aside className="arquitecto-dashboard-sidebar">
           <section className="seccion-estadisticas">
-            <h2 className="seccion-titulo">Estadísticas</h2>
+            <h2 className="seccion-titulo">
+              Estadísticas
+              {isConnected && (
+                <span className="ws-status-indicator" title="Actualización en tiempo real activa">
+                  🟢 En vivo
+                </span>
+              )}
+            </h2>
             <div className="estadisticas-lista">
               <div className="estadistica-item">
                 <div className="estadistica-icono total">

@@ -113,18 +113,32 @@ export const ModeratorDashboard = () => {
     if (kpisData?.kpisPlataforma) {
       const kpis = kpisData.kpisPlataforma;
       
-      // Inicializar el contador de verificaciones con el valor de GraphQL
+      // Inicializar el contador de verificaciones con el valor de GraphQL solo la primera vez
       if (kpis.arquitectosVerificados > 0 && dashboard.stats.arquitectosVerificados === 0) {
         dashboard.initializeData(undefined, undefined, kpis.arquitectosVerificados);
       }
       
       setStats(prevStats => {
-        // Priorizar datos del WebSocket cuando existan, sino usar GraphQL
-        const totalProyectos = dashboard.stats.totalProyectos || kpis.totalProyectos || 0;
-        const totalIncidencias = dashboard.stats.totalIncidencias || kpis.totalIncidencias || 0;
-        const proyectosNuevos = dashboard.stats.proyectosNuevos || Math.floor((kpis.totalProyectos || 0) * 0.15);
-        const incidenciasPendientes = dashboard.stats.incidenciasPendientes || Math.floor((kpis.totalIncidencias || 0) * 0.3);
-        const arquitectosVerificados = dashboard.stats.arquitectosVerificados || kpis.arquitectosVerificados || 0;
+        // Siempre usar datos del WebSocket si están disponibles (no solo cuando > 0)
+        const totalProyectos = dashboard.stats.totalProyectos !== undefined && dashboard.stats.totalProyectos !== null
+          ? dashboard.stats.totalProyectos 
+          : kpis.totalProyectos || 0;
+          
+        const totalIncidencias = dashboard.stats.totalIncidencias !== undefined && dashboard.stats.totalIncidencias !== null
+          ? dashboard.stats.totalIncidencias 
+          : kpis.totalIncidencias || 0;
+          
+        const proyectosNuevos = dashboard.stats.proyectosNuevos !== undefined && dashboard.stats.proyectosNuevos !== null
+          ? dashboard.stats.proyectosNuevos 
+          : Math.floor((kpis.totalProyectos || 0) * 0.15);
+          
+        const incidenciasPendientes = dashboard.stats.incidenciasPendientes !== undefined && dashboard.stats.incidenciasPendientes !== null
+          ? dashboard.stats.incidenciasPendientes 
+          : Math.floor((kpis.totalIncidencias || 0) * 0.3);
+          
+        const arquitectosVerificados = dashboard.stats.arquitectosVerificados !== undefined && dashboard.stats.arquitectosVerificados !== null
+          ? dashboard.stats.arquitectosVerificados 
+          : kpis.arquitectosVerificados || 0;
         
         return {
           ...prevStats,

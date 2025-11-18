@@ -20,6 +20,7 @@ import ArchitectChat from './pages/Arquitecto/ArchitectChat'
 import CreateProject from './pages/Arquitecto/CreateProject'
 import ArchitectProjectDetail from './pages/Arquitecto/ArchitectProjectDetail'
 import ArquitectoProfile from './pages/Arquitecto/ArquitectoProfile'
+import MisProyectosArquitecto from './pages/Arquitecto/MisProyectos'
 import { ModeratorDashboard, Verificaciones, Incidencias, Reportes } from './pages/Moderator'
 import { ReporteViewer } from './pages/Moderator/ReporteViewer'
 import ClienteLayout from './components/layout/Cliente/ClienteLayout'
@@ -88,6 +89,7 @@ function App() {
                 <Route path="/arquitecto/dashboard" element={<ArchitectDashboard />} />
                 <Route path="/arquitecto/profile" element={<ArchitectDashboard />} />
                 <Route path="/arquitecto/chat" element={<ArchitectChat />} />
+                <Route path="/arquitecto/mis-proyectos" element={<MisProyectosArquitecto />} />
                 <Route path="/arquitecto/create-project" element={<CreateProject />} />
                 <Route path="/arquitecto/project/:id" element={<ArchitectProjectDetail />} />
                 <Route path="/arquitecto/proyectos" element={<ArchitectDashboard />} />

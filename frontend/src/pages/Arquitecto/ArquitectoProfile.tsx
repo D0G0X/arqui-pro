@@ -40,10 +40,12 @@ function ArquitectoProfile() {
   const [arquitectoIdReal, setArquitectoIdReal] = useState<string | null>(null) // ID de la tabla arquitectos
 
   // Hook para actualizaciones en tiempo real de valoraciones
-  const { promedio, totalValoraciones, isConnected: valoracionesConnected } = useValoraciones({
-    arquitectoId: id,
-    autoConnect: !!id
+  // NO pasamos arquitectoId aquí porque necesitamos el ID real de la tabla arquitectos
+  const valoracionesHook = useValoraciones({
+    autoConnect: true
   });
+  
+  const { promedio, totalValoraciones, isConnected: valoracionesConnected, initializePromedio, joinArquitecto } = valoracionesHook;
 
   useEffect(() => {
     // Usamos la consulta GraphQL en lugar de los servicios REST para obtener el perfil completo.
@@ -154,6 +156,18 @@ function ArquitectoProfile() {
       setArquitecto(arquitectoState)
       setProyectos(proyectosFromGql)
 
+      // Inicializar el promedio en el hook de WebSocket (siempre, incluso si es 0)
+      const valoracionInicial = arquitectoFromGql.valoracion_prom_proyecto || 0;
+      const totalValoracionesInicial = perfil.estadisticas?.totalValoraciones || 0;
+      
+      console.log('📈 Inicializando valoraciones desde GraphQL:', {
+        valoracionInicial,
+        totalValoracionesInicial,
+        arquitectoId: id
+      });
+      
+      initializePromedio(valoracionInicial, totalValoracionesInicial);
+
       // 🔧 El ID de la URL puede ser arquitecto_id o usuario_id
       // Intentar ambos para obtener el arquitecto_id real
       try {
@@ -195,6 +209,14 @@ function ArquitectoProfile() {
 
     populateFromGql()
   }, [gqlData, id])
+
+  // Unirse a la sala de WebSocket cuando tengamos el arquitecto_id real y la conexión esté lista
+  useEffect(() => {
+    if (arquitectoIdReal && valoracionesConnected) {
+      console.log('🔌 Uniéndose a la sala del arquitecto (useEffect):', arquitectoIdReal);
+      joinArquitecto(arquitectoIdReal);
+    }
+  }, [arquitectoIdReal, valoracionesConnected, joinArquitecto]);
 
   const getAvatarColor = (name: string) => {
     const index = name.charCodeAt(0) % AVATAR_COLORS.length
@@ -477,9 +499,20 @@ function ArquitectoProfile() {
             <div className="stat-item">
               <Star className="stat-icon" size={28} />
               <span className="stat-value">
-                {promedio && promedio > 0 
-                  ? promedio.toFixed(1) 
-                  : arquitecto.valoracion_prom_proyecto.toFixed(1)}
+                {(() => {
+                  const valor = valoracionesConnected && promedio !== null
+                    ? promedio 
+                    : arquitecto.valoracion_prom_proyecto;
+                  
+                  console.log('🌟 Mostrando valoración:', {
+                    valoracionesConnected,
+                    promedio,
+                    valorEstaticoArquitecto: arquitecto.valoracion_prom_proyecto,
+                    valorMostrado: valor
+                  });
+                  
+                  return valor.toFixed(1);
+                })()}
               </span>
               <span className="stat-label">
                 Valoración

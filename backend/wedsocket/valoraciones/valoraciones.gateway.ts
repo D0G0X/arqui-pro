@@ -55,7 +55,9 @@ export class ValoracionesGateway implements OnGatewayConnection, OnGatewayDiscon
   ) {
     const room = `arquitecto:${payload.arquitecto_id}`;
     client.join(room);
-    this.logger.log(`👤 Cliente ${client.id} se unió a sala de valoraciones ${room}`);
+    this.logger.log(`👤 Cliente ${client.id} se unió a sala de valoraciones del arquitecto`);
+    this.logger.log(`   Arquitecto ID: ${payload.arquitecto_id}`);
+    this.logger.log(`   Sala: ${room}`);
     return { status: 'ok', room };
   }
 
@@ -104,8 +106,12 @@ export class ValoracionesGateway implements OnGatewayConnection, OnGatewayDiscon
   ) {
     this.logger.log(`📢 Emitiendo actualización de valoración promedio del arquitecto: ${arquitecto_id}`);
     this.logger.log(`   Nuevo promedio: ${data.valoracion_promedio}`);
+    this.logger.log(`   Total valoraciones: ${data.total_valoraciones}`);
+    this.logger.log(`   Sala destino: arquitecto:${arquitecto_id}`);
     
     this.server.to(`arquitecto:${arquitecto_id}`).emit('valoracion:promedio_actualizado', data);
+    
+    this.logger.log(`✅ Evento emitido a sala arquitecto:${arquitecto_id}`);
   }
 
   /**

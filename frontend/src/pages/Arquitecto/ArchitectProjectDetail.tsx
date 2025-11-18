@@ -163,19 +163,31 @@ export default function ArchitectProjectDetail() {
     try {
       setFinishingProject(true);
       
-      // Actualizar el proyecto a estado "completado" cambiando el tipo a portafolio
-      await proyectosService.update(id, {
-        tipo_proyecto: 'portafolio'
-      });
+      const updateData = {
+        tipo_proyecto: 'portafolio' as const
+      };
 
-      // Recargar el proyecto
-      const proyectoActualizado = await proyectosService.getById(id);
+      console.log('🔄 Finalizando proyecto:', id);
+      console.log('📦 Datos a enviar:', updateData);
+      
+      // Actualizar el proyecto a portafolio (finalizado)
+      const proyectoActualizado = await proyectosService.update(id, updateData);
+      
+      console.log('✅ Proyecto actualizado:', proyectoActualizado);
+
+      // Actualizar el estado local
       setProyecto(proyectoActualizado as Proyecto);
       
       setShowFinishModal(false);
       alert('¡Proyecto finalizado exitosamente! Ahora forma parte de tu portafolio.');
     } catch (err: any) {
-      alert('Error al finalizar proyecto: ' + err.message);
+      console.error('❌ Error al finalizar proyecto:', err);
+      console.error('📄 Error details:', {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status
+      });
+      alert('Error al finalizar proyecto: ' + (err.response?.data?.error || err.message));
     } finally {
       setFinishingProject(false);
     }

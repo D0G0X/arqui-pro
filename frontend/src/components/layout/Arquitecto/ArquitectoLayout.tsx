@@ -1,6 +1,7 @@
+import { useState } from 'react'
 import { Outlet, useLocation, Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../contexts/AuthContext'
-import { Home, Folder, MessageSquare, User, LogOut, Plus } from 'lucide-react'
+import { Home, Folder, MessageSquare, User, LogOut, Plus, Menu, X } from 'lucide-react'
 import { NotificacionesDropdown } from '../../common/NotificacionesDropdown'
 import '../../../styles/ClienteLayout.css'
 import '../../../styles/Moderator/ModeratorSidebar.css'
@@ -9,6 +10,7 @@ const ArquitectoLayout = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const { user, logout } = useAuth()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const handleLogout = async () => {
     try {
@@ -21,7 +23,7 @@ const ArquitectoLayout = () => {
 
   const menuItems = [
     { path: '/arquitecto/dashboard', icon: Home, label: 'Dashboard' },
-    { path: '/arquitecto/proyectos', icon: Folder, label: 'Mis Proyectos' },
+    { path: '/arquitecto/mis-proyectos', icon: Folder, label: 'Mis Proyectos' },
     { path: '/arquitecto/chat', icon: MessageSquare, label: 'Conversaciones' },
     { path: '/arquitecto/create-project', icon: Plus, label: 'Crear Proyecto' },
     { path: '/arquitecto/profile', icon: User, label: 'Mi Perfil' }
@@ -29,12 +31,25 @@ const ArquitectoLayout = () => {
 
   const isActive = (path: string) => location.pathname === path
 
+  const handleLinkClick = () => {
+    setSidebarOpen(false)
+  }
+
   return (
     <div className="cliente-layout">
       {/* Sidebar - reutiliza clases del moderator sidebar para estilo consistente */}
-      <aside className="cliente-sidebar moderator-sidebar">
+      <aside className={`cliente-sidebar moderator-sidebar ${sidebarOpen ? 'sidebar-open' : ''}`}>
         <div className="moderator-sidebar__header">
-          <h2 className="moderator-sidebar__logo">ArquiPro</h2>
+          <div className="sidebar-header-content">
+            <h2 className="moderator-sidebar__logo">ArquiPro</h2>
+            <button 
+              className="sidebar-close-btn"
+              onClick={() => setSidebarOpen(false)}
+              aria-label="Cerrar menú"
+            >
+              <X size={24} />
+            </button>
+          </div>
           <div className="moderator-sidebar__user">
             <p className="moderator-sidebar__role">Arquitecto</p>
             <p className="moderator-sidebar__access">Acceso Profesional</p>
@@ -49,6 +64,7 @@ const ArquitectoLayout = () => {
               <Link
                 key={item.path}
                 to={item.path}
+                onClick={handleLinkClick}
                 className={`moderator-sidebar__link ${active ? 'moderator-sidebar__link--active' : ''}`}
               >
                 <Icon size={18} />
@@ -70,7 +86,13 @@ const ArquitectoLayout = () => {
         <header className="cliente-header">
           <div className="cliente-header-content">
             <div className="cliente-header-left">
-              {/* El título se puede personalizar desde cada página */}
+              <button 
+                className="hamburger-btn"
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                aria-label="Abrir menú"
+              >
+                <Menu size={24} />
+              </button>
             </div>
 
             <div className="cliente-header-right">
@@ -102,6 +124,14 @@ const ArquitectoLayout = () => {
           <Outlet />
         </main>
       </div>
+      
+      {/* Overlay para cerrar sidebar en móvil */}
+      {sidebarOpen && (
+        <div 
+          className="sidebar-overlay" 
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
     </div>
   )
 }

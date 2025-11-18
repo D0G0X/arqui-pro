@@ -300,10 +300,15 @@ class WebsocketNotifier
     def notify_valoracion_promedio_actualizado(arquitecto)
       return unless arquitecto.present?
       
+      Rails.logger.info "📊 Notificando promedio actualizado para arquitecto #{arquitecto.id}"
+      
       # Calcular total de valoraciones
       total = Valoracion.joins(proyecto: :arquitecto)
                        .where(proyectos: { arquitecto_id: arquitecto.id })
                        .count
+      
+      Rails.logger.info "   Promedio: #{arquitecto.valoracion_prom_proyecto}"
+      Rails.logger.info "   Total valoraciones: #{total}"
       
       uri = URI("#{WS_SERVER_URL}/api/valoraciones/emit/promedio")
       payload = {
@@ -312,9 +317,13 @@ class WebsocketNotifier
         total_valoraciones: total
       }
       
+      Rails.logger.info "   Enviando a: #{uri}"
+      Rails.logger.info "   Payload: #{payload.to_json}"
+      
       send_to_endpoint(uri, payload, "promedio de valoración actualizado")
     rescue => e
       Rails.logger.error "❌ Error notificando promedio actualizado: #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
     end
     
     # Notificar cuando se actualiza una valoración
