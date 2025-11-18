@@ -8,7 +8,10 @@ import {
   BarChart3,
   Loader2,
   Download,
-  CheckCircle2
+  CheckCircle2,
+  X,
+  ExternalLink,
+  Eye
 } from 'lucide-react';
 import { ModeratorLayout } from '../../components/Moderator/ModeratorLayout';
 import { 
@@ -17,7 +20,7 @@ import {
   REPORTE_PROYECTOS,
   REPORTE_INCIDENCIAS
 } from '../../services/graphql/queries';
-import { reportesService } from '../../services/api/reportesService';
+import { reportesService, type ReporteData } from '../../services/api/reportesService';
 import '../../styles/Moderator/Reportes.css';
 
 interface ReporteButton {
@@ -33,6 +36,9 @@ interface ReporteButton {
 export const Reportes = () => {
   const [reporteGenerando, setReporteGenerando] = useState<string | null>(null);
   const [reporteGenerado, setReporteGenerado] = useState<string | null>(null);
+  const [modalAbierto, setModalAbierto] = useState(false);
+  const [reporteActual, setReporteActual] = useState<ReporteData | null>(null);
+  const [htmlReporte, setHtmlReporte] = useState<string>('');
 
   // Lazy queries para cada tipo de reporte
   const [generarKPIs] = useLazyQuery(REPORTE_KPIS_PLATAFORMA, {
@@ -127,26 +133,15 @@ export const Reportes = () => {
       }
 
       // Generar HTML del reporte
-      const htmlReporte = reportesService.generarHTMLReporte(reporte);
+      const html = reportesService.generarHTMLReporte(reporte);
       
-      // Intentar abrir en nueva ventana primero
-      try {
-        // Guardar en sessionStorage para la ruta
-        sessionStorage.setItem(`reporte-${reporteId}`, htmlReporte);
-        const reporteUrl = reportesService.generarUrlReporte(reporteId);
-        
-        const newWindow = window.open(reporteUrl, '_blank', 'width=1200,height=800');
-        
-        // Si se bloqueó el popup, descargar directamente
-        if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-          console.log('Popup bloqueado, descargando archivo directamente...');
-          reportesService.descargarReporte(reporte);
-        }
-      } catch (popupError) {
-        // Si hay cualquier error con popup, descargar directamente
-        console.log('Error con popup, descargando archivo:', popupError);
-        reportesService.descargarReporte(reporte);
-      }
+      // Guardar en sessionStorage para la ruta (por si se abre en nueva pestaña)
+      sessionStorage.setItem(`reporte-${reporteId}`, html);
+
+      // Abrir modal con el reporte
+      setReporteActual(reporte);
+      setHtmlReporte(html);
+      setModalAbierto(true);
 
       setReporteGenerado(boton.id);
       setReporteGenerando(null);
@@ -160,6 +155,25 @@ export const Reportes = () => {
       alert(`Error al generar el reporte: ${error.message || 'Error desconocido'}`);
       setReporteGenerando(null);
     }
+  };
+
+  const handleDescargarReporte = () => {
+    if (reporteActual) {
+      reportesService.descargarReporte(reporteActual);
+    }
+  };
+
+  const handleAbrirEnNuevaVentana = () => {
+    if (reporteActual) {
+      const reporteUrl = reportesService.generarUrlReporte(reporteActual.id);
+      window.open(reporteUrl, '_blank', 'width=1200,height=800');
+    }
+  };
+
+  const handleCerrarModal = () => {
+    setModalAbierto(false);
+    setReporteActual(null);
+    setHtmlReporte('');
   };
 
   return (
@@ -215,8 +229,61 @@ export const Reportes = () => {
             );
           })}
         </div>
-
       </div>
+
+      {/* Modal de Vista Previa del Reporte */}
+      {modalAbierto && reporteActual && (
+        <div className="reporte-modal-overlay" onClick={handleCerrarModal}>
+          <div className="reporte-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="reporte-modal__header">
+              <div className="reporte-modal__title">
+                <Eye size={24} />
+                <h2>Vista Previa del Reporte</h2>
+              </div>
+              <button className="reporte-modal__close" onClick={handleCerrarModal}>
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="reporte-modal__info">
+              <div className="reporte-info-item">
+                <strong>Nombre:</strong> {reporteActual.nombre}
+              </div>
+              <div className="reporte-info-item">
+                <strong>Tipo:</strong> {reporteActual.tipo}
+              </div>
+              <div className="reporte-info-item">
+                <strong>Fecha:</strong> {new Date(reporteActual.fechaGeneracion).toLocaleString('es-ES')}
+              </div>
+            </div>
+
+            <div className="reporte-modal__preview">
+              <iframe
+                srcDoc={htmlReporte}
+                title="Vista previa del reporte"
+                className="reporte-modal__iframe"
+              />
+            </div>
+
+            <div className="reporte-modal__actions">
+              <button 
+                className="reporte-modal__button reporte-modal__button--secondary"
+                onClick={handleAbrirEnNuevaVentana}
+              >
+                <ExternalLink size={18} />
+                Abrir en Nueva Pestaña
+              </button>
+              <button 
+                className="reporte-modal__button reporte-modal__button--primary"
+                onClick={handleDescargarReporte}
+              >
+                <Download size={18} />
+                Descargar Reporte
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </ModeratorLayout>
   );
 };
