@@ -5,6 +5,38 @@
     align-items: center;
     width: 100vw;
     min-height: 100vh;
+    position: relative;
+}
+
+/* Botón para regresar al home */
+.lp-back-to-home-button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    color: #333;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+}
+
+.lp-back-to-home-button:hover {
+    background: #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateX(-2px);
+}
+
+.lp-back-to-home-button:active {
+    transform: translateX(0);
 }
 /* Estilos generales para toda la página de login */
  .lp-login-page-container {

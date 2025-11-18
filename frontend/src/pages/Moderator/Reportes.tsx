@@ -118,18 +118,35 @@ export const Reportes = () => {
         data
       );
 
-      // Generar URL del reporte
-      const reporteUrl = reportesService.generarUrlReporte(reporteId);
-
-      // Guardar el HTML del reporte en sessionStorage para que la ruta pueda accederlo
+      // Obtener el reporte y generar HTML
       const reporte = reportesService.obtenerReporte(reporteId);
-      if (reporte) {
-        const htmlReporte = reportesService.generarHTMLReporte(reporte);
-        sessionStorage.setItem(`reporte-${reporteId}`, htmlReporte);
+      if (!reporte) {
+        alert('Error al procesar el reporte');
+        setReporteGenerando(null);
+        return;
       }
 
-      // Abrir el reporte en una nueva ventana/pestaña
-      window.open(reporteUrl, '_blank', 'width=1200,height=800');
+      // Generar HTML del reporte
+      const htmlReporte = reportesService.generarHTMLReporte(reporte);
+      
+      // Intentar abrir en nueva ventana primero
+      try {
+        // Guardar en sessionStorage para la ruta
+        sessionStorage.setItem(`reporte-${reporteId}`, htmlReporte);
+        const reporteUrl = reportesService.generarUrlReporte(reporteId);
+        
+        const newWindow = window.open(reporteUrl, '_blank', 'width=1200,height=800');
+        
+        // Si se bloqueó el popup, descargar directamente
+        if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+          console.log('Popup bloqueado, descargando archivo directamente...');
+          reportesService.descargarReporte(reporte);
+        }
+      } catch (popupError) {
+        // Si hay cualquier error con popup, descargar directamente
+        console.log('Error con popup, descargando archivo:', popupError);
+        reportesService.descargarReporte(reporte);
+      }
 
       setReporteGenerado(boton.id);
       setReporteGenerando(null);

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import FormularioLogin from "../../components/auth/FormularioLogin";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import "../../styles/auth/login/LoginPage.css";
 import imagenLogin from "../../assets/login.webp"
 
@@ -82,6 +83,16 @@ export default function LoginPage(){
 
     return (
         <div className="lp-login-page-center-container">
+            {/* Botón para regresar al home */}
+            <button 
+                onClick={() => navigate('/')} 
+                className="lp-back-to-home-button"
+                aria-label="Volver al inicio"
+            >
+                <ArrowLeft size={20} />
+                <span>Volver al inicio</span>
+            </button>
+
             <div className="lp-login-page-container">
                 {/* Lado izquierdo para la imagen */}
                 <div className="lp-image-side">
