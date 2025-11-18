@@ -85,7 +85,7 @@ class Api::V1::MensajesController < ApplicationController
   private
 
   def mensaje_params
-    params.require(:mensaje).permit(:contenido, :fecha_envio, :leido, :remitente_id, :conversacion_id)
+    params.require(:mensaje).permit(:contenido, :fecha_envio, :leido, :remitente_id, :conversacion_id, :hora_envio)
   end
 
   def set_mensaje
