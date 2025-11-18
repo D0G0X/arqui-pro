@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_24_230730) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_18_014900) do
   create_schema "auth"
   create_schema "extensions"
   create_schema "graphql"
@@ -96,6 +96,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_24_230730) do
     t.boolean "leido", default: false, null: false
     t.uuid "conversacion_id", null: false
     t.uuid "remitente_id", null: false
+    t.time "hora_envio"
     t.index ["conversacion_id"], name: "index_mensajes_on_conversacion_id"
     t.index ["remitente_id"], name: "index_mensajes_on_remitente_id"
   end
