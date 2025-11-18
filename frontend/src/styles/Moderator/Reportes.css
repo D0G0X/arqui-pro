@@ -61,7 +61,7 @@
   width: 48px;
   height: 48px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -104,7 +104,7 @@
 .reporte-card__button {
   width: 100%;
   padding: 12px 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -121,7 +121,7 @@
 
 .reporte-card__button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
 }
 
 .reporte-card__button:active:not(:disabled) {
@@ -158,7 +158,7 @@
   background: #f8f9fa;
   border-radius: 12px;
   padding: 24px;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid #ff6b35;
 }
 
 .reportes-info h3 {
@@ -187,7 +187,7 @@
   content: '✓';
   position: absolute;
   left: 0;
-  color: #667eea;
+  color: #ff6b35;
   font-weight: bold;
 }
 
@@ -267,7 +267,7 @@
   justify-content: space-between;
   padding: 20px 24px;
   border-bottom: 1px solid #e0e0e0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
   border-radius: 16px 16px 0 0;
   color: white;
 }
@@ -363,23 +363,23 @@
 }
 
 .reporte-modal__button--primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
   color: white;
 }
 
 .reporte-modal__button--primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
 }
 
 .reporte-modal__button--secondary {
   background: white;
-  color: #667eea;
-  border: 2px solid #667eea;
+  color: #ff6b35;
+  border: 2px solid #ff6b35;
 }
 
 .reporte-modal__button--secondary:hover {
-  background: #f0f0ff;
+  background: #fff5f0;
   transform: translateY(-2px);
 }
 

@@ -164,7 +164,7 @@ export default function ArchitectOwnProfile() {
               }}
             >
               <LogOut size={18} />
-              LOG OUT
+              Cerrar Sesión
             </button>
           </div>
         </aside>

@@ -129,7 +129,7 @@ export const ModeratorSidebar = () => {
           className="moderator-sidebar__logout"
         >
           <LogOut size={20} />
-          <span>Log Out</span>
+          <span>Cerrar Sesión</span>
         </button>
       </aside>
     </>
