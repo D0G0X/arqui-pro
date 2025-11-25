@@ -360,15 +360,15 @@ curl http://localhost:8000/health
 - **[REST API](./docs/APIREST.md)** - Endpoints, modelos, autenticación
 - **[GraphQL Gateway](./docs/graphql.md)** - Queries, tipos, ejemplos
 - **[WebSocket Server](./docs/WEBSOCKET_INTEGRATION.md)** - Eventos, namespaces, integración
-- **[Frontend Implementation](./frontend/FRONTEND_IMPLEMENTATION.md)** - REST, GraphQL y WebSocket en React
-- **[Frontend](./frontend/README.md)** - Componentes, routing, estado
+- **[Frontend Implementation](./docs/FRONTEND_IMPLEMENTATION.md)** - REST, GraphQL y WebSocket en React
+- **[Frontend](./docs/README.md)** - Componentes, routing, estado
 
 ### Guías Técnicas Especiales
 
-- **[Frontend Implementation Guide](./frontend/FRONTEND_IMPLEMENTATION.md)** - Cómo se implementaron REST, GraphQL y WebSocket
-- **[Sistema de Caché](./frontend/CACHE_IMPLEMENTATION_SUMMARY.md)** - localStorage, hooks, servicios
-- **[Hooks con Caché](./frontend/src/hooks/HOOKS_WITH_CACHE.md)** - Ejemplos de uso
-- **[Guía Rápida de Caché](./frontend/QUICK_CACHE_GUIDE.md)** - Plantillas para nuevos servicios
+- **[Frontend Implementation Guide](./docs/FRONTEND_IMPLEMENTATION.md)** - Cómo se implementaron REST, GraphQL y WebSocket
+- **[Sistema de Caché](./docs/CACHE_IMPLEMENTATION_SUMMARY.md)** - localStorage, hooks, servicios
+- **[Hooks con Caché](./docs/src/hooks/HOOKS_WITH_CACHE.md)** - Ejemplos de uso
+- **[Guía Rápida de Caché](./docs/QUICK_CACHE_GUIDE.md)** - Plantillas para nuevos servicios
 
 ### Documentación de APIs
 
@@ -574,7 +574,7 @@ const { data } = useUsuarioPerfil(userId)
 - **Carga instantánea** (0ms) en visitas repetidas
 - **Mejor UX** sin flashes de loading
 
-📖 **Documentación completa:** [CACHE_IMPLEMENTATION_SUMMARY.md](./frontend/CACHE_IMPLEMENTATION_SUMMARY.md)
+📖 **Documentación completa:** [CACHE_IMPLEMENTATION_SUMMARY.md](./docs/CACHE_IMPLEMENTATION_SUMMARY.md)
 
 ---
 
