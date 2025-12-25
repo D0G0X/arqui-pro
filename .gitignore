@@ -171,3 +171,7 @@ obj/
 # capturas mcp playwright
 /.playwright-mcp
 */.playwright-mcp
+
+# MCP config
+.cursor/
+*/.cursor/
