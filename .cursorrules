@@ -237,8 +237,9 @@ export class RecursoService {
       const resp = await lastValueFrom(resp$);
       this.logger.log(`[SUCCESS] Recurso creado: ${resp.data.id}`);
       return resp.data;
-    } catch (err: any) {
-      this.logger.error(`[ERROR] Error creando recurso: ${err.message}`);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
+      this.logger.error(`[ERROR] Error creando recurso: ${errorMessage}`);
       throw err;
     }
   }
@@ -318,7 +319,7 @@ export function RecursoList({ filtro, onRecursoSelect }: RecursoListProps) {
         setRecursos(data);
       } catch (err) {
         setError('Error al cargar recursos');
-        console.error(err);
+        // El error se maneja a través del estado, no se usa console.error
       } finally {
         setLoading(false);
       }
