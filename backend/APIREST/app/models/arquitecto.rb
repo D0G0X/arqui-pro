@@ -1,7 +1,7 @@
 class Arquitecto < ApplicationRecord
   # Un arquitecto pertenece a un usuario
   # Cuando se elimina un arquitecto, se elimina también su usuario asociado
-  belongs_to :usuario, dependent: :destroy
+  belongs_to :usuario, dependent: :destroy, optional: true
 
   accepts_nested_attributes_for :usuario
 

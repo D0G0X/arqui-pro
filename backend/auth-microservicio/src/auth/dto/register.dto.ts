@@ -21,7 +21,7 @@ export class RegisterDto {
     email: string;
 
     @IsString()
-    @MinLength(8, { message: 'La contraseña debe tener al menos 8 caracteres' })
+    @MinLength(6, { message: 'La contraseña debe tener al menos 6 caracteres' })
     password: string;
 
     @IsEnum(['cliente', 'arquitecto', 'moderador'], {
@@ -32,4 +32,13 @@ export class RegisterDto {
     @IsOptional()
     @IsString()
     foto_perfil?: string;
+
+    @IsOptional()
+    arquitecto_attributes?: any;
+
+    @IsOptional()
+    cliente_attributes?: any;
+
+    @IsOptional()
+    moderador_attributes?: any;
 }

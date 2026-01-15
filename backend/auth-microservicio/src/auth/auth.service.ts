@@ -14,6 +14,7 @@ import { RefreshToken } from '../entities/refresh-token.entity';
 import { RevokedToken } from '../entities/revoked-token.entity';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { RabbitMQService } from '../rabbitmq/rabbitmq.service';
 
 @Injectable()
 export class AuthService {
@@ -26,6 +27,7 @@ export class AuthService {
         private revokedTokenRepository: Repository<RevokedToken>,
         private jwtService: JwtService,
         private configService: ConfigService,
+        private rabbitMQService: RabbitMQService,
     ) { }
 
     async register(registerDto: RegisterDto) {
@@ -53,6 +55,19 @@ export class AuthService {
         });
 
         await this.usuarioRepository.save(usuario);
+
+        // Emit event to RabbitMQ
+        await this.rabbitMQService.emit('user_created', {
+            id: usuario.id,
+            nombre: usuario.nombre,
+            apellido: usuario.apellido,
+            email: usuario.email,
+            rol: usuario.rol,
+            foto_perfil: usuario.foto_perfil,
+            arquitecto_attributes: registerDto.arquitecto_attributes,
+            cliente_attributes: registerDto.cliente_attributes,
+            moderador_attributes: registerDto.moderador_attributes,
+        });
 
         // Remove password from response
         const { encrypted_password, ...result } = usuario;

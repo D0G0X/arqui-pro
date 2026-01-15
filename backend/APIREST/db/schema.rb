@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_11_18_014900) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_15_163841) do
   create_schema "auth"
   create_schema "extensions"
   create_schema "graphql"
@@ -18,6 +18,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_18_014900) do
   create_schema "pgbouncer"
   create_schema "realtime"
   create_schema "storage"
+  create_schema "supabase_migrations"
   create_schema "vault"
 
   # These are extensions that must be enabled in order to support this database
@@ -133,6 +134,34 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_18_014900) do
     t.check_constraint "tipo_proyecto::text = ANY (ARRAY['portafolio'::character varying::text, 'contratado'::character varying::text])", name: "tipo_proyecto_check"
   end
 
+  create_table "scheduled_task_configs", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "task_name", limit: 255, null: false
+    t.boolean "enabled", default: true
+    t.string "cron_expression", limit: 255, null: false
+    t.text "description"
+    t.timestamptz "last_execution_at"
+    t.timestamptz "next_execution_at"
+    t.timestamptz "created_at", default: -> { "CURRENT_TIMESTAMP" }
+    t.timestamptz "updated_at", default: -> { "CURRENT_TIMESTAMP" }
+
+    t.unique_constraint ["task_name"], name: "scheduled_task_configs_task_name_key"
+  end
+
+  create_table "scheduled_task_executions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "task_name", limit: 255, null: false
+    t.string "status", limit: 50, null: false
+    t.timestamptz "started_at", default: -> { "CURRENT_TIMESTAMP" }
+    t.timestamptz "completed_at"
+    t.text "error_message"
+    t.jsonb "execution_data"
+    t.timestamptz "created_at", default: -> { "CURRENT_TIMESTAMP" }
+    t.timestamptz "updated_at", default: -> { "CURRENT_TIMESTAMP" }
+    t.index ["started_at"], name: "idx_scheduled_task_executions_started_at"
+    t.index ["status"], name: "idx_scheduled_task_executions_status"
+    t.index ["task_name"], name: "idx_scheduled_task_executions_task_name"
+    t.check_constraint "status::text = ANY (ARRAY['pending'::character varying, 'running'::character varying, 'completed'::character varying, 'failed'::character varying]::text[])", name: "scheduled_task_executions_status_check"
+  end
+
   create_table "solicitudes_proyecto", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "estado", default: "pendiente", null: false
     t.date "fecha", default: -> { "CURRENT_DATE" }, null: false
@@ -180,9 +209,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_18_014900) do
     t.check_constraint "estado::text = ANY (ARRAY['pendiente'::character varying::text, 'verificado'::character varying::text, 'rechazado'::character varying::text])", name: "estado_check"
   end
 
-  add_foreign_key "arquitectos", "usuarios"
   add_foreign_key "avances", "proyectos"
-  add_foreign_key "clientes", "usuarios"
   add_foreign_key "conversaciones", "arquitectos"
   add_foreign_key "conversaciones", "clientes"
   add_foreign_key "imagen_asociaciones", "imagenes"
@@ -191,7 +218,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_18_014900) do
   add_foreign_key "incidencias", "usuarios", column: "usuario_infractor_id"
   add_foreign_key "mensajes", "conversaciones"
   add_foreign_key "mensajes", "usuarios", column: "remitente_id"
-  add_foreign_key "moderadores", "usuarios"
   add_foreign_key "notificaciones", "usuarios"
   add_foreign_key "proyectos", "arquitectos"
   add_foreign_key "proyectos", "clientes"
