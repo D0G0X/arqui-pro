@@ -14,8 +14,8 @@ Asegúrate de tener un archivo `.env` en la raíz de la carpeta con las siguient
 ```env
 DB_HOST=tu_host_supabase
 DB_PORT=5432
-DB_USERNAME=postgres
-DB_PASSWORD=tu_password
+DB_USER=postgres
+DB_PASS=tu_password
 DB_NAME=postgres
 DB_SSL=true
 
@@ -26,6 +26,8 @@ JWT_REFRESH_EXPIRATION=7d
 
 PORT=3001
 ```
+
+**Nota importante:** Los nombres de las variables de entorno son `DB_USER` y `DB_PASS` (no `DB_USERNAME` ni `DB_PASSWORD`).
 
 ## Guía de Pruebas (Endpoints)
 

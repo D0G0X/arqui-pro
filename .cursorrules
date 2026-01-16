@@ -12,6 +12,7 @@ Este es un proyecto multi-stack que incluye:
 ##  CONVENCIONES GENERALES
 
 ### Idioma y Documentación
+- Evita readmes.md innecesarios
 - **Siempre responde en español** para comentarios, documentación y mensajes
 - Incluye comentarios de documentación claros (docstrings/comentarios) para todas las funciones y clases públicas
 - Explica propósito, argumentos y retorno en la documentación

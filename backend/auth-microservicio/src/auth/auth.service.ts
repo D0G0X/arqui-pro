@@ -246,22 +246,53 @@ export class AuthService {
         };
     }
 
-    // Cleanup expired tokens periodically (can be called by a cron job)
+    /**
+     * Limpia tokens expirados de la base de datos.
+     * Elimina tokens revocados y refresh tokens que ya expiraron.
+     * 
+     * @returns Estadísticas de la limpieza realizada
+     */
     async cleanupExpiredTokens() {
         const now = new Date();
 
-        // Delete expired revoked tokens
-        await this.revokedTokenRepository
+        // Contar tokens revocados expirados antes de eliminarlos
+        const expiredRevokedCount = await this.revokedTokenRepository
+            .createQueryBuilder('revoked_token')
+            .where('revoked_token.expira_en < :now', { now })
+            .getCount();
+
+        // Eliminar tokens revocados expirados
+        const revokedResult = await this.revokedTokenRepository
             .createQueryBuilder()
             .delete()
             .where('expira_en < :now', { now })
             .execute();
 
-        // Delete expired refresh tokens
-        await this.refreshTokenRepository
+        // Contar refresh tokens expirados antes de eliminarlos
+        const expiredRefreshCount = await this.refreshTokenRepository
+            .createQueryBuilder('refresh_token')
+            .where('refresh_token.expiracion < :now', { now })
+            .getCount();
+
+        // Eliminar refresh tokens expirados
+        const refreshResult = await this.refreshTokenRepository
             .createQueryBuilder()
             .delete()
             .where('expiracion < :now', { now })
             .execute();
+
+        return {
+            success: true,
+            timestamp: new Date().toISOString(),
+            deleted: {
+                revoked_tokens: revokedResult.affected || 0,
+                refresh_tokens: refreshResult.affected || 0,
+                total: (revokedResult.affected || 0) + (refreshResult.affected || 0),
+            },
+            found: {
+                expired_revoked_tokens: expiredRevokedCount,
+                expired_refresh_tokens: expiredRefreshCount,
+            },
+        };
     }
 }

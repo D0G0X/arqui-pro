@@ -6,6 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { ApiKeyGuard } from './guards/api-key.guard';
 import { Usuario } from '../entities/usuario.entity';
 import { RefreshToken } from '../entities/refresh-token.entity';
 import { RevokedToken } from '../entities/revoked-token.entity';
@@ -18,7 +19,7 @@ import { RevokedToken } from '../entities/revoked-token.entity';
         TypeOrmModule.forFeature([Usuario, RefreshToken, RevokedToken]),
     ],
     controllers: [AuthController],
-    providers: [AuthService, JwtStrategy],
+    providers: [AuthService, JwtStrategy, ApiKeyGuard],
     exports: [AuthService],
 })
 export class AuthModule { }

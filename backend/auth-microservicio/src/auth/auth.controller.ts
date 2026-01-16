@@ -15,6 +15,7 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { ApiKeyGuard } from './guards/api-key.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -65,5 +66,17 @@ export class AuthController {
         } catch (error) {
             return { valid: false, message: error.message };
         }
+    }
+
+    /**
+     * Endpoint para limpiar tokens expirados.
+     * Protegido con API Key para uso por servicios externos (n8n).
+     * Elimina tokens revocados y refresh tokens que ya expiraron.
+     */
+    @Post('cleanup-tokens')
+    @UseGuards(ApiKeyGuard)
+    @HttpCode(HttpStatus.OK)
+    async cleanupTokens() {
+        return this.authService.cleanupExpiredTokens();
     }
 }
