@@ -66,3 +66,5 @@ group :development, :test do
   # Cargar variables de entorno desde .env
   gem 'dotenv-rails'
 end
+gem 'bunny'
+gem 'dotenv-rails', groups: [:development, :test]

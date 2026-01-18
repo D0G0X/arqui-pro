@@ -12,7 +12,7 @@ export class AuthProxyController {
         private readonly httpService: HttpService,
         private readonly configService: ConfigService,
     ) {
-        this.authServiceUrl = this.configService.get<string>('AUTH_SERVICE_URL', 'http://localhost:3001');
+        this.authServiceUrl = this.configService.get<string>('AUTH_SERVICE_URL', 'http://localhost:4001');
     }
 
     @All('*')

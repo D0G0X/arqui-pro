@@ -14,6 +14,7 @@ import { RefreshToken } from '../entities/refresh-token.entity';
 import { RevokedToken } from '../entities/revoked-token.entity';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { RabbitMQService } from '../rabbitmq/rabbitmq.service';
 
 @Injectable()
 export class AuthService {
@@ -26,6 +27,7 @@ export class AuthService {
         private revokedTokenRepository: Repository<RevokedToken>,
         private jwtService: JwtService,
         private configService: ConfigService,
+        private rabbitMQService: RabbitMQService,
     ) { }
 
     async register(registerDto: RegisterDto) {
@@ -36,6 +38,44 @@ export class AuthService {
 
         if (existingUser) {
             throw new ConflictException('El email ya está registrado');
+        }
+
+        // Validación síncrona de cédula con el servicio principal (APIREST)
+        if (registerDto.rol === 'cliente' || registerDto.rol === 'arquitecto') {
+            const apiRestUrl = this.configService.get<string>('APIREST_URL');
+            const attributes = registerDto.rol === 'cliente'
+                ? registerDto.cliente_attributes
+                : registerDto.arquitecto_attributes;
+
+            const cedula = attributes?.cedula;
+
+            if (cedula) {
+                try {
+                    const response = await fetch(`${apiRestUrl}/identity/validate`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            rol: registerDto.rol,
+                            cedula: cedula,
+                        }),
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new ConflictException(
+                            errorData.error || `La cédula ${cedula} ya está registrada en el sistema`
+                        );
+                    }
+                } catch (error) {
+                    if (error instanceof ConflictException || error instanceof BadRequestException) {
+                        throw error;
+                    }
+                    console.error('Error al validar identidad con APIREST:', error);
+                    throw new BadRequestException('No se pudo validar la identidad en el servidor principal');
+                }
+            }
         }
 
         // Hash password
@@ -53,6 +93,19 @@ export class AuthService {
         });
 
         await this.usuarioRepository.save(usuario);
+
+        // Emit event to RabbitMQ
+        await this.rabbitMQService.emit('user_created', {
+            id: usuario.id,
+            nombre: usuario.nombre,
+            apellido: usuario.apellido,
+            email: usuario.email,
+            rol: usuario.rol,
+            foto_perfil: usuario.foto_perfil,
+            arquitecto_attributes: registerDto.arquitecto_attributes,
+            cliente_attributes: registerDto.cliente_attributes,
+            moderador_attributes: registerDto.moderador_attributes,
+        });
 
         // Remove password from response
         const { encrypted_password, ...result } = usuario;
@@ -118,6 +171,7 @@ export class AuthService {
                     sub: storedToken.usuario.id,
                     email: storedToken.usuario.email,
                     rol: storedToken.usuario.rol,
+                    iss: this.configService.get<string>('JWT_ISSUER', 'auth-service'),
                 },
                 {
                     secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
@@ -212,6 +266,7 @@ export class AuthService {
             sub: usuario.id,
             email: usuario.email,
             rol: usuario.rol,
+            iss: this.configService.get<string>('JWT_ISSUER', 'auth-service'),
         };
 
         // Generate access token (short-lived)
