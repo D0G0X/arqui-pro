@@ -38,20 +38,9 @@ gem "rack-cors"
 # Para serializar los modelos
 gem "active_model_serializers"
 
-group :development, :test do
-  # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
-  gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
-
-  # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
-  gem "brakeman", require: false
-
-  # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
-  gem "rubocop-rails-omakase", require: false
-end
-
 gem "devise", "~> 4.9"
 gem 'devise-jwt'
-
+gem 'bunny'
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
@@ -66,5 +55,3 @@ group :development, :test do
   # Cargar variables de entorno desde .env
   gem 'dotenv-rails'
 end
-gem 'bunny'
-gem 'dotenv-rails', groups: [:development, :test]
