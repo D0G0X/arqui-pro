@@ -4,6 +4,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule } from '@nestjs/config';
 import { AuthService } from './auth.service';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { ApiKeyGuard } from './guards/api-key.guard';
 import { AuthController } from './auth.controller';
 import { Usuario } from '../entities/usuario.entity';
 import { RefreshToken } from '../entities/refresh-token.entity';
@@ -20,7 +22,7 @@ import { RabbitMQModule } from '../rabbitmq/rabbitmq.module';
         RabbitMQModule,
     ],
     controllers: [AuthController],
-    providers: [AuthService, JwtStrategy],
+    providers: [AuthService, JwtStrategy, ApiKeyGuard],
     exports: [AuthService],
 })
 export class AuthModule { }

@@ -162,6 +162,20 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_15_163841) do
     t.check_constraint "status::text = ANY (ARRAY['pending'::character varying, 'running'::character varying, 'completed'::character varying, 'failed'::character varying]::text[])", name: "scheduled_task_executions_status_check"
   end
 
+  create_table "sistema_logs", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "tipo", null: false
+    t.text "mensaje", null: false
+    t.jsonb "datos"
+    t.string "estado", null: false
+    t.datetime "fecha_ejecucion", precision: nil, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["estado"], name: "index_sistema_logs_on_estado"
+    t.index ["fecha_ejecucion"], name: "index_sistema_logs_on_fecha_ejecucion"
+    t.index ["tipo"], name: "index_sistema_logs_on_tipo"
+    t.check_constraint "estado::text = ANY (ARRAY['exito'::character varying, 'error'::character varying]::text[])", name: "estado_log_check"
+  end
+
   create_table "solicitudes_proyecto", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "estado", default: "pendiente", null: false
     t.date "fecha", default: -> { "CURRENT_DATE" }, null: false

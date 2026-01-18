@@ -62,6 +62,7 @@ Rails.application.routes.draw do
       resources :mensajes
       resources :imagenes
       resources :imagen_asociaciones
+      resources :sistema_logs, only: [:create, :index, :show]
     end
   end
 end
