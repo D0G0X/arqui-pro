@@ -2,6 +2,7 @@ import { Outlet, useLocation, Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../contexts/AuthContext'
 import { Home, Folder, MessageSquare, Search, LogOut } from 'lucide-react'
 import { NotificacionesDropdown } from '../../common/NotificacionesDropdown'
+import AIChatFloat from '../../AIChatFloat'
 import '../../../styles/ClienteLayout.css'
 import '../../../styles/Moderator/ModeratorSidebar.css'
 
@@ -101,6 +102,15 @@ const ClienteLayout = () => {
           <Outlet />
         </main>
       </div>
+
+      {/* AI Chat Float Button */}
+      {user && (
+        <AIChatFloat 
+          userId={user.id}
+          userRole="cliente"
+          mode="float"
+        />
+      )}
     </div>
   )
 }

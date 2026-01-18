@@ -1,8 +1,9 @@
 class Api::V1::SolicitudesProyectoController < ApplicationController
   before_action :set_solicitud, only: %i[update show destroy]
 
-  # Solo usuarios autenticados pueden crear/actualizar/eliminar
-  before_action :authenticate_usuario!, only: %i[create update destroy]
+  # Solo usuarios autenticados pueden actualizar/eliminar
+  # NOTA: create NO requiere autenticación para permitir chatbot AI
+  before_action :authenticate_usuario!, only: %i[update destroy]
   # Solo usuarios propietarios pueden actualizar/eliminar
   before_action :require_solicitud_ownership!, only: %i[update destroy]
 
@@ -13,6 +14,13 @@ class Api::V1::SolicitudesProyectoController < ApplicationController
 
   def create
     @solicitud = SolicitudProyecto.new(solicitud_params)
+    
+    # Validar que al menos cliente_id esté presente
+    if solicitud_params[:cliente_id].blank?
+      render json: { error: "cliente_id es requerido" }, status: :unprocessable_entity
+      return
+    end
+    
     if @solicitud.save
       render json: @solicitud, status: :created
     else

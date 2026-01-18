@@ -1,8 +1,9 @@
 class Api::V1::AvancesController < ApplicationController
   before_action :set_avance, only: %i[update show destroy]
-  # Solo arquitectos autenticados pueden crear/actualizar/eliminar
-  before_action :authenticate_usuario!, only: %i[create update destroy]
-  before_action :require_arquitecto!, only: %i[create update destroy]
+  # Permitir create sin autenticación para chatbot AI
+  # Solo arquitectos autenticados pueden actualizar/eliminar
+  before_action :authenticate_usuario!, only: %i[update destroy]
+  before_action :require_arquitecto!, only: %i[update destroy]
   before_action :require_avance_ownership!, only: %i[update destroy]
 
   def index
@@ -22,7 +23,7 @@ class Api::V1::AvancesController < ApplicationController
   end
 
   def create
-    # Verificar que el proyecto existe y pertenece al arquitecto
+    # Verificar que el proyecto existe
     proyecto = Proyecto.find_by(id: avance_params[:proyecto_id])
     
     unless proyecto
@@ -30,16 +31,22 @@ class Api::V1::AvancesController < ApplicationController
       return
     end
     
-    Rails.logger.info "🔒 [AVANCE CREATE] Proyecto arquitecto_id: #{proyecto.arquitecto_id}, Current arquitecto_id: #{current_arquitecto&.id}"
-    
-    # Verificar que el arquitecto actual es el dueño del proyecto
-    unless proyecto.arquitecto_id == current_arquitecto&.id
-      Rails.logger.error "    ❌ No autorizado: Arquitecto no es dueño del proyecto"
-      render json: { error: "No autorizado para crear avances en este proyecto" }, status: :forbidden
-      return
+    # Solo validar ownership si hay autenticación (viene de UI)
+    # Si no hay autenticación, asumir que viene del chatbot AI
+    if current_arquitecto.present?
+      Rails.logger.info "🔒 [AVANCE CREATE] Proyecto arquitecto_id: #{proyecto.arquitecto_id}, Current arquitecto_id: #{current_arquitecto&.id}"
+      
+      # Verificar que el arquitecto actual es el dueño del proyecto
+      unless proyecto.arquitecto_id == current_arquitecto&.id
+        Rails.logger.error "    ❌ No autorizado: Arquitecto no es dueño del proyecto"
+        render json: { error: "No autorizado para crear avances en este proyecto" }, status: :forbidden
+        return
+      end
+      
+      Rails.logger.info "    ✅ Autorizado: Creando avance para proyecto #{proyecto.id}"
+    else
+      Rails.logger.info "🤖 [AVANCE CREATE] Creación desde chatbot AI para proyecto #{proyecto.id}"
     end
-    
-    Rails.logger.info "    ✅ Autorizado: Creando avance para proyecto #{proyecto.id}"
 
     @avance = Avance.new(avance_params)
     if @avance.save

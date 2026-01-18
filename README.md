@@ -53,24 +53,25 @@
 ## 🏗️ Arquitectura del Sistema
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      FRONTEND (React)                        │
-│          http://localhost:5173 (Vite Dev Server)            │
-└──────┬───────────────────────┬───────────────────┬──────────┘
-       │                       │                   │
-       │ REST API              │ GraphQL           │ WebSocket
-       │ (CRUD básico)         │ (Queries complejas)│ (Tiempo real)
-       ▼                       ▼                   ▼
-┌──────────────┐      ┌──────────────┐    ┌──────────────┐
-│   Rails API  │      │   GraphQL    │    │  WebSocket   │
-│ :3000/api/v1 │      │   Gateway    │    │   Server     │
-│              │◄─────│   :8000      │    │   :3006      │
-│ (PostgreSQL) │ HTTP │   (Python)   │    │  (NestJS)    │
-└──────────────┘      └──────────────┘    └──────────────┘
-       │                                           │
-       │           Database: Supabase             │
-       │           (PostgreSQL Cloud)              │
-       └───────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                      FRONTEND (React)                             │
+│              http://localhost:5173 (Vite Dev Server)             │
+└──────┬───────────────────────┬────────────────┬──────────────────┘
+       │                       │                │
+       │ REST API              │ GraphQL        │ WebSocket
+       │ (CRUD)                │ (Queries)      │ (Real-time)
+       ▼                       ▼                ▼
+┌──────────────┐      ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+│   Rails API  │      │   GraphQL    │  │  WebSocket   │  │ AI Chatbot   │ 🆕
+│ :3000/api/v1 │◄─────│   Gateway    │  │   Server     │  │   :8001      │
+│              │ HTTP │   :8000      │  │   :3006      │  │ (MCP Tools)  │
+│ (PostgreSQL) │      │   (Python)   │  │  (NestJS)    │  │  (FastAPI)   │
+└──────────────┘      └──────────────┘  └──────────────┘  └───────┬──────┘
+       │                      │                │                   │
+       │                      │                │        LLM APIs   │
+       │           Database: Supabase          │      (Gemini/GPT) │
+       │           (PostgreSQL Cloud)          │                   ▼
+       └───────────────────────────────────────┘            Cloud AI
 ```
 
 ### Flujo de Datos
@@ -79,6 +80,7 @@
    - **REST API** → CRUD básico (crear, actualizar, eliminar)
    - **GraphQL** → Consultas complejas y agregadas
    - **WebSocket** → Chat y notificaciones en tiempo real
+   - **AI Chatbot** 🆕 → Chat conversacional con IA multimodal
 
 2. **GraphQL Gateway** actúa como agregador:
    - Consume múltiples endpoints REST
@@ -89,6 +91,12 @@
    - Chat en tiempo real entre usuarios
    - Notificaciones push instantáneas
    - Presencia online/offline
+
+4. **AI Orchestrator (Pilar 3)** 🆕 - Sistema de IA conversacional:
+   - **MCP Tools**: Ejecuta acciones de negocio (buscar arquitectos, crear solicitudes, etc.)
+   - **LLM Adapters**: Patrón Strategy para Gemini/OpenAI/Claude
+   - **Multimodal**: Procesa texto, imágenes (OCR) y PDFs
+   - **WebSocket Chat**: Chat en tiempo real con el asistente IA
 
 ---
 
@@ -117,7 +125,15 @@
 - **Strawberry GraphQL** 0.249+
 - **httpx** (Cliente HTTP asíncrono)
 - **Uvicorn** (Servidor ASGI)
+ckend - AI Chatbot (Pilar 3) 🆕
+- **Python** 3.11+
+- **FastAPI** 0.115+
+- **OpenAI / Gemini APIs** (LLMs)
+- **Tesseract OCR** (imágenes)
+- **PyPDF2 / pdfplumber** (PDFs)
+- **Patrón Strategy** (LLM adapters)
 
+### Ba
 ### Backend - WebSocket
 - **Node.js** 20+
 - **NestJS** 11.0.1
@@ -304,7 +320,51 @@ npm run start:dev
 **Servidor disponible en:** `http://localhost:3006`  
 **Namespaces:** `/chat` y `/notificaciones`
 
-#### 5️⃣ Frontend - React App
+#### 5️⃣ Backend - AI Orchestrator (Pilar 3) 🆕
+
+```bash
+cd backend/ai-orchestrator
+
+# Crear entorno virtual
+python -m venv venv
+
+# Activar entorno (Windows PowerShell)
+.\venv\Scripts\Activate.ps1
+
+# Activar entorno (Mac/Linux)
+source venv/bin/activate
+
+# Instalar dependencias
+pip install -r requirements.txt
+
+# ⚠️ IMPORTANTE: Instalar Tesseract OCR primero
+# Windows: https://github.com/UB-Mannheim/tesseract/wiki
+# Linux: sudo apt-get install tesseract-ocr tesseract-ocr-spa
+# macOS: brew install tesseract
+
+# Configurar variables de entorno
+cp .env.example .env
+
+# Editar .env y agregar tu API key de Gemini o OpenAI:
+# GEMINI_API_KEY=AIzaSy...  (conseguir en https://aistudio.google.com/app/apikey)
+# O
+# OPENAI_API_KEY=sk-proj-...  (conseguir en https://platform.openai.com/api-keys)
+
+# Iniciar servidor
+python main.py
+```
+
+**Servidor disponible en:** `http://localhost:8001`  
+**Documentación:** Ver [backend/ai-orchestrator/README.md](backend/ai-orchestrator/README.md)
+
+**MCP Tools disponibles:**
+- `buscar_arquitectos` - Búsqueda con filtros
+- `obtener_proyecto` - Detalles de proyecto
+- `crear_solicitud` - Nueva solicitud de proyecto
+- `publicar_avance` - Publicar avance en proyecto
+- `estadisticas_arquitecto` - KPIs y métricas
+
+#### 6️⃣ Frontend - React App
 
 ```bash
 cd frontend
@@ -321,7 +381,8 @@ cp .env.example .env
 # VITE_WS_URL=http://localhost:3006
 
 # Iniciar en modo desarrollo
-npm run dev
+npm AI Chatbot** 🆕 | 8001 | http://localhost:8001 | Asistente IA con MCP Tools |
+| **run dev
 ```
 
 **Aplicación disponible en:** `http://localhost:5173`
@@ -331,7 +392,10 @@ npm run dev
 ## 🌐 Servicios y Puertos
 
 | Servicio | Puerto | URL | Descripción |
-|----------|--------|-----|-------------|
+|-AI Chatbot 🆕
+curl http://localhost:8001/health
+
+# ---------|--------|-----|-------------|
 | **Frontend** | 5173 | http://localhost:5173 | React App (Vite) |
 | **REST API** | 3000 | http://localhost:3000/api/v1 | Rails backend |
 | **GraphQL** | 8000 | http://localhost:8000/graphql | Gateway de consultas |
@@ -360,6 +424,9 @@ curl http://localhost:8000/health
 - **[REST API](./docs/APIREST.md)** - Endpoints, modelos, autenticación
 - **[GraphQL Gateway](./docs/graphql.md)** - Queries, tipos, ejemplos
 - **[WebSocket Server](./docs/WEBSOCKET_INTEGRATION.md)** - Eventos, namespaces, integración
+- **[AI Chatbot (Pilar 3)](./backend/ai-orchestrator/README.md)** 🆕 - MCP Tools, LLM Adapters, multimodal
+  - **[Documentación Académica](./docs/PILAR3_MCP_CHATBOT.md)** - Sustentación completa del Pilar 3
+  - **[Guía de Inicio Rápido](./backend/ai-orchestrator/QUICK_START.md)** - Setup en 5 minutos
 - **[Frontend Implementation](./frontend/FRONTEND_IMPLEMENTATION.md)** - REST, GraphQL y WebSocket en React
 - **[Frontend](./frontend/README.md)** - Componentes, routing, estado
 
@@ -369,6 +436,7 @@ curl http://localhost:8000/health
 - **[Sistema de Caché](./frontend/CACHE_IMPLEMENTATION_SUMMARY.md)** - localStorage, hooks, servicios
 - **[Hooks con Caché](./frontend/src/hooks/HOOKS_WITH_CACHE.md)** - Ejemplos de uso
 - **[Guía Rápida de Caché](./frontend/QUICK_CACHE_GUIDE.md)** - Plantillas para nuevos servicios
+- **[Pilar 3: MCP Chatbot](./docs/PILAR3_MCP_CHATBOT.md)** 🆕 - Documentación académica completa
 
 ### Documentación de APIs
 
