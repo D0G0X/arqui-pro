@@ -191,7 +191,12 @@ end
 ### Desarrollo (Puerto 3000)
 
 ```cmd
-cd c:\Users\leoan\Desktop\arqui-pro\backend\APIREST
+# Paso 1: Iniciar RabbitMQ con Docker
+cd c:\Users\usuario\Repositorios GitHub\QuintoSemestre\arqui-pro\backend
+docker-compose up -d
+
+# Paso 2: Navegar al directorio de la API
+cd APIREST
 
 # Terminal 1: Servidor API REST (HTTP)
 rails s
@@ -200,7 +205,7 @@ rails s
 ruby bin/rails rabbitmq:consume
 ```
 
-El servidor estará disponible en: **http://localhost:3000** y el consumidor estará escuchando eventos en segundo plano.
+El servidor estará disponible en: **http://localhost:3000**, el consumidor estará escuchando eventos en segundo plano, y RabbitMQ Management UI estará disponible en: **http://localhost:15672** (usuario: `guest`, contraseña: `guest`).
 
 ### Producción con Docker
 

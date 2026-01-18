@@ -4,6 +4,21 @@ class ApplicationController < ActionController::API
 
   before_action :configure_permitted_parameters, if: :devise_controller?
 
+  # Struct to represent authenticated user from JWT (not from database)
+  CurrentUser = Struct.new(:id, :email, :rol, :nombre, :apellido, keyword_init: true) do
+    def arquitecto?
+      rol == 'arquitecto'
+    end
+
+    def cliente?
+      rol == 'cliente'
+    end
+
+    def moderador?
+      rol == 'moderador'
+    end
+  end
+
   def current
     render json: current_usuario
   end
@@ -23,27 +38,49 @@ class ApplicationController < ActionController::API
     Rails.logger.info "🔐 [AUTH] Request to: #{request.path}"
     Rails.logger.info "    Token present: #{token.present?}"
     
-    if token
-      begin
-        payload = JWT.decode(token, JWT_SECRET_KEY, true, { algorithm: JWT_ALGORITHM }).first
-        @current_usuario = Usuario.find(payload['sub'])
-        
-        Rails.logger.info "    ✅ Usuario autenticado: #{@current_usuario.email} (#{@current_usuario.rol})"
-        
-        # Verificar que el JTI no haya sido revocado
-        if payload['jti'] != @current_usuario.jti
-          Rails.logger.error "    ❌ Token revocado para usuario #{@current_usuario.email}"
-          render json: { error: 'Token revocado' }, status: :unauthorized
-          return
-        end
-      rescue JWT::DecodeError, JWT::ExpiredSignature, ActiveRecord::RecordNotFound => e
-        Rails.logger.error "    ❌ Error de autenticación: #{e.class} - #{e.message}"
-        render json: { error: 'Token inválido o expirado' }, status: :unauthorized
-        return
-      end
-    else
+    unless token
       Rails.logger.error "    ❌ No se proporcionó token de autorización"
       render json: { error: 'Token de autorización requerido' }, status: :unauthorized
+      return
+    end
+
+    begin
+      # Decode and validate JWT with shared secret
+      payload = JWT.decode(
+        token, 
+        JWT_SECRET_KEY, 
+        true, 
+        { 
+          algorithm: JWT_ALGORITHM,
+          verify_iss: true,
+          iss: JWT_ISSUER
+        }
+      ).first
+      
+      Rails.logger.info "    ✅ Token válido - Usuario: #{payload['email']} (#{payload['rol']})"
+      
+      # Create CurrentUser from JWT payload (no database lookup)
+      @current_usuario = CurrentUser.new(
+        id: payload['sub'],
+        email: payload['email'],
+        rol: payload['rol'],
+        nombre: nil,  # Not included in JWT, can be fetched separately if needed
+        apellido: nil
+      )
+      
+      Rails.logger.info "    ✅ CurrentUser creado: #{@current_usuario.email} (#{@current_usuario.rol})"
+      
+    rescue JWT::InvalidIssuerError => e
+      Rails.logger.error "    ❌ Issuer inválido: #{e.message}"
+      render json: { error: 'Token no emitido por servicio autorizado' }, status: :unauthorized
+      return
+    rescue JWT::ExpiredSignature => e
+      Rails.logger.error "    ❌ Token expirado: #{e.message}"
+      render json: { error: 'Token expirado' }, status: :unauthorized
+      return
+    rescue JWT::DecodeError => e
+      Rails.logger.error "    ❌ Error decodificando token: #{e.class} - #{e.message}"
+      render json: { error: 'Token inválido' }, status: :unauthorized
       return
     end
   end
@@ -64,10 +101,23 @@ class ApplicationController < ActionController::API
     @current_arquitecto
   end
 
+  def current_cliente
+    return @current_cliente if @current_cliente
+    
+    if current_usuario&.rol == 'cliente'
+      @current_cliente = Cliente.find_by(usuario_id: current_usuario.id)
+      Rails.logger.info "📋 [CURRENT_CLIENTE] Usuario ID: #{current_usuario.id}, Cliente encontrado: #{@current_cliente.present?}"
+      Rails.logger.info "    Cliente ID: #{@current_cliente&.id}" if @current_cliente
+    end
+    
+    @current_cliente
+  end
+
   # Helpers de autorización por rol/propiedad
   def require_rol!(rol)
     unless current_usuario&.rol == rol
-      render json: { error: "Rol no autorizado" }, status: :forbidden and return
+      render json: { error: "Rol no autorizado" }, status: :forbidden
+      return
     end
   end
 
@@ -82,11 +132,13 @@ class ApplicationController < ActionController::API
 
   def require_arquitecto!
     require_rol!("arquitecto")
+    return if performed? # Detener si ya se hizo un render/redirect
     
     # Asegurar que el arquitecto existe
     unless current_arquitecto
       Rails.logger.error "    ❌ Usuario es arquitecto pero no tiene registro de Arquitecto"
-      render json: { error: "Arquitecto no encontrado" }, status: :not_found and return
+      render json: { error: "Arquitecto no encontrado" }, status: :not_found
+      return
     end
     
     Rails.logger.info "    ✅ Arquitecto ID: #{current_arquitecto.id}"
@@ -103,11 +155,13 @@ class ApplicationController < ActionController::API
       end
 
     unless owner_id.present? && current_usuario&.id == owner_id
-      render json: { error: "Prohibido" }, status: :forbidden and return
+      render json: { error: "Prohibido" }, status: :forbidden
+      return
     end
   end
 
   def not_found_response!(nombre)
-    render json: { error: "#{nombre} no encontrado" }, status: :not_found and return
+    render json: { error: "#{nombre} no encontrado" }, status: :not_found
+    return
   end
 end

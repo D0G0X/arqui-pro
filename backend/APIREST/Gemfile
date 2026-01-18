@@ -52,3 +52,4 @@ end
 gem "devise", "~> 4.9"
 gem 'devise-jwt'
 gem 'bunny'
+gem 'dotenv-rails', groups: [:development, :test]
