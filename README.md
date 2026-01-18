@@ -148,6 +148,7 @@ ckend - AI Chatbot (Pilar 3) 🆕
 ### DevOps
 - **Docker** + **Docker Compose**
 - **Kamal** (Deployment)
+- **n8n** (Event Bus - Tareas Programadas)
 - **Git** (Control de versiones)
 
 ---
@@ -217,6 +218,18 @@ arqui-pro/
 │   │   ├── requirements.txt  # Dependencias Python
 │   │   └── README.md         # Documentación GraphQL
 │   │
+│   ├── gateway/              # 🌐 API Gateway (NestJS)
+│   │   ├── src/
+│   │   │   ├── auth-proxy/   # Proxy de autenticación
+│   │   │   └── middleware/   # Validación de tokens
+│   │   └── package.json      # Dependencias Node
+│   │
+│   ├── auth-microservicio/   # 🔐 Auth Service (NestJS)
+│   │   ├── src/
+│   │   │   ├── auth/         # Controladores y servicios
+│   │   │   └── entities/     # Entidades TypeORM
+│   │   └── package.json      # Dependencias Node
+│   │
 │   └── wedsocket/            # 🔌 WebSocket Server (NestJS)
 │       ├── src/
 │       │   ├── chat/         # Gateway de chat
@@ -229,7 +242,10 @@ arqui-pro/
 ├── docs/                     # 📚 Documentación general
 │   ├── APIREST.md           # Guía completa REST API
 │   ├── graphql.md           # Guía completa GraphQL
-│   └── WEBSOCKET_SETUP.md   # Configuración WebSocket
+│   ├── WEBSOCKET.md         # Configuración WebSocket
+│   ├── N8N_EVENT_BUS.md     # Guía completa n8n Event Bus
+│   ├── N8N_QUICK_START.md   # Guía rápida n8n
+│   └── n8n-workflow-cleanup-tokens.json # Workflow exportado
 │
 ├── .gitignore               # Archivos ignorados por Git
 ├── .ruby-version            # Versión de Ruby
@@ -398,8 +414,10 @@ curl http://localhost:8001/health
 # ---------|--------|-----|-------------|
 | **Frontend** | 5173 | http://localhost:5173 | React App (Vite) |
 | **REST API** | 3000 | http://localhost:3000/api/v1 | Rails backend |
+| **API Gateway** | 3000 | http://localhost:3000 | Gateway NestJS |
 | **GraphQL** | 8000 | http://localhost:8000/graphql | Gateway de consultas |
 | **WebSocket** | 3006 | http://localhost:3006 | Chat y notificaciones |
+| **n8n** | 5678 | http://localhost:5678 | Event Bus - Tareas programadas |
 | **PostgreSQL** | 5432 | Supabase Cloud | Base de datos |
 
 ### Estado de Salud (Health Checks)
@@ -427,6 +445,7 @@ curl http://localhost:8000/health
 - **[AI Chatbot (Pilar 3)](./backend/ai-orchestrator/README.md)** 🆕 - MCP Tools, LLM Adapters, multimodal
   - **[Documentación Académica](./docs/PILAR3_MCP_CHATBOT.md)** - Sustentación completa del Pilar 3
   - **[Guía de Inicio Rápido](./backend/ai-orchestrator/QUICK_START.md)** - Setup en 5 minutos
+- **[n8n Event Bus](./docs/N8N_EVENT_BUS.md)** - Tareas programadas, workflows, cron jobs
 - **[Frontend Implementation](./frontend/FRONTEND_IMPLEMENTATION.md)** - REST, GraphQL y WebSocket en React
 - **[Frontend](./frontend/README.md)** - Componentes, routing, estado
 
@@ -642,7 +661,7 @@ const { data } = useUsuarioPerfil(userId)
 - **Carga instantánea** (0ms) en visitas repetidas
 - **Mejor UX** sin flashes de loading
 
-📖 **Documentación completa:** [CACHE_IMPLEMENTATION_SUMMARY.md](./frontend/CACHE_IMPLEMENTATION_SUMMARY.md)
+📖 **Documentación completa:** [CACHE_IMPLEMENTATION_SUMMARY.md](./docs/CACHE_IMPLEMENTATION_SUMMARY.md)
 
 ---
 
@@ -791,6 +810,8 @@ Este proyecto está bajo la licencia **MIT**.
 - ✅ Gestión de incidencias con suspensión de usuarios
 - ✅ Sección de valoraciones en landing page
 - ✅ Proyectos contratados en landing page
+- ✅ n8n Event Bus para tareas programadas
+- ✅ Limpieza automática de tokens expirados
 
 ### Versión 1.1 (Próximo)
 - ⏳ Pagos integrados (Stripe/PayPal)

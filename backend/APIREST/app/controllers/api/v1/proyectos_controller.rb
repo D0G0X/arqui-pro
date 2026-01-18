@@ -152,7 +152,8 @@ class Api::V1::ProyectosController < ApplicationController
     # o si el cliente autenticado es el dueño del proyecto
     unless @proyecto.arquitecto_id == current_arquitecto&.id || @proyecto.cliente_id == current_cliente&.id
       Rails.logger.error "    ❌ No autorizado: ni arquitecto ni cliente coinciden con el propietario"
-      render json: { error: "No autorizado" }, status: :forbidden and return
+      render json: { error: "No autorizado" }, status: :forbidden
+      return
     end
 
     Rails.logger.info "    ✅ Autorizado: propietario (arquitecto o cliente) coincide con el proyecto"
