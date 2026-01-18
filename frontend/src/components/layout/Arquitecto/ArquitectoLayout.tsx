@@ -3,6 +3,7 @@ import { Outlet, useLocation, Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../contexts/AuthContext'
 import { Home, Folder, MessageSquare, User, LogOut, Plus, Menu, X } from 'lucide-react'
 import { NotificacionesDropdown } from '../../common/NotificacionesDropdown'
+import AIChatFloat from '../../AIChatFloat'
 import '../../../styles/ClienteLayout.css'
 import '../../../styles/Moderator/ModeratorSidebar.css'
 
@@ -130,6 +131,15 @@ const ArquitectoLayout = () => {
         <div 
           className="sidebar-overlay" 
           onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* AI Chat Float Button */}
+      {user && (
+        <AIChatFloat 
+          userId={user.id}
+          userRole="arquitecto"
+          mode="float"
         />
       )}
     </div>
