@@ -10,7 +10,6 @@ import { AuthController } from './auth.controller';
 import { Usuario } from '../entities/usuario.entity';
 import { RefreshToken } from '../entities/refresh-token.entity';
 import { RevokedToken } from '../entities/revoked-token.entity';
-import { JwtStrategy } from './strategies/jwt.strategy';
 import { RabbitMQModule } from '../rabbitmq/rabbitmq.module';
 
 @Module({
