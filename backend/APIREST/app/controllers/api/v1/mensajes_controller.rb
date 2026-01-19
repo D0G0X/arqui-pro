@@ -6,10 +6,9 @@ class Api::V1::MensajesController < ApplicationController
   #before_action :require_mensaje_ownership!, only: %i[update destroy]
 
   def index
-    @mensajes = Mensaje.includes(:imagenes, :remitente).all
+    @mensajes = Mensaje.includes(:imagenes).all
     render json: @mensajes.as_json(
       include: {
-        remitente: { only: [:id, :nombre, :email] },
         imagenes: { only: [:id, :imagen_url, :fecha] }
       }
     )
@@ -59,7 +58,6 @@ class Api::V1::MensajesController < ApplicationController
   def show
     render json: @mensaje.as_json(
       include: {
-        remitente: { only: [:id, :nombre, :email] },
         imagenes: { only: [:id, :imagen_url, :fecha] }
       }
     )

@@ -140,7 +140,13 @@ export class AuthService {
         // Generate tokens
         const tokens = await this.generateTokens(usuario);
 
-        return tokens;
+        // Remove password from user object
+        const { encrypted_password, ...userData } = usuario;
+
+        return {
+            ...tokens,
+            usuario: userData,
+        };
     }
 
     async refreshAccessToken(refreshToken: string) {

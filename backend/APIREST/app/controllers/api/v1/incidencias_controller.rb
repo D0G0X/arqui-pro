@@ -7,7 +7,7 @@ class Api::V1::IncidenciasController < ApplicationController
   before_action :require_incidencia_ownership!, only: %i[update destroy]
 
   def index
-    @incidencias = Incidencia.includes(:usuario_emisor, :usuario_infractor, :imagenes, moderador: [:usuario]).all
+    @incidencias = Incidencia.includes(:imagenes, moderador: [:usuario]).all
     
     # Filtrar por estado si se proporciona
     if params[:estado].present? && params[:estado] != 'todos'
@@ -21,7 +21,7 @@ class Api::V1::IncidenciasController < ApplicationController
     total = @incidencias.count
     @incidencias = @incidencias.offset((page - 1) * per_page).limit(per_page)
     
-    # Serializar manualmente para incluir emisor e infractor
+    # Serializar manualmente: ahora solo devolvemos los IDs de emisor e infractor
     incidencias_json = @incidencias.map do |incidencia|
       {
         id: incidencia.id,
@@ -32,20 +32,6 @@ class Api::V1::IncidenciasController < ApplicationController
         infractor_id: incidencia.usuario_infractor_id,
         moderador_id: incidencia.moderador_id,
         imagenes: incidencia.imagenes.map { |img| { id: img.id, imagen_url: img.imagen_url, fecha: img.fecha } },
-        emisor: incidencia.usuario_emisor ? {
-          id: incidencia.usuario_emisor.id,
-          nombre: incidencia.usuario_emisor.nombre,
-          apellido: incidencia.usuario_emisor.apellido,
-          email: incidencia.usuario_emisor.email,
-          estado_cuenta: incidencia.usuario_emisor.estado_cuenta
-        } : nil,
-        infractor: incidencia.usuario_infractor ? {
-          id: incidencia.usuario_infractor.id,
-          nombre: incidencia.usuario_infractor.nombre,
-          apellido: incidencia.usuario_infractor.apellido,
-          email: incidencia.usuario_infractor.email,
-          estado_cuenta: incidencia.usuario_infractor.estado_cuenta
-        } : nil,
         moderador: incidencia.moderador ? {
           usuario: {
             nombre: incidencia.moderador.usuario.nombre,

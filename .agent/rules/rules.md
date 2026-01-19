@@ -46,4 +46,4 @@ Aplica los principios SOLID de ser posible
 
 Los types son la capa de dominio del sistema y lo que definen se debe seguir en todo el sistema, para cambiar algo en el type siempre debes pedir permiso y solo hacerlo si yo digo que lo hagas
 
-Despues de terminar de hacer un cambio vas a tener que hacer obligariamente un npm run build y luego npm test para comprobar que todo esté en orden, resulve cualquier problema que ocurra
+Despues de terminar de hacer un cambio vas a tener que hacer obligariamente un npm run build para comprobar que todo esté en orden, resulve cualquier problema que ocurra

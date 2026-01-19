@@ -96,13 +96,12 @@ export const Incidencias = () => {
   };
 
   const handleCambiarEstadoUsuario = async (
-    usuarioId: number | string, 
-    estadoActual: 'activo' | 'suspendido' | undefined,
-    tipo: 'emisor' | 'infractor' = 'infractor'
+    usuarioId: number | string,
+    estadoActual: 'activo' | 'suspendido' | undefined
   ) => {
     const nuevoEstado = estadoActual === 'activo' ? 'suspendido' : 'activo';
     const accion = nuevoEstado === 'suspendido' ? 'suspender' : 'activar';
-    
+
     try {
       if (nuevoEstado === 'suspendido') {
         await moderadorService.suspenderUsuario(usuarioId);
@@ -163,8 +162,7 @@ export const Incidencias = () => {
         const estadoActual = accion.accion === 'suspender' ? 'activo' : 'suspendido';
         await handleCambiarEstadoUsuario(
           accion.usuarioId,
-          estadoActual,
-          accion.tipo
+          estadoActual
         );
       }
       alert('✅ Cambios aplicados exitosamente');
@@ -218,13 +216,13 @@ export const Incidencias = () => {
             <tbody>
               {incidencias.map((incidencia: any) => (
                 <tr key={incidencia.id}>
-                  <td 
+                  <td
                     className="descripcion-cell clickeable"
                     onClick={() => toggleDescripcion(incidencia.descripcion)}
                     title="Click para ver descripción completa"
                   >
-                    {incidencia.descripcion.length > 50 
-                      ? `${incidencia.descripcion.substring(0, 50)}...` 
+                    {incidencia.descripcion.length > 50
+                      ? `${incidencia.descripcion.substring(0, 50)}...`
                       : incidencia.descripcion
                     }
                   </td>
@@ -238,7 +236,7 @@ export const Incidencias = () => {
                   <td>{new Date(incidencia.fecha).toLocaleDateString()}</td>
                   <td>
                     <div>
-                      {incidencia.emisor 
+                      {incidencia.emisor
                         ? `${incidencia.emisor.nombre} ${incidencia.emisor.apellido}`
                         : `Usuario ${incidencia.emisor_id}`
                       }
@@ -250,7 +248,7 @@ export const Incidencias = () => {
                     </div>
                   </td>
                   <td>
-                    {incidencia.infractor 
+                    {incidencia.infractor
                       ? `${incidencia.infractor.nombre} ${incidencia.infractor.apellido}`
                       : `Usuario ${incidencia.infractor_id}`
                     }
