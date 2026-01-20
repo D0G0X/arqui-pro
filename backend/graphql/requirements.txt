@@ -6,6 +6,9 @@ strawberry-graphql[fastapi]==0.252.0  # GraphQL framework basado en FastAPI (ver
 # --- HTTP Client ---
 httpx==0.27.2                # Cliente HTTP async para consumir el API REST
 
+# --- Database ---
+asyncpg==0.29.0              # Cliente PostgreSQL async para consultar usuarios directamente
+
 # --- Validación y configuración ---
 pydantic==2.8.2
 pydantic-settings==2.5.2

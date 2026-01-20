@@ -48,7 +48,8 @@ import { RevokedToken } from './entities/revoked-token.entity';
                     password: dbPass,
                     database: dbName,
                     entities: [Usuario, RefreshToken, RevokedToken],
-                    synchronize: true, // Set to false in production and use migrations
+                    synchronize: false, // Desactivado para evitar conflictos con tablas existentes
+                    logging: false, // Desactivar logging para producción
                     ssl: configService.get<string>('DB_SSL') === 'true' ? {
                         rejectUnauthorized: false, // Supabase requires SSL
                     } : false,

@@ -36,6 +36,8 @@ export class Usuario {
     @Column({ type: 'varchar', length: 500, nullable: true })
     foto_perfil: string;
 
-    @OneToMany(() => RefreshToken, (token) => token.usuario)
+    @OneToMany(() => RefreshToken, (token) => token.usuario, {
+        cascade: false,
+    })
     refreshTokens: RefreshToken[];
 }

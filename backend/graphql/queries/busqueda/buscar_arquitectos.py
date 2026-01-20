@@ -5,6 +5,7 @@ Búsqueda avanzada de arquitectos con múltiples filtros.
 import strawberry
 from typing import Optional, List
 from infrastructure.rest_client import rest_client
+from infrastructure.usuario_helper import usuario_helper
 from graphql_types.arquitecto_busqueda import ArquitectoBusqueda, UsuarioSimple, ProyectoSimple
 
 
@@ -49,13 +50,26 @@ async def resolver_buscar_arquitectos(
                     print(f"  ❌ Rechazado por especialidad: '{especialidad}' no en '{arq.get('especialidades')}'")
                     continue
             
-            # El serializer de Rails incluye el usuario completo
-            usuario_data = arq.get("usuario", {})
-            if not usuario_data:
-                print(f"  ❌ Rechazado: No tiene usuario asociado")
+            # Obtener usuario_id del arquitecto
+            usuario_id = arq.get("usuario_id")
+            if not usuario_id:
+                # Intentar obtener desde el objeto usuario si viene en la respuesta de Rails
+                usuario_data_from_rails = arq.get("usuario")
+                if usuario_data_from_rails:
+                    usuario_id = usuario_data_from_rails.get("id")
+            
+            if not usuario_id:
+                print(f"  ❌ Rechazado: No tiene usuario_id asociado")
                 continue  # Saltar si no tiene usuario
             
-            print(f"  ✅ Usuario encontrado: {usuario_data.get('nombre')} {usuario_data.get('apellido')}")
+            # Obtener usuario directamente desde la BD compartida (auth microservice)
+            usuario_data = await usuario_helper.get_usuario_by_id(str(usuario_id))
+            
+            if not usuario_data:
+                print(f"  ❌ Rechazado: Usuario {usuario_id} no encontrado en BD de auth")
+                continue  # Saltar si no se encuentra el usuario
+            
+            print(f"  ✅ Usuario encontrado desde auth BD: {usuario_data.get('nombre')} {usuario_data.get('apellido')}")
             
             # 🔧 USAR VALOR DE LA BD EN LUGAR DE RECALCULAR
             # La BD ya tiene el valor pre-calculado en "valoracion_prom_proyecto"
@@ -72,7 +86,7 @@ async def resolver_buscar_arquitectos(
             proyectos = [p for p in todos_proyectos_data if str(p.get("arquitecto_id")) == arquitecto_id]
             print(f"  📦 Proyectos del arquitecto {arquitecto_id}: {len(proyectos)}")
             
-            # Construir usuario simple
+            # Construir usuario simple desde datos de auth BD
             usuario = UsuarioSimple(
                 id=str(usuario_data.get("id")),
                 nombre=usuario_data.get("nombre"),

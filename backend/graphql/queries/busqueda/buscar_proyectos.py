@@ -5,6 +5,7 @@ Búsqueda avanzada de proyectos con múltiples filtros.
 import strawberry
 from typing import Optional, List
 from infrastructure.rest_client import rest_client
+from infrastructure.usuario_helper import usuario_helper
 from graphql_types.dashboard_proyecto import DashboardProyecto
 from adapters.schemas.proyecto_schema import ProyectoType
 from adapters.schemas.arquitecto_schema import ArquitectoType
@@ -55,6 +56,25 @@ async def resolver_buscar_proyectos(
                 valoraciones_dict[proy_id] = []
             valoraciones_dict[proy_id].append(val)
         
+        # Recopilar todos los usuario_ids que necesitamos (arquitectos y clientes)
+        usuario_ids_to_fetch = set()
+        for arq in arquitectos_data:
+            usuario_id = arq.get("usuario_id")
+            if not usuario_id:
+                usuario_id = arq.get("usuario", {}).get("id")
+            if usuario_id:
+                usuario_ids_to_fetch.add(str(usuario_id))
+        
+        for cli in clientes_data:
+            usuario_id = cli.get("usuario_id")
+            if not usuario_id:
+                usuario_id = cli.get("usuario", {}).get("id")
+            if usuario_id:
+                usuario_ids_to_fetch.add(str(usuario_id))
+        
+        # Obtener todos los usuarios desde la BD de auth en una sola consulta
+        usuarios_dict = await usuario_helper.get_usuarios_by_ids(list(usuario_ids_to_fetch))
+        
         resultados = []
         limite_proyectos = 50  # Limitar a 50 proyectos máximo para optimizar
         
@@ -83,7 +103,20 @@ async def resolver_buscar_proyectos(
                 continue  # Saltar si no se encuentra el arquitecto
             
             try:
-                arq_usuario_data = arq_data.get("usuario", {})
+                # Obtener usuario_id del arquitecto
+                arq_usuario_id = arq_data.get("usuario_id")
+                if not arq_usuario_id:
+                    arq_usuario_id = arq_data.get("usuario", {}).get("id")
+                
+                if not arq_usuario_id:
+                    print(f"⚠️ Arquitecto {arq_id} no tiene usuario_id")
+                    continue
+                
+                # Obtener usuario desde la BD de auth
+                arq_usuario_data = usuarios_dict.get(str(arq_usuario_id))
+                if not arq_usuario_data:
+                    print(f"⚠️ Usuario {arq_usuario_id} no encontrado en BD de auth")
+                    continue
                 
                 arquitecto = ArquitectoType(
                     id=arq_data.get("id"),
@@ -166,25 +199,34 @@ async def resolver_buscar_proyectos(
                 cli_data = clientes_dict.get(cli_id)
                 if cli_data:
                     try:
-                        cli_usuario_data = cli_data.get("usuario", {})
+                        # Obtener usuario_id del cliente
+                        cli_usuario_id = cli_data.get("usuario_id")
+                        if not cli_usuario_id:
+                            cli_usuario_id = cli_data.get("usuario", {}).get("id")
                         
-                        cliente = ClienteType(
-                            id=cli_data.get("id"),
-                            cedula=cli_data.get("cedula"),
-                            usuario_id=cli_usuario_data.get("id"),
-                        )
-                        
-                        cliente_usuario = UsuarioType(
-                            id=cli_usuario_data.get("id"),
-                            nombre=cli_usuario_data.get("nombre"),
-                            apellido=cli_usuario_data.get("apellido"),
-                            email=cli_usuario_data.get("email"),
-                            estado_cuenta=cli_usuario_data.get("estado_cuenta"),
-                            rol=cli_usuario_data.get("rol"),
-                            fecha_registro=cli_usuario_data.get("fecha_registro"),
-                            foto_perfil=cli_usuario_data.get("foto_perfil"),
-                        )
-                    except:
+                        if cli_usuario_id:
+                            # Obtener usuario desde la BD de auth
+                            cli_usuario_data = usuarios_dict.get(str(cli_usuario_id))
+                            
+                            if cli_usuario_data:
+                                cliente = ClienteType(
+                                    id=cli_data.get("id"),
+                                    cedula=cli_data.get("cedula"),
+                                    usuario_id=cli_usuario_data.get("id"),
+                                )
+                                
+                                cliente_usuario = UsuarioType(
+                                    id=cli_usuario_data.get("id"),
+                                    nombre=cli_usuario_data.get("nombre"),
+                                    apellido=cli_usuario_data.get("apellido"),
+                                    email=cli_usuario_data.get("email"),
+                                    estado_cuenta=cli_usuario_data.get("estado_cuenta"),
+                                    rol=cli_usuario_data.get("rol"),
+                                    fecha_registro=cli_usuario_data.get("fecha_registro"),
+                                    foto_perfil=cli_usuario_data.get("foto_perfil"),
+                                )
+                    except Exception as e:
+                        print(f"⚠️ Error al procesar cliente {cli_id}: {e}")
                         pass
             
             # Construir dashboard

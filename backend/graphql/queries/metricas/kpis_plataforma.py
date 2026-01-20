@@ -3,13 +3,14 @@ Query 5: KPIs de la Plataforma
 Obtiene KPIs generales de toda la plataforma.
 """
 from infrastructure.rest_client import rest_client
+from infrastructure.usuario_helper import usuario_helper
 from graphql_types.kpis_plataforma import KPIsPlataforma, UsuariosPorRol
 
 
 async def resolver_kpis_plataforma() -> KPIsPlataforma:
     """
     Obtiene KPIs generales de la plataforma:
-    - Total de usuarios
+    - Total de usuarios (desde BD de auth)
     - Usuarios agrupados por rol
     - Total de proyectos
     - Total de arquitectos y clientes
@@ -17,8 +18,8 @@ async def resolver_kpis_plataforma() -> KPIsPlataforma:
     - Arquitectos verificados
     """
     try:
-        # Obtener todos los usuarios
-        usuarios_data = await rest_client.get_usuarios()
+        # Obtener todos los usuarios desde la BD compartida (auth microservice)
+        usuarios_data = await usuario_helper.get_all_usuarios()
         total_usuarios = len(usuarios_data)
         
         # Agrupar por rol

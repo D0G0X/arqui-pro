@@ -5,6 +5,7 @@ Obtiene el perfil completo de un arquitecto con usuario, proyectos y estadístic
 import strawberry
 from typing import Optional
 from infrastructure.rest_client import rest_client
+from infrastructure.usuario_helper import usuario_helper
 from graphql_types.perfil_completo_arquitecto import PerfilCompletoArquitecto
 from adapters.schemas.arquitecto_schema import ArquitectoType
 from adapters.schemas.usuario_schema import UsuarioType
@@ -15,16 +16,29 @@ async def resolver_perfil_completo_arquitecto(arquitecto_id: strawberry.ID) -> O
     """
     Obtiene el perfil completo de un arquitecto incluyendo:
     - Datos básicos del arquitecto
-    - Información del usuario asociado
+    - Información del usuario asociado (desde BD de auth)
     - Lista completa de proyectos
     - Total de proyectos y valoración promedio
     """
     try:
-        # Obtener arquitecto
+        # Obtener arquitecto desde Rails API REST
         arq_data = await rest_client.get_arquitecto(str(arquitecto_id))
         
-        # El serializer de Rails incluye el usuario completo
-        usuario_data = arq_data.get("usuario", {})
+        # Obtener usuario_id del arquitecto
+        usuario_id = arq_data.get("usuario_id")
+        if not usuario_id:
+            # Intentar obtener desde el objeto usuario si viene en la respuesta
+            usuario_data_from_rails = arq_data.get("usuario", {})
+            usuario_id = usuario_data_from_rails.get("id")
+        
+        if not usuario_id:
+            raise Exception("Arquitecto no tiene usuario_id asociado")
+        
+        # Obtener usuario directamente desde la BD compartida (auth microservice)
+        usuario_data = await usuario_helper.get_usuario_by_id(str(usuario_id))
+        
+        if not usuario_data:
+            raise Exception(f"Usuario {usuario_id} no encontrado en la base de datos de auth")
         
         arquitecto = ArquitectoType(
             id=arq_data.get("id"),
@@ -38,7 +52,7 @@ async def resolver_perfil_completo_arquitecto(arquitecto_id: strawberry.ID) -> O
             usuario_id=usuario_data.get("id"),
         )
         
-        # Usar el usuario que ya viene en la respuesta del arquitecto
+        # Usar el usuario obtenido desde la BD de auth
         usuario = UsuarioType(
             id=usuario_data.get("id"),
             nombre=usuario_data.get("nombre"),

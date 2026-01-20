@@ -5,7 +5,7 @@ import {
     CreateDateColumn,
 } from 'typeorm';
 
-@Entity('revoked_token')
+@Entity('revoked_tokens')
 export class RevokedToken {
     @PrimaryGeneratedColumn('uuid')
     id: string;

@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 import { Usuario } from './usuario.entity';
 
-@Entity('refresh_token')
+@Entity('refresh_tokens_auth')
 export class RefreshToken {
     @PrimaryGeneratedColumn('uuid')
     id: string;
@@ -19,7 +19,7 @@ export class RefreshToken {
     @ManyToOne(() => Usuario, (usuario) => usuario.refreshTokens, {
         onDelete: 'CASCADE',
     })
-    @JoinColumn({ name: 'usuario_id' })
+    @JoinColumn({ name: 'usuario_id', referencedColumnName: 'id' })
     usuario: Usuario;
 
     @Column({ type: 'uuid' })

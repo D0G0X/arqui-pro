@@ -113,40 +113,50 @@ export class AuthService {
     }
 
     async login(loginDto: LoginDto) {
-        // Find user
-        const usuario = await this.usuarioRepository.findOne({
-            where: { email: loginDto.email },
-        });
+        try {
+            // Find user - usar findOne con where simple
+            const usuario = await this.usuarioRepository.findOne({
+                where: { email: loginDto.email },
+            });
 
-        if (!usuario) {
-            throw new UnauthorizedException('Credenciales inválidas');
+            if (!usuario) {
+                throw new UnauthorizedException('Credenciales inválidas');
+            }
+
+            // Check account status
+            if (usuario.estado_cuenta === 'suspendido') {
+                throw new UnauthorizedException('La cuenta está suspendida');
+            }
+
+            // Verify password
+            const isPasswordValid = await bcrypt.compare(
+                loginDto.password,
+                usuario.encrypted_password,
+            );
+
+            if (!isPasswordValid) {
+                throw new UnauthorizedException('Credenciales inválidas');
+            }
+
+            // Generate tokens
+            const tokens = await this.generateTokens(usuario);
+
+            // Remove password from user object
+            const { encrypted_password, ...userData } = usuario;
+
+            return {
+                ...tokens,
+                usuario: userData,
+            };
+        } catch (error) {
+            // Si es una excepción de NestJS, relanzarla
+            if (error instanceof UnauthorizedException) {
+                throw error;
+            }
+            // Para otros errores, loguear y lanzar error genérico
+            console.error('[AuthService] Error en login:', error);
+            throw new BadRequestException('Error al procesar el login. Por favor, intenta nuevamente.');
         }
-
-        // Check account status
-        if (usuario.estado_cuenta === 'suspendido') {
-            throw new UnauthorizedException('La cuenta está suspendida');
-        }
-
-        // Verify password
-        const isPasswordValid = await bcrypt.compare(
-            loginDto.password,
-            usuario.encrypted_password,
-        );
-
-        if (!isPasswordValid) {
-            throw new UnauthorizedException('Credenciales inválidas');
-        }
-
-        // Generate tokens
-        const tokens = await this.generateTokens(usuario);
-
-        // Remove password from user object
-        const { encrypted_password, ...userData } = usuario;
-
-        return {
-            ...tokens,
-            usuario: userData,
-        };
     }
 
     async refreshAccessToken(refreshToken: string) {
@@ -159,7 +169,6 @@ export class AuthService {
             // Check if refresh token exists in database and is not revoked
             const storedToken = await this.refreshTokenRepository.findOne({
                 where: { token: refreshToken, revocado: false },
-                relations: ['usuario'],
             });
 
             if (!storedToken) {
@@ -171,12 +180,21 @@ export class AuthService {
                 throw new UnauthorizedException('Refresh token expirado');
             }
 
+            // Get user from stored token's usuario_id
+            const usuario = await this.usuarioRepository.findOne({
+                where: { id: storedToken.usuario_id },
+            });
+
+            if (!usuario) {
+                throw new UnauthorizedException('Usuario asociado al token no encontrado');
+            }
+
             // Generate new access token
             const accessToken = this.jwtService.sign(
                 {
-                    sub: storedToken.usuario.id,
-                    email: storedToken.usuario.email,
-                    rol: storedToken.usuario.rol,
+                    sub: usuario.id,
+                    email: usuario.email,
+                    rol: usuario.rol,
                     iss: this.configService.get<string>('JWT_ISSUER', 'auth-service'),
                 },
                 {
@@ -288,16 +306,22 @@ export class AuthService {
         });
 
         // Store refresh token in database
-        const expirationDate = new Date();
-        expirationDate.setDate(expirationDate.getDate() + 7); // 7 days
+        try {
+            const expirationDate = new Date();
+            expirationDate.setDate(expirationDate.getDate() + 7); // 7 days
 
-        const refreshTokenEntity = this.refreshTokenRepository.create({
-            token: refreshToken,
-            usuario_id: usuario.id,
-            expiracion: expirationDate,
-        });
+            const refreshTokenEntity = this.refreshTokenRepository.create({
+                token: refreshToken,
+                usuario_id: usuario.id,
+                expiracion: expirationDate,
+            });
 
-        await this.refreshTokenRepository.save(refreshTokenEntity);
+            await this.refreshTokenRepository.save(refreshTokenEntity);
+        } catch (error) {
+            // Si falla guardar el refresh token, loguear pero no fallar el login
+            console.error('[AuthService] Error guardando refresh token:', error);
+            // Continuar con el login aunque no se guarde el refresh token
+        }
 
         return {
             access_token: accessToken,
