@@ -25,38 +25,44 @@ export default function ArchitectChat() {
   const [searchQuery, setSearchQuery] = useState('');
   const [arquitectoId, setArquitectoId] = useState<string | null>(null);
   
-  // Obtener el arquitecto.id basado en el usuario.id
+  // Obtener el arquitecto.id basado en el usuario (por email, más confiable)
   useEffect(() => {
     const fetchArquitectoId = async () => {
       try {
-        const userData = localStorage.getItem('user_data');
-        if (userData) {
-          const parsed = JSON.parse(userData);
-          console.log('Usuario logueado:', parsed);
-          
-          // Hacer petición al backend para obtener el arquitecto por usuario_id
-          const response = await axiosInstance.get(`/arquitectos?usuario_id=${parsed.id}`);
-          console.log('Respuesta arquitectos:', response.data);
-          
-          if (response.data && response.data.length > 0) {
-            const arquitecto = response.data[0];
-            console.log('Arquitecto encontrado:', arquitecto);
-            setArquitectoId(arquitecto.id);
-          } else if (response.data && response.data.id) {
-            // Si la respuesta es un objeto directo
-            console.log('Arquitecto encontrado (objeto):', response.data);
-            setArquitectoId(response.data.id);
+        if (!user?.email) return;
+        
+        console.log('Usuario logueado:', { id: user.id, email: user.email });
+        
+        // Obtener todos los arquitectos y buscar por email
+        const response = await axiosInstance.get('/arquitectos');
+        console.log('Respuesta arquitectos:', response.data);
+        
+        const arquitectos = Array.isArray(response.data) ? response.data : [];
+        const arquitectoEncontrado = arquitectos.find(
+          (arq: any) => {
+            // Buscar por email (más confiable entre sistemas)
+            const emailMatch = arq.usuario?.email?.toLowerCase() === user.email?.toLowerCase();
+            // También intentar por ID por si acaso coinciden
+            const idMatch = arq.usuario?.id === user.id || arq.usuario_id === user.id;
+            return emailMatch || idMatch;
           }
+        );
+        
+        if (arquitectoEncontrado) {
+          console.log('Arquitecto encontrado:', arquitectoEncontrado.id);
+          setArquitectoId(arquitectoEncontrado.id);
+        } else {
+          console.warn('No se encontró arquitecto para el usuario', { email: user.email });
         }
       } catch (error) {
         console.error('Error obteniendo arquitecto:', error);
       }
     };
     
-    if (user?.id) {
+    if (user?.email) {
       fetchArquitectoId();
     }
-  }, [user?.id]);
+  }, [user?.email, user?.id]);
   
   console.log('ID del Arquitecto para filtrar conversaciones:', arquitectoId);
   

@@ -39,19 +39,41 @@ export default function CreateProject() {
     const fetchArquitecto = async () => {
       try {
         setLoadingArquitecto(true);
-        console.log('🔍 Buscando arquitecto para usuario:', user.id);
+        console.log('🔍 Buscando arquitecto para usuario:', { id: user.id, email: user.email });
         const response = await arquitectosService.getAll();
         console.log('📦 Arquitectos obtenidos:', response.length);
         
+        // Buscar por email primero (más confiable entre sistemas)
+        // También intentar por ID por si acaso coinciden
         const arquitectoActual = response.find(
-          (arq) => arq.usuario?.id === user.id || arq.usuario_id === user.id
+          (arq) => {
+            // Comparar por email (más confiable)
+            const emailMatch = arq.usuario?.email?.toLowerCase() === user.email?.toLowerCase();
+            // También comparar por ID por si acaso coinciden
+            const idMatch = arq.usuario?.id === user.id || arq.usuario_id === user.id;
+            
+            if (emailMatch) {
+              console.log('✅ Arquitecto encontrado por email:', arq.id);
+              return true;
+            }
+            if (idMatch) {
+              console.log('✅ Arquitecto encontrado por ID:', arq.id);
+              return true;
+            }
+            return false;
+          }
         );
         
         if (arquitectoActual) {
           console.log('✅ Arquitecto encontrado:', arquitectoActual.id);
           setArquitectoId(String(arquitectoActual.id));
         } else {
-          console.error('❌ No se encontró arquitecto para el usuario');
+          console.error('❌ No se encontró arquitecto para el usuario', {
+            userEmail: user.email,
+            userId: user.id,
+            totalArquitectos: response.length,
+            primerosEmails: response.slice(0, 3).map(arq => arq.usuario?.email)
+          });
           setError('No se encontró tu perfil de arquitecto. Por favor, contacta al administrador.');
         }
       } catch (err) {

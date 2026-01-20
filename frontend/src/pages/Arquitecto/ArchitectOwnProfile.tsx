@@ -29,11 +29,16 @@ export default function ArchitectOwnProfile() {
     const fetchArquitecto = async () => {
       try {
         setLoading(true);
-        // Buscar el arquitecto por usuario_id
-        // Primero intentamos obtener todos y filtrar, o mejor aún, crear un endpoint específico
+        // Buscar el arquitecto por email (más confiable entre sistemas) o por ID
         const response = await arquitectosService.getAll();
         const arquitectoEncontrado = response.find(
-          (arq) => arq.usuario_id === user.id || arq.usuario?.id === user.id
+          (arq) => {
+            // Comparar por email primero (más confiable)
+            const emailMatch = arq.usuario?.email?.toLowerCase() === user.email?.toLowerCase();
+            // También comparar por ID por si acaso coinciden
+            const idMatch = arq.usuario_id === user.id || arq.usuario?.id === user.id;
+            return emailMatch || idMatch;
+          }
         );
 
         if (arquitectoEncontrado) {
