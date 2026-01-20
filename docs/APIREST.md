@@ -112,6 +112,7 @@ El sistema cuenta con **15 entidades principales**:
 cd c:\Users\leoan\Desktop\arqui-pro\backend\APIREST
 
 # 2. Instalar dependencias
+# Importante: Ejecuta esto en PowerShell con permisos de Administrador
 bundle install
 
 # 3. Configurar base de datos
@@ -190,11 +191,21 @@ end
 ### Desarrollo (Puerto 3000)
 
 ```cmd
-cd c:\Users\leoan\Desktop\arqui-pro\backend\APIREST
-rails server
+# Paso 1: Iniciar RabbitMQ con Docker
+cd c:\Users\usuario\Repositorios GitHub\QuintoSemestre\arqui-pro\backend
+docker-compose up -d
+
+# Paso 2: Navegar al directorio de la API
+cd APIREST
+
+# Terminal 1: Servidor API REST (HTTP)
+rails s
+
+# Terminal 2: Consumidor de RabbitMQ (Worker)
+ruby bin/rails rabbitmq:consume
 ```
 
-El servidor estará disponible en: **http://localhost:3000**
+El servidor estará disponible en: **http://localhost:3000**, el consumidor estará escuchando eventos en segundo plano, y RabbitMQ Management UI estará disponible en: **http://localhost:15672** (usuario: `guest`, contraseña: `guest`).
 
 ### Producción con Docker
 

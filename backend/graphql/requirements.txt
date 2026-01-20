@@ -1,7 +1,7 @@
 # --- Core ---
 fastapi==0.115.2
 uvicorn==0.31.1
-strawberry-graphql==0.242.0  # GraphQL framework basado en FastAPI
+strawberry-graphql[fastapi]==0.252.0  # GraphQL framework basado en FastAPI (versión compatible)
 
 # --- HTTP Client ---
 httpx==0.27.2                # Cliente HTTP async para consumir el API REST

@@ -164,6 +164,8 @@ obj/
 /backend/APIREST/log
 /backend/APIREST/storage
 /backend/APIREST/config/master.key
+/backend/APIREST/vendor
+
 # Ignore master key for decrypting credentials and more.
 /config/master.key
 */config/master.key

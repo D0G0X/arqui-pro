@@ -29,6 +29,7 @@ import MainLayout from './components/layout/MainLayout'
 import ClienteHome from './pages/Cliente/ClienteHomePage'
 import MisProyectos from './pages/Cliente/MisProyectos'
 import ProyectoDetail from './pages/Arquitecto/ProyectoDetail'
+import AIChatPage from './pages/AIChatPage'
 import './App.css'
 
 // Componente interno para manejar WebSocket y notificaciones
@@ -71,6 +72,9 @@ function App() {
               <Route path="/architect/:id" element={<MainLayout children={<ArquitectoProfile />}/>} />
               <Route path="/arquitecto/:id" element={<MainLayout children={<ArquitectoProfile />}/>} />
               <Route path="/proyecto/:id" element={<MainLayout children={<ProyectoDetail />}/>} />
+              
+              {/* AI Chat - Accesible para usuarios autenticados */}
+              <Route path="/ai-chat" element={<AIChatPage />} />
 
               <Route path="/login" element={<LoginPage/>}/>
               <Route path="/registro-cliente" element={<RegistroClientePage/>}/>

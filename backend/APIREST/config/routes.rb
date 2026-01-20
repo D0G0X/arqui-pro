@@ -5,6 +5,9 @@ Rails.application.routes.draw do
   # Can be used by load balancers and uptime monitors to verify that the app is live.
   get "up" => "rails/health#show", as: :rails_health_check
 
+  # Ruta para validación síncrona de identidad desde auth-microservicio
+  post "identity/validate", to: "api/v1/identity#validate_identity"
+
   # Defines the root path route ("/")
   # root "posts#index"
   namespace :api do
@@ -59,6 +62,7 @@ Rails.application.routes.draw do
       resources :mensajes
       resources :imagenes
       resources :imagen_asociaciones
+      resources :sistema_logs, only: [:create, :index, :show]
     end
   end
 end

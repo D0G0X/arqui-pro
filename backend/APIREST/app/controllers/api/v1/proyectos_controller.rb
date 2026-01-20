@@ -1,10 +1,11 @@
 class Api::V1::ProyectosController < ApplicationController
   before_action :set_proyecto, only: %i[update show destroy add_imagenes]
 
-  # Solo arquitectos autenticados pueden crear/actualizar/eliminar
-  before_action :authenticate_usuario!, only: %i[create update destroy add_imagenes]
-  # Solo arquitectos pueden crear/eliminar
-  before_action :require_arquitecto!, only: %i[create destroy add_imagenes]
+  # Permitir create sin autenticación para chatbot AI
+  # Solo arquitectos autenticados pueden actualizar/eliminar/add_imagenes
+  before_action :authenticate_usuario!, only: %i[update destroy add_imagenes]
+  # Solo arquitectos pueden eliminar y agregar imágenes
+  before_action :require_arquitecto!, only: %i[destroy add_imagenes]
   # Solo arquitecto dueño pueden actualizar/eliminar
   before_action :require_proyecto_ownership!, only: %i[update destroy add_imagenes]
 
@@ -151,7 +152,8 @@ class Api::V1::ProyectosController < ApplicationController
     # o si el cliente autenticado es el dueño del proyecto
     unless @proyecto.arquitecto_id == current_arquitecto&.id || @proyecto.cliente_id == current_cliente&.id
       Rails.logger.error "    ❌ No autorizado: ni arquitecto ni cliente coinciden con el propietario"
-      render json: { error: "No autorizado" }, status: :forbidden and return
+      render json: { error: "No autorizado" }, status: :forbidden
+      return
     end
 
     Rails.logger.info "    ✅ Autorizado: propietario (arquitecto o cliente) coincide con el proyecto"
