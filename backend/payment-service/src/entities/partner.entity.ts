@@ -28,7 +28,7 @@ export class Partner {
   @Column({ type: 'text' })
   secret: string; // Secret compartido para firmar webhooks con HMAC
 
-  @Column({ type: 'simple-array', default: '' })
+  @Column('text', { array: true, default: [] })
   subscribedEvents: string[]; // Eventos a los que se suscribe (ej: ['service.purchased', 'appointment.confirmed'])
 
   @Column({ type: 'boolean', default: true })

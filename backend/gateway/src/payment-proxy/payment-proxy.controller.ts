@@ -21,7 +21,9 @@ export class PaymentProxyController {
   @All('*')
   async proxyPayment(@Req() req: Request, @Res() res: Response) {
     const path = req.params[0] || '';
-    const url = `${this.paymentServiceUrl}/payments/${path}`;
+    // Si el path está vacío (ej: GET /payments), mapeamos a /payments en el servicio
+    // Si el path no está vacío (ej: partners/register o payments), lo usamos directamente
+    const url = path ? `${this.paymentServiceUrl}/${path}` : `${this.paymentServiceUrl}/payments`;
 
     console.log(`[Gateway] 🔄 Proxying ${req.method} ${req.url} -> ${url}`);
 

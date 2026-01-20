@@ -71,8 +71,8 @@ Content-Type: application/json
   "amount": 100.50,
   "currency": "USD",
   "serviceType": "asesoria_tecnica",
-  "userId": "user-uuid",
-  "projectId": "project-uuid"
+  "userId": "176425a1-ae08-4b98-8f2b-84593a0f99ac",
+  "projectId": "f5a0a2a8-1a4a-1a6a-a9a5-8a2a3a5a6a9a"
 }
 ```
 

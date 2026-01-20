@@ -19,12 +19,12 @@ export class StripeAdapter implements PaymentProvider {
 
   constructor(private configService: ConfigService) {
     const secretKey = this.configService.get<string>('STRIPE_SECRET_KEY');
-    
+
     if (!secretKey) {
       console.warn('[StripeAdapter] STRIPE_SECRET_KEY no configurada. El adaptador no funcionará correctamente.');
     } else {
       this.stripe = new Stripe(secretKey, {
-        apiVersion: '2024-11-20.acacia',
+        apiVersion: '2023-10-16' as any,
       });
     }
   }
@@ -56,7 +56,7 @@ export class StripeAdapter implements PaymentProvider {
       let status: 'pending' | 'completed' | 'failed' = 'pending';
       if (paymentIntent.status === 'succeeded') {
         status = 'completed';
-      } else if (paymentIntent.status === 'canceled' || paymentIntent.status === 'payment_failed') {
+      } else if (paymentIntent.status === 'canceled') {
         status = 'failed';
       }
 
@@ -95,13 +95,13 @@ export class StripeAdapter implements PaymentProvider {
       let status: 'pending' | 'completed' | 'failed' | 'refunded' = 'pending';
       if (paymentIntent.status === 'succeeded') {
         status = 'completed';
-      } else if (paymentIntent.status === 'canceled' || paymentIntent.status === 'payment_failed') {
+      } else if (paymentIntent.status === 'canceled') {
         status = 'failed';
       }
 
       // Verificar si hay reembolsos
-      if (paymentIntent.amount_refunded > 0) {
-        status = paymentIntent.amount_refunded === paymentIntent.amount ? 'refunded' : 'completed';
+      if ((paymentIntent as any).amount_refunded > 0) {
+        status = (paymentIntent as any).amount_refunded === paymentIntent.amount ? 'refunded' : 'completed';
       }
 
       return {

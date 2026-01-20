@@ -134,10 +134,15 @@ psql -h aws-1-us-east-2.pooler.supabase.com \
 
 ```bash
 # 1. Generar migración
-npm run typeorm migration:generate -- -n InitialPaymentService
+npm run typeorm migration:generate -- src/migrations/InitialPaymentService -d src/data-source.ts
+
+npm run migration:generate -- src/migrations/InitialPaymentService
+
 
 # 2. Ejecutar migración en nueva BD
-npm run typeorm migration:run
+npm run typeorm migration:run -- -d src/data-source.ts
+
+npm run migration:run
 ```
 
 ## 📊 Estructura de Tablas
