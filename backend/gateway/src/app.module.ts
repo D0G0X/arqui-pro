@@ -3,6 +3,7 @@ import { HttpModule } from '@nestjs/axios';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthProxyController } from './auth-proxy/auth-proxy.controller';
+import { PaymentProxyController } from './payment-proxy/payment-proxy.controller';
 import { TokenValidationMiddleware } from './middleware/token-validation.middleware';
 
 @Module({
@@ -19,7 +20,7 @@ import { TokenValidationMiddleware } from './middleware/token-validation.middlew
             inject: [ConfigService],
         }),
     ],
-    controllers: [AuthProxyController],
+    controllers: [AuthProxyController, PaymentProxyController],
 })
 export class AppModule {
     configure(consumer: MiddlewareConsumer) {
